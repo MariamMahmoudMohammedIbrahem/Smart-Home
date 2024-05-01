@@ -638,3 +638,190 @@ class MainActivity: FlutterActivity() {
     }
 }
 */
+/***UDPScreen.dart***/
+/*//start listen
+              ElevatedButton(
+                onPressed: () {
+                  startListen();
+                },
+                child: const Text(
+                  'lits',
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  startListen();
+                },
+                child: const Text(
+                  'start listen',
+                ),
+              ),*/
+/*//connect check
+
+              //status read
+              ElevatedButton(
+                onPressed: () {
+                  sendFrameAfterConnection(
+                      'STATUS_READ', '255.255.255.255', 8888);
+                },
+                child: const Text(
+                  'status read',
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  sendFrameAfterConnection(
+                      'STATUS_WRITE::[@MS_SEP@]::0::[@MS#SEP@]::0::[@MS&SEP@]::1::[@MS#SEP@]::0::[@MS&SEP@]::2::[@MS#SEP@]::0',
+                      '255.255.255.255',
+                      8888);
+                },
+                child: const Text(
+                  'status write',
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  sendFrameAfterConnection('RGB_READ', '255.255.255.255', 8888);
+                },
+                child: const Text(
+                  'RGB_READ',
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  sendFrameAfterConnection(
+                      'RGB_WRITE::0::0::0', '255.255.255.255', 8888);
+                },
+                child: const Text(
+                  'listen test',
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  sendFrameAfterConnection(
+                      'RGB_WRITE::0::0::0', '255.255.255.255', 8888);
+                },
+                child: const Text(
+                  'RGB_WRITE',
+                ),
+              ),*/
+/*//send
+  void sendFrame(String frame, String ipAddress, int port) {
+    // ipAddress = '255.255.255.255';
+    print('hello');
+    RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
+        .then((RawDatagramSocket socket) {
+      print('hello2');
+      socket.send(frame.codeUnits, InternetAddress(ipAddress), port);
+      socket.listen((RawSocketEvent event) {
+        if (event == RawSocketEvent.read) {
+          Datagram? datagram = socket.receive();
+          if (datagram != null) {
+            String response = String.fromCharCodes(datagram.data);
+            print('Received response: $response');
+          }
+        }
+      });
+    });
+  }*//*//mac address
+              ElevatedButton(
+                onPressed: () {
+                  sendFrame(
+                      'MAC_ADDRESS_READ', '255.255.255.255', 8888);
+                },
+                child: const Text(
+                  'get configuration',
+                ),
+              ),
+              Text(responseAll),
+              Form(
+                key: _formKey,
+                autovalidateMode: !readOnly ? AutovalidateMode.always : AutovalidateMode.disabled,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    TextFormField(
+                      controller: _nameController,
+                      enabled: !readOnly,
+                      decoration: const InputDecoration(labelText: 'Name'),
+                      readOnly: readOnly,
+                      validator: (value) {
+                        if (value!.isEmpty && !readOnly) {
+                          return 'Please enter your name';
+                        }
+                        return null;
+                      },
+                      onChanged: (value){
+                        name = _nameController.text;
+                      },
+                    ),
+                    TextFormField(
+                      controller: _passwordController,
+                      enabled: !readOnly,
+                      decoration: const InputDecoration(labelText: 'Password'),
+                      obscureText: true,
+                      readOnly: readOnly,
+                      validator: (value) {
+                        if (value!.isEmpty && !readOnly) {
+                          return 'Please enter your password';
+                        }
+                        return null;
+                      },
+                      onChanged: (value){
+                        password = _passwordController.text;
+                      },
+                    ),
+                    //wifi config
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if(!readOnly){
+                            if (_formKey.currentState!.validate()) {
+                              sendFrame(
+                                  'WIFI_CONFIG::[@MS_SEP@]::$name::[@MS&SEP@]::$password',
+                                  '192.168.4.1',
+                                  8888);
+                            }
+                          }
+                        },
+                        child: const Text(
+                          'wifi config',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  sendFrame(
+                      'WIFI_CONNECT_CHECK', '255.255.255.255', 8888);
+                  */
+/*if(navigate){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Rooms(),
+                      ),
+                    );
+                  }*//*
+                },
+                child: const Text(
+                  'wifi connect check',
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if(navigate){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Rooms(),
+                      ),
+                    );
+                  }
+                },
+                child: const Text(
+                  'navigate',
+                ),
+              ),*/
