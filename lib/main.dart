@@ -1,8 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mega/constants.dart';
-import 'package:mega/udp.dart';
+/*import 'package:mega/udp.dart';
 import 'package:mega/ui/room_info.dart';
+import 'package:mega/ui/rooms.dart';*/
 
 import 'db/sign_in.dart';
 import 'firebase_options.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: currentColor),
         useMaterial3: true,
       ),
-      home: const UDPScreen(),
+      home: const SignIn(),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mega/udp.dart';
 import 'package:mega/ui/room_info.dart';
 
 import '../constants.dart';
@@ -38,8 +39,10 @@ class _RoomsState extends State<Rooms> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home',),
-        titleTextStyle: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold,),
-        centerTitle: true,
+        titleTextStyle: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold,color:Colors.black,),
+        actions: [
+          IconButton(onPressed: (){}, icon: const Icon(Icons.menu_open_outlined))
+        ],
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: width*.05, vertical: 10),
@@ -53,7 +56,7 @@ class _RoomsState extends State<Rooms> {
                   20,
                 ),
               ),
-              child: const Placeholder(color: Colors.black,),
+              child: const Placeholder(color: Colors.white,),
             ),
             const Padding(
               padding: EdgeInsets.all(15.0),
@@ -65,12 +68,17 @@ class _RoomsState extends State<Rooms> {
                 endIndent : 10,
               ),
             ),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Rooms',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24,),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Rooms',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24,),
+                ),
+                IconButton(onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=> const UDPScreen()));
+                },iconSize: 30, icon: const Icon(Icons.add_circle_sharp))
+              ],
             ),
             Flexible(
               child: GridView.builder(

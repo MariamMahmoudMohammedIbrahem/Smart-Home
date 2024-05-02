@@ -2,8 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:mega/ui/loading_screen.dart';
 import 'package:mega/ui/rooms.dart';
+
+import 'constants.dart';
+import 'db/functions.dart';
 
 class UDPScreen extends StatefulWidget {
   const UDPScreen({super.key});
@@ -19,6 +22,7 @@ class _UDPScreenState extends State<UDPScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool configured = false;
   bool readOnly = true;
   bool navigate = false;
   bool connectionSuccess = false;
@@ -42,6 +46,9 @@ class _UDPScreenState extends State<UDPScreen> {
           if (datagram != null) {
             String response = String.fromCharCodes(datagram.data);
             if (response.startsWith('WIFI_CONFIG::[@MS_SEP@]::')) {
+              setState(() {
+                configured = true;
+              });
             } else if (response.startsWith('MAC_ADDRESS_READ::[@MS_SEP@]::')) {
               setState(() {
                 readOnly = false;
@@ -72,12 +79,14 @@ class _UDPScreenState extends State<UDPScreen> {
       socket.close();
     });
   }
+
   void showSnack(BuildContext context, String message) {
     final snackBar = SnackBar(
       content: Text(message),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
+
   @override
   void initState() {
     startListen();
@@ -90,7 +99,7 @@ class _UDPScreenState extends State<UDPScreen> {
     super.dispose();
   }
 
-  int _currentStep = 2;
+  int _currentStep = 0;
   IconData _selectedIcon = Icons.living_sharp;
   List<IconData> icons = [
     Icons.living_sharp,
@@ -123,7 +132,7 @@ class _UDPScreenState extends State<UDPScreen> {
       return 'Laundry Room';
     } else if (icon == Icons.garage_sharp) {
       return 'Garage';
-    } else/* if (icon == Icons.camera_outdoor_sharp) */{
+    } else /* if (icon == Icons.camera_outdoor_sharp) */ {
       return 'Outdoor';
     }
   }
@@ -134,23 +143,39 @@ class _UDPScreenState extends State<UDPScreen> {
         state: _currentStep > 0 ? StepState.complete : StepState.indexed,
         isActive: _currentStep >= 0,
         title: const Text(''),
-        content:
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        content: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flex(
+                direction: Axis.vertical,
                 children: [
-                  Flex(
-                    direction: Axis.vertical,
-                    children:[
-                      const Text('HEADLINE1',style:TextStyle(fontWeight: FontWeight.bold, fontSize: 26,),textAlign: TextAlign.center,),
-                      const Text('go to the wifi lists and connect to \'EsPap\' Network',style: TextStyle(fontSize: 23,),textAlign: TextAlign.center,),
-                      Image.asset('images/light-control.gif',),
-                    ],
+                  const Text(
+                    'HEADLINE1',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 26,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const Text(
+                    'go to the wifi lists and connect to \'EsPap\' Network',
+                    style: TextStyle(
+                      fontSize: 23,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  ///TODO: change image
+                  Image.asset(
+                    'images/light-control.gif',
                   ),
                 ],
               ),
-            ),
+            ],
+          ),
+        ),
       ),
       Step(
         state: _currentStep > 1 ? StepState.complete : StepState.indexed,
@@ -163,10 +188,27 @@ class _UDPScreenState extends State<UDPScreen> {
             children: [
               Flex(
                 direction: Axis.vertical,
-                children:[
-                  const Text('Check connection',style:TextStyle(fontWeight: FontWeight.bold, fontSize: 26,),textAlign: TextAlign.center,),
-                  const Text('subtitle',style: TextStyle(fontSize: 23,),textAlign: TextAlign.center,),
-                  Image.asset('images/light-control.gif',),
+                children: [
+                  const Text(
+                    'Check connection',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 26,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const Text(
+                    'subtitle',
+                    style: TextStyle(
+                      fontSize: 23,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  ///TODO: change image
+                  Image.asset(
+                    'images/light-control.gif',
+                  ),
                 ],
               ),
             ],
@@ -181,62 +223,55 @@ class _UDPScreenState extends State<UDPScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 40.0),
           child: Column(
             children: [
-              const Text('Add Wifi-Network',style:TextStyle(fontWeight: FontWeight.bold, fontSize: 26,),textAlign: TextAlign.center,),
-              const Text('Please add your home\'s wifi network data',style: TextStyle(fontSize: 23,),textAlign: TextAlign.center,),
+              const Text(
+                'Add Wifi-Network',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 26,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const Text(
+                'Please add your home\'s wifi network data',
+                style: TextStyle(
+                  fontSize: 23,
+                ),
+                textAlign: TextAlign.center,
+              ),
               Form(
                 key: _formKey,
-                autovalidateMode: !readOnly ? AutovalidateMode.always : AutovalidateMode.disabled,
+                /*autovalidateMode: !readOnly
+                    ? AutovalidateMode.always
+                    : AutovalidateMode.disabled,*/
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     TextFormField(
                       controller: _nameController,
-                      enabled: !readOnly,
                       decoration: const InputDecoration(labelText: 'Name'),
-                      readOnly: readOnly,
                       validator: (value) {
-                        if (value!.isEmpty && !readOnly) {
+                        if (value!.isEmpty) {
                           return 'Please enter your name';
                         }
                         return null;
                       },
-                      onChanged: (value){
+                      onChanged: (value) {
                         name = _nameController.text;
                       },
                     ),
                     TextFormField(
                       controller: _passwordController,
-                      enabled: !readOnly,
                       decoration: const InputDecoration(labelText: 'Password'),
                       obscureText: true,
-                      readOnly: readOnly,
                       validator: (value) {
-                        if (value!.isEmpty && !readOnly) {
+                        if (value!.isEmpty) {
                           return 'Please enter your password';
                         }
                         return null;
                       },
-                      onChanged: (value){
+                      onChanged: (value) {
                         password = _passwordController.text;
                       },
-                    ),
-                    //wifi config
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if(!readOnly){
-                            if (_formKey.currentState!.validate()) {
-                              sendFrame(
-                                  'WIFI_CONFIG::[@MS_SEP@]::$name::[@MS&SEP@]::$password',
-                                  '192.168.4.1',
-                                  8888);
-                            }
-                          }
-                        },
-                        child: const Text(
-                          'wifi config',
-                        ),
-                      ),
                     ),
                   ],
                 ),
@@ -253,8 +288,21 @@ class _UDPScreenState extends State<UDPScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 40.0),
           child: Column(
             children: [
-              const Text('choose your room name',style:TextStyle(fontWeight: FontWeight.bold, fontSize: 26,),textAlign: TextAlign.center,),
-              const Text('make sure that you are connected to the previous wifi network and choose room name',style: TextStyle(fontSize: 23,),textAlign: TextAlign.center,),
+              const Text(
+                'choose your room name',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 26,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const Text(
+                'make sure that you are connected to the previous wifi network and choose room name',
+                style: TextStyle(
+                  fontSize: 23,
+                ),
+                textAlign: TextAlign.center,
+              ),
               SingleChildScrollView(
                 child: DropdownButton<IconData>(
                   value: _selectedIcon,
@@ -288,16 +336,19 @@ class _UDPScreenState extends State<UDPScreen> {
                           ),
                         ],
                       ),
+                      onTap: () {
+                        roomName = getIconName(icon);
+                      },
                     );
                   }).toList(),
                 ),
               ),
-              ElevatedButton(
+              /*ElevatedButton(
                 onPressed: () {},
                 child: const Text(
                   'check connectivity',
                 ),
-              ),
+              ),*/
             ],
           ),
         ),
@@ -307,7 +358,7 @@ class _UDPScreenState extends State<UDPScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double width =  MediaQuery.of(context).size.width;
+    double width = MediaQuery.of(context).size.width;
     return Scaffold(
       body: SafeArea(
         child: Stepper(
@@ -333,33 +384,118 @@ class _UDPScreenState extends State<UDPScreen> {
           onStepTapped: (step) {},
           controlsBuilder: (BuildContext context, ControlsDetails controls) {
             return Row(
-              mainAxisAlignment: _currentStep != 0 ?MainAxisAlignment.spaceBetween:MainAxisAlignment.center,
+              mainAxisAlignment: _currentStep != 0 && !configured && !connectionSuccess
+                  ? MainAxisAlignment.spaceBetween
+                  : MainAxisAlignment.center,
               children: [
                 Visibility(
-                  visible: _currentStep != 0 ,
-                  child: SizedBox(
-                    width: width*.4,
-                    child: ElevatedButton(
-                      onPressed: controls.onStepCancel,
-                      child: Text(_currentStep == 0 ? '' : 'Back',style: const TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                  visible: (_currentStep != 0 && readOnly) || (_currentStep == 2 && !configured) || (_currentStep == 1 && !connectionSuccess),
+                  child: Expanded(
+                    child: SizedBox(
+                      // width: width * .4,
+                      child: ElevatedButton(
+                        onPressed: controls.onStepCancel,
+                        child: const Text(
+                          'Back',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                SizedBox(
-                  width: _currentStep == 0 ?width*.7:width*.4,
-                  child: ElevatedButton(
-                    onPressed: (){
-                      if(_currentStep != 1 || connectionSuccess){
-                        controls.onStepContinue!();
-                      }
-                      else{
-                        sendFrame('WIFI_CONNECT_CHECK', '255.255.255.255', 8888);
-                        showSnack(context, 'Wait A Second');
-                      }
-                    },
-                    child: Text(_currentStep == getSteps().length - 1
-                        ? 'Finish'
-                        : (_currentStep != 1 || connectionSuccess)?'Next':'Check Connection',style: const TextStyle(fontSize: 20,fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+                const SizedBox(width: 5,),
+                Expanded(
+                  child: SizedBox(
+                    // width: (_currentStep == 0 || connectionSuccess || configured) ? width * .7 : width * .4,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_currentStep == 0) {
+                          if(!readOnly){
+                            controls.onStepContinue!();
+                          }
+                          else{
+                            sendFrame(
+                                'MAC_ADDRESS_READ', '255.255.255.255', 8888);
+                          }
+                        }
+                        else if (_currentStep == 1) {
+                          if(connectionSuccess){
+                            controls.onStepContinue!();
+                          }
+                          else{
+                            sendFrame(
+                                'WIFI_CONNECT_CHECK', '255.255.255.255', 8888);
+                            showSnack(context, 'Wait A Second');
+                          }
+                        }
+                        else if (_currentStep == 2) {
+                          if(configured){
+                            controls.onStepContinue!();
+                          }else{
+                            if(_formKey.currentState!.validate()){
+                              print('validated${_formKey.currentState!.validate()}');
+                              sendFrame(
+                                  'WIFI_CONFIG::[@MS_SEP@]::$name::[@MS&SEP@]::$password',
+                                  '192.168.4.1',
+                                  8888);
+                            }
+                            else{
+                              showSnack(context, 'Fields are Empty');
+                            }
+                          }
+                        } else {
+                          saveInDB('Devices');
+                          if (!readOnly) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LoadingPage(
+                                  onValueReceived: (bool value) {
+                                    // Navigate based on the received boolean value
+                                    if (value) {
+                                      Navigator.pop(context);
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const Rooms(),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ),
+                            );
+                          } else {
+                            showSnack(
+                              context,
+                              'Make Sure You Are Connected to Wifi',
+                            );
+                          }
+                        }
+                      },
+                      child: Text(
+                        _currentStep == 0
+                            ? (readOnly ? 'Next' : 'connect')
+                            : _currentStep == 1
+                                ? (connectionSuccess
+                                    ? 'Next'
+                                    : 'Check Connection')
+                                : _currentStep == 2
+                                    ? (configured ? 'Next' : 'Configure')
+                                    : 'Finish',
+                        /*_currentStep == getSteps().length - 1
+                            ? 'Finish'
+                            : (_currentStep != 1 || connectionSuccess)
+                                ? 'Next'
+                                : 'Check Connection',*/
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
                 ),
               ],

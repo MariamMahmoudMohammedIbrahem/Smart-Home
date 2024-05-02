@@ -109,7 +109,7 @@ class _RoomDetailState extends State<RoomDetail> {
     //read rgb
     //create list switches
     // Hexadecimal color value
-
+    saved = false;
     super.initState();
   }
 }

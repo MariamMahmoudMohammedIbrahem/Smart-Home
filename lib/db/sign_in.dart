@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mega/db/functions.dart';
 import 'package:mega/db/sign_up.dart';
 
 class SignIn extends StatefulWidget {
@@ -26,7 +27,15 @@ class _SignInState extends State<SignIn> {
           ),
           ElevatedButton(
             onPressed: () {
-
+              handleSignIn(context);
+            },
+            child: const Text(
+              'sign in with google',
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              handleSignOut();
             },
             child: const Text(
               'sign in with google',
