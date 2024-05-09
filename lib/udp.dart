@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mega/ui/loading_screen.dart';
 import 'package:mega/ui/rooms.dart';
@@ -358,7 +357,6 @@ class _UDPScreenState extends State<UDPScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
     return Scaffold(
       body: SafeArea(
         child: Stepper(
@@ -460,7 +458,7 @@ class _UDPScreenState extends State<UDPScreen> {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => const Rooms(),
+                                          builder: (context) => const Rooms(userName: '',),
                                         ),
                                       );
                                     }

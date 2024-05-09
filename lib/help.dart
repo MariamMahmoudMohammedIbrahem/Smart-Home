@@ -825,3 +825,44 @@ class MainActivity: FlutterActivity() {
                   'navigate',
                 ),
               ),*/
+
+/**sign_in.dart*/
+
+/*TextFormField(
+                          controller: userController,
+                          keyboardType: TextInputType.name,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          style: const TextStyle(),
+                          validator: (value) {
+
+                          },
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.people, color: Colors.brown.shade700,),
+                            labelText: 'username',
+                            floatingLabelStyle: MaterialStateTextStyle.resolveWith(
+                                    (Set<MaterialState> states) {
+                                  final Color color = states.contains(MaterialState.error)
+                                      ? Theme.of(context).colorScheme.error
+                                      : Colors.brown.shade700;
+                                  return TextStyle(color: color, letterSpacing: 1.3,fontWeight: FontWeight.bold,fontSize: 18);
+                                }),
+                            labelStyle: MaterialStateTextStyle.resolveWith(
+                                    (Set<MaterialState> states) {
+                                  final Color color = states.contains(MaterialState.error)
+                                      ? Theme.of(context).colorScheme.error
+                                      : Colors.brown.shade700;
+                                  return TextStyle(color: color, letterSpacing: 1.3);
+                                }),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: const BorderRadius.all(Radius.circular(20.0)),
+                              borderSide: BorderSide(width: 3, color: Colors.brown.shade800 ,),
+                            ),
+                            border: const OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(20.0)),
+                              borderSide: BorderSide(width: 1, color: Colors.brown ,),
+                            ),
+                          ),
+                          onChanged: (value) async {
+
+                          },
+                        ),*/
