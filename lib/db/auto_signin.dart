@@ -1,7 +1,8 @@
+/*
 import 'dart:ui';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mega/db/sign_in.dart';
 import 'package:mega/ui/rooms.dart';
@@ -64,10 +65,12 @@ class _AutoSignInState extends State<AutoSignIn> {
     );
   }
   @override
-  /*void initState() {
+  */
+/*void initState() {
     getStoredCredentials();
     super.initState();
-  }*/
+  }*//*
+
   void signInWithEmailAndPassword() {
 
     try {
@@ -92,7 +95,8 @@ class _AutoSignInState extends State<AutoSignIn> {
       Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=> const SignIn()), (route) => false);
     }
   }
-  /*void getStoredCredentials() async {
+  */
+/*void getStoredCredentials() async {
     prefs = await SharedPreferences.getInstance();
     prefsEmail = prefs.getString('email') ?? '';
     prefsPassword = prefs.getString('password') ?? '';
@@ -105,5 +109,6 @@ class _AutoSignInState extends State<AutoSignIn> {
       // const AutoLogin();
       signInWithEmailAndPassword(prefsEmail, prefsPassword, rememberPassword);
     }
-  }*/
-}
+  }*//*
+
+}*/

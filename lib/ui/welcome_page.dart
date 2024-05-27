@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mega/db/sign_in.dart';
-
-import '../db/sign_up.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
@@ -45,12 +42,12 @@ class _WelcomePageState extends State<WelcomePage> {
                     width: width*.6,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
+                        /*Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const SignIn(),
                           ),
-                        );
+                        );*/
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.pink.shade900,
@@ -66,12 +63,12 @@ class _WelcomePageState extends State<WelcomePage> {
                     width: width*.6,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
+                        /*Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const SignUp(),
                           ),
-                        );
+                        );*/
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.pink.shade900,

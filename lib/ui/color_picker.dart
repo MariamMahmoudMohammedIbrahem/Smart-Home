@@ -58,27 +58,21 @@ class _HUEColorPickerState extends State<HUEColorPicker> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        const SizedBox(height: 20),
-        ColorPicker(
-          pickerColor: widget.pickerColor,
-          onColorChanged: widget.onColorChanged,
-          colorPickerWidth: 300,
-          pickerAreaHeightPercent: 0.7,
-          enableAlpha: true,
-          labelTypes: const [],
-          displayThumbColor: true,
-          portraitOnly: true,
-          paletteType: PaletteType.hueWheel,
-          pickerAreaBorderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(2),
-            topRight: Radius.circular(2),
-          ),
-          hexInputBar: false,
-        ),
-        // ElevatedButton(onPressed: (){print('${currentColor.red} ${currentColor.green} ${currentColor.blue}');}, child: const Text('data',),),
-      ],
+    return ColorPicker(
+      pickerColor: widget.pickerColor,
+      onColorChanged: widget.onColorChanged,
+      colorPickerWidth: 300,
+      pickerAreaHeightPercent: 0.7,
+      enableAlpha: false,
+      labelTypes: const [],
+      displayThumbColor: true,
+      portraitOnly: true,
+      paletteType: PaletteType.hueWheel,
+      pickerAreaBorderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(2),
+        topRight: Radius.circular(2),
+      ),
+      hexInputBar: false,
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -5,7 +6,6 @@ import 'package:mega/ui/loading_screen.dart';
 import 'package:mega/ui/rooms.dart';
 
 import 'constants.dart';
-import 'db/functions.dart';
 
 class UDPScreen extends StatefulWidget {
   const UDPScreen({super.key});
@@ -22,11 +22,144 @@ class _UDPScreenState extends State<UDPScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool configured = false;
-  bool readOnly = true;
+  bool readOnly = false;
   bool navigate = false;
   bool connectionSuccess = false;
+  var commandResponse = '';
+  String macAddress = "";
+  void sendFrame(Map<String, dynamic> jsonFrame, String ipAddress, int port) {
+    // Convert the Map to a JSON string
+    String frame = jsonEncode(jsonFrame);
 
-  void sendFrame(String frame, String ipAddress, int port) {
+    // Bind to any available IPv4 address and port 0 (let the OS assign a port)
+    RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
+        .then((RawDatagramSocket socket) {
+      print('Sending JSON frame');
+      print(jsonFrame);
+      socket.broadcastEnabled = true;
+
+      // Send the JSON string as a list of bytes
+      socket.send(frame.codeUnits, InternetAddress(ipAddress), port);
+    });
+  }
+
+  void startListen() {
+    // Bind to any available IPv4 address and the specified port (8081)
+    RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081)
+        .then((RawDatagramSocket socket) {
+      socket.listen((RawSocketEvent event) {
+        if (event == RawSocketEvent.read) {
+          Datagram? datagram = socket.receive();
+          if (datagram != null) {
+            // Convert the received data to a string
+            String response = String.fromCharCodes(datagram.data);
+
+
+            if(response == "OK") {
+              commandResponse = response;
+            }
+            else {
+              try {
+                // Parse the JSON string to a Map
+                Map<String, dynamic> jsonResponse = jsonDecode(response);
+                print('response $response');
+                // print('Received JSON response: $jsonResponse');
+
+                commandResponse = jsonResponse['commands'];
+                if (commandResponse == 'MAC_ADDRESS_READ_OK') {
+                  setState(() {
+                    macAddress = jsonResponse["mac_address"];
+                    readOnly = true;
+                  });
+                }
+                else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
+                  setState(() {
+                    connectionSuccess = true;
+                    showSnack(context, 'Connected Successfully');
+                  });
+                }
+                else if (commandResponse == 'UPDATE_OK') {
+                  setState(() {
+                    macAddress = jsonResponse["mac_address"];
+                    readOnly = true;
+                  });
+                }
+                else if (commandResponse == 'WIFI_CONFIG_OK') {
+                  setState(() {
+                    configured = true;
+                  });
+                }
+                else if (commandResponse == 'SWITCH_READ_OK') {
+
+                }
+                else if (commandResponse == 'SWITCH_WRITE_OK') {
+
+                }
+                else if (commandResponse == 'RGB_READ_OK') {
+
+                }
+                else if (commandResponse == 'RGB_WRITE_OK') {
+
+                }
+                else if (commandResponse == 'DEVICE_CONFIG_WRITE_OK') {
+
+                }
+
+                /*if (response.startsWith('WIFI_CONFIG::[@MS_SEP@]::')) {
+                setState(() {
+                  configured = true;
+                });
+              } else if (response.startsWith('MAC_ADDRESS_READ::[@MS_SEP@]::')) {
+                setState(() {
+                  readOnly = false;
+                });
+                print('true');
+              } else if (response.startsWith('WIFI_CONNECT_OK')) {
+                setState(() {
+                  connectionSuccess = true;
+                  showSnack(context, 'Connected Successfully');
+                });
+              } else if (response.startsWith('STATUS_READ::[@MS_SEP@]::')) {
+                setState(() {});
+              } else if (response.startsWith('RGB_READ::')) {
+                setState(() {});
+              }*/
+              } catch (e) {
+                print('Error decoding JSON: $e');
+              }
+            }
+          }
+        }
+      });
+    });
+  }
+  /*dynamic searchJson(Map<String, dynamic> json, String key) {
+    if (json.containsKey(key)) {
+      return json[key];
+    }
+
+    for (var value in json.values) {
+      if (value is Map) {
+        var result = searchJson(Map<String, dynamic>.from(value), key);
+        if (result != null) {
+          return result;
+        }
+      }
+      else if (value is List) {
+        for (var item in value) {
+          if (item is Map) {
+            var result = searchJson(Map<String, dynamic>.from(item), key);
+            if (result != null) {
+              return result;
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }*/
+  /*void sendFrame(String frame, String ipAddress, int port) {
     // Removed the ipAddress assignment
     RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
         .then((RawDatagramSocket socket) {
@@ -35,7 +168,7 @@ class _UDPScreenState extends State<UDPScreen> {
       socket.send(frame.codeUnits, InternetAddress(ipAddress), port);
     });
   }
-
+///todo: json
   void startListen() {
     RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081) //local port
         .then((RawDatagramSocket socket) {
@@ -70,7 +203,7 @@ class _UDPScreenState extends State<UDPScreen> {
         }
       });
     });
-  }
+  }*/
 
   void close() {
     RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081) //local port
@@ -88,8 +221,8 @@ class _UDPScreenState extends State<UDPScreen> {
 
   @override
   void initState() {
-    startListen();
     super.initState();
+    startListen();
   }
 
   @override
@@ -165,7 +298,7 @@ class _UDPScreenState extends State<UDPScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-
+                  Text('command $commandResponse'),
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
@@ -203,7 +336,7 @@ class _UDPScreenState extends State<UDPScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-
+                  Text('command $commandResponse'),
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
@@ -237,6 +370,7 @@ class _UDPScreenState extends State<UDPScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
+              Text('command $commandResponse'),
               Form(
                 key: _formKey,
                 /*autovalidateMode: !readOnly
@@ -302,6 +436,7 @@ class _UDPScreenState extends State<UDPScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
+              Text('command $commandResponse'),
               SingleChildScrollView(
                 child: DropdownButton<IconData>(
                   value: _selectedIcon,
@@ -357,6 +492,8 @@ class _UDPScreenState extends State<UDPScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       body: SafeArea(
         child: Stepper(
@@ -382,12 +519,15 @@ class _UDPScreenState extends State<UDPScreen> {
           onStepTapped: (step) {},
           controlsBuilder: (BuildContext context, ControlsDetails controls) {
             return Row(
-              mainAxisAlignment: _currentStep != 0 && !configured && !connectionSuccess
-                  ? MainAxisAlignment.spaceBetween
-                  : MainAxisAlignment.center,
+              mainAxisAlignment:
+                  _currentStep != 0 && !configured && !connectionSuccess
+                      ? MainAxisAlignment.spaceBetween
+                      : MainAxisAlignment.center,
               children: [
                 Visibility(
-                  visible: (_currentStep != 0 && readOnly) || (_currentStep == 2 && !configured) || (_currentStep == 1 && !connectionSuccess),
+                  visible: (_currentStep != 0 && readOnly) ||
+                      (_currentStep == 2 && !configured) ||
+                      (_currentStep == 1 && !connectionSuccess),
                   child: Expanded(
                     child: SizedBox(
                       // width: width * .4,
@@ -404,48 +544,58 @@ class _UDPScreenState extends State<UDPScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 5,),
+                const SizedBox(
+                  width: 5,
+                ),
                 Expanded(
                   child: SizedBox(
                     // width: (_currentStep == 0 || connectionSuccess || configured) ? width * .7 : width * .4,
                     child: ElevatedButton(
                       onPressed: () {
                         if (_currentStep == 0) {
-                          if(!readOnly){
+                          if (readOnly) {
                             controls.onStepContinue!();
-                          }
-                          else{
+                          } else {
                             sendFrame(
-                                'MAC_ADDRESS_READ', '255.255.255.255', 8888);
+                              {"commands": 'MAC_ADDRESS_READ'},
+                              '255.255.255.255',
+                              8888,
+                            );
                           }
-                        }
-                        else if (_currentStep == 1) {
-                          if(connectionSuccess){
+                        } else if (_currentStep == 1) {
+                          if (connectionSuccess) {
                             controls.onStepContinue!();
-                          }
-                          else{
+                          } else {
                             sendFrame(
-                                'WIFI_CONNECT_CHECK', '255.255.255.255', 8888);
+                              {"commands": 'WIFI_CONNECT_CHECK',"mac_address":macAddress,},
+                              '255.255.255.255',
+                              8888,
+                            );
                             showSnack(context, 'Wait A Second');
                           }
-                        }
-                        else if (_currentStep == 2) {
-                          if(configured){
+                        } else if (_currentStep == 2) {
+                          if (configured) {
                             controls.onStepContinue!();
-                          }else{
-                            if(_formKey.currentState!.validate()){
-                              print('validated${_formKey.currentState!.validate()}');
+                          } else {
+                            if (_formKey.currentState!.validate()) {
+                              print(
+                                  'validated${_formKey.currentState!.validate()}');
                               sendFrame(
-                                  'WIFI_CONFIG::[@MS_SEP@]::$name::[@MS&SEP@]::$password',
-                                  '192.168.4.1',
-                                  8888);
-                            }
-                            else{
+                                {
+                                  "commands": "WIFI_CONFIG",
+                                  "mac_address": macAddress,
+                                  "wifi_ssid": name,
+                                  "wifi_password": password,
+                                },
+                                '192.168.4.1',
+                                8888,
+                              );
+                            } else {
                               showSnack(context, 'Fields are Empty');
                             }
                           }
                         } else {
-                          saveInDB('Devices');
+                          /*saveInDB('Devices');*/
                           if (!readOnly) {
                             Navigator.push(
                               context,
@@ -458,7 +608,7 @@ class _UDPScreenState extends State<UDPScreen> {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => const Rooms(userName: '',),
+                                          builder: (context) => const Rooms(),
                                         ),
                                       );
                                     }

@@ -1,4 +1,4 @@
-import 'dart:ui';
+/*
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -22,114 +22,100 @@ class _PasswordResetState extends State<PasswordReset> {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Colors.white,
-      extendBodyBehindAppBar: true,
-      body: Stack(
-        children: [
-          ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-            child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('images/light-control.gif'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: width*.07),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: width*.07),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10.0),
-                    child: CircleAvatar(
-                        backgroundColor: Colors.brown.shade200,
-                        radius: 120,
-                        child: const CircleAvatar(
-                          backgroundColor: Colors.brown,
-                          radius: 112,
-                          child: CircleAvatar(
-                            backgroundImage: AssetImage(
-                              'images/appIcon.jpg',
-                            ),
-                            radius: 100,
-                          ),
-                        )),
+                  const Text(
+                    'Reset Password',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 50,
+                    ),
+                    softWrap: true,
                   ),
+                  SizedBox(
+                    width: width * .7,
+                    child: Text(
+                      'Please Enter your email address to request a password reset',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade800,
+                        fontSize: 28,
+                      ),
+                      softWrap: true,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                children: [
                   Form(
                     key: _formKey,
                     child: Padding(
-                      padding: EdgeInsets.only(left: width * .05, bottom: 10),
-                      child: Container(
-                        padding: const EdgeInsets.only(left: 15.0),
-                        decoration: BoxDecoration(
-                            color: Colors.brown.shade600.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(20.0)),
-                        child: TextFormField(
-                          controller: emailController,
-                          cursorColor: Colors.white,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Email is required';
-                            } else if (!isEmailValid(value)) {
-                              return 'Enter a valid email address';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.email, color: Colors.white,),
-                            label: Text(
-                              'email',
-                              style: const TextStyle(color: Colors.white),
+                      padding: EdgeInsets.symmetric(horizontal: .03 * width),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Email',style:TextStyle(color: Colors.pink.shade700,fontWeight: FontWeight.bold, fontSize: 24,),),
+                          Container(
+                            padding: const EdgeInsets.only(left: 15.0),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20.0),
                             ),
-                            // floatingLabelStyle: MaterialStateTextStyle.resolveWith(
-                            //         (Set<MaterialState> states) {
-                            //       final Color color = states.contains(MaterialState.error)
-                            //           ? Theme.of(context).colorScheme.error
-                            //           : Colors.brown.shade700;
-                            //       return TextStyle(color: color, letterSpacing: 1.3,fontWeight: FontWeight.bold,fontSize: 18);
-                            //     }),
-                            // labelStyle: MaterialStateTextStyle.resolveWith(
-                            //         (Set<MaterialState> states) {
-                            //       final Color color = states.contains(MaterialState.error)
-                            //           ? Theme.of(context).colorScheme.error
-                            //           : Colors.brown.shade700;
-                            //       return TextStyle(color: color, letterSpacing: 1.3);
-                            //     }),
-                            focusedBorder: const UnderlineInputBorder(
-                              borderSide:
-                              BorderSide(color: Colors.white, width: 1.0),
-                            ),
-                            border: const UnderlineInputBorder(
-                              borderRadius:
-                              BorderRadius.all(Radius.circular(20.0)),
-                              borderSide:
-                              BorderSide(width: 1, color: Colors.white),
+                            child: TextFormField(
+                              controller: emailController,
+                              cursorColor: Colors.pink,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Email is required';
+                                } else if (!isEmailValid(value)) {
+                                  return 'Enter a valid email address';
+                                }
+                                return null;
+                              },
+                              decoration: const InputDecoration(
+                                hintText: 'Please Enter Your Email',
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius:
+                                  BorderRadius.all(Radius.circular(20.0),),
+                                  borderSide:
+                                  BorderSide(color: Colors.pink, width: 1.0),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius:
+                                  BorderRadius.all(Radius.circular(20.0)),
+                                  borderSide:
+                                  BorderSide(width: 1, color: Colors.pink),
+                                ),
+                              ),
+                              style: const TextStyle(
+                                  color: Colors.pink,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
+                              onChanged: (value) {
+                                _email = value;
+                              },
                             ),
                           ),
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold),
-                          onChanged: (value) {
-                            _email = value;
-                          },
-                        ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10,),
                   SizedBox(
                     width: width*.8,
                     child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.brown,
-                          backgroundColor: Colors.brown.shade600,
-                          disabledForegroundColor: Colors.brown.shade600,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),),),
+                          foregroundColor: Colors.pink,
+                          backgroundColor: Colors.pink.shade600,
+                          disabledForegroundColor: Colors.pink.shade600,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),),
                         onPressed: (){
                           if(_formKey.currentState!.validate()){
                             passwordReset();
@@ -140,17 +126,18 @@ class _PasswordResetState extends State<PasswordReset> {
                             );
                           }
                         },
-                        child: Text(
+                        child: const Text(
                           'Continue',
-                          style: const TextStyle(color: Colors.white, fontSize: 24,),
+                          style: TextStyle(color: Colors.white, fontSize: 24,),
                         )
                     ),
                   ),
                 ],
               ),
-            ),
+              Flexible(child: Image.asset('images/4707071.jpg',)),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -160,7 +147,7 @@ class _PasswordResetState extends State<PasswordReset> {
         showDialog(
             context: context,
             builder: (context) {
-              return AlertDialog(
+              return const AlertDialog(
                 content: Text('Reset Password'),
               );
             }
@@ -173,7 +160,7 @@ class _PasswordResetState extends State<PasswordReset> {
       showDialog(
           context: context,
           builder: (context) {
-            return AlertDialog(
+            return const AlertDialog(
               content: Text('problem Occurred'),
             );
           }
@@ -181,3 +168,4 @@ class _PasswordResetState extends State<PasswordReset> {
     }
   }
 }
+*/

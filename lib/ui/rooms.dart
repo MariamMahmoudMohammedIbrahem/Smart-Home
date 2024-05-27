@@ -1,16 +1,17 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:mega/db/account_details.dart';
+// import 'package:mega/services/weather_service.dart';
 import 'package:mega/udp.dart';
 import 'package:mega/ui/room_info.dart';
 
 import '../constants.dart';
-import '../db/functions.dart';
-import '../db/reset_password.dart';
+
+// import '../models/weather_model.dart';
 
 class Rooms extends StatefulWidget {
-  const Rooms({required this.userName,super.key});
-
-  final String userName;
+  const Rooms({super.key});
 
   @override
   State<Rooms> createState() => _RoomsState();
@@ -18,6 +19,32 @@ class Rooms extends StatefulWidget {
 
 class _RoomsState extends State<Rooms> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  /*//api key
+  final _weatherService = WeatherService('7ef5de939aeeef2465e631149e968016');
+  Weather? _weather;
+  //fetch weather
+  _fetchWeather() async {
+    //get the current city
+    String cityName = await _weatherService.getCurrentCity();
+    print(cityName);
+    //get weather for city
+    try {
+      final weather = await _weatherService.getWeather(cityName);
+      setState(() {
+        _weather = weather;
+      });
+    } catch (e) {
+      print(e);
+    }
+  }*/
+
+  /*@override
+  void initState() {
+    super.initState();
+    //fetch weather on startup
+    _fetchWeather();
+  }*/
+
   @override
   Widget build(BuildContext context) {
     Color getForegroundColor(Set<MaterialState> states) {
@@ -48,13 +75,13 @@ class _RoomsState extends State<Rooms> {
       backgroundColor: backgroundColor,
     );
     double width = MediaQuery.of(context).size.width;
-    initial = widget.userName.trim().isNotEmpty
+    /*initial = widget.userName.trim().isNotEmpty
         ? widget.userName.trim()[0].toUpperCase()
-        : ''; // Get the first letter
+        : '';*/
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        leadingWidth: 100,
+        /*leadingWidth: 100,
         leading: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: Container(
@@ -81,9 +108,9 @@ class _RoomsState extends State<Rooms> {
               ),
             ),
           ),
-        ),
-        title: Text(
-          widget.userName,
+        ),*/
+        title: const Text(
+          'My Home',
         ),
         titleTextStyle: const TextStyle(
           fontSize: 26,
@@ -91,7 +118,15 @@ class _RoomsState extends State<Rooms> {
           color: Colors.black,
         ),
         actions: [
-          Builder(
+          IconButton(
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const UDPScreen()));
+              },
+              iconSize: 30,
+              color: Colors.pink.shade900,
+              icon: const Icon(Icons.add_circle_sharp)),
+          /*Builder(
             builder: (context) => IconButton(
               iconSize: 35,
               color: Colors.pink.shade900,
@@ -100,10 +135,10 @@ class _RoomsState extends State<Rooms> {
                 Scaffold.of(context).openEndDrawer();
               },
             ),
-          ),
+          ),*/
         ],
       ),
-      endDrawer: Drawer(
+      /*endDrawer: Drawer(
         child: Container(
           color: Colors.brown.shade50,
           child: ListView(
@@ -120,7 +155,7 @@ class _RoomsState extends State<Rooms> {
                   ),
                   child: Center(
                     child: Text(
-                      widget.userName,
+                      'widget.userName',
                       style: TextStyle(
                         color: Colors.brown.shade700,
                         fontWeight: FontWeight.bold,
@@ -164,7 +199,7 @@ class _RoomsState extends State<Rooms> {
                   size: 30,
                 ),
                 title: Text(
-                  'Account Details',
+                  'Settings',
                   style: TextStyle(
                       color: Colors.brown.shade800,
                       fontWeight: FontWeight.bold,
@@ -172,7 +207,7 @@ class _RoomsState extends State<Rooms> {
                 ),
                 onTap: () {
                   _scaffoldKey.currentState?.closeEndDrawer();
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>const AccountDetails(),),);
+                  // Navigator.push(context, MaterialPageRoute(builder: (context)=>const AccountDetails(userName: '',),),);
                 },
               ),
               Padding(
@@ -200,7 +235,7 @@ class _RoomsState extends State<Rooms> {
                 ),
                 onTap: () {
                   _scaffoldKey.currentState?.closeEndDrawer();
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>const PasswordReset(),),);
+                  // Navigator.push(context, MaterialPageRoute(builder: (context)=>const PasswordReset(),),);
                 },
               ),
               Padding(
@@ -229,20 +264,23 @@ class _RoomsState extends State<Rooms> {
                 onTap: () {
                   //logout
                   _scaffoldKey.currentState?.closeEndDrawer();
-                  handleSignOut();
+                  // handleSignOut();
 
                 },
               ),
             ],
           ),
         ),
-      ),
+      ),*/
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: width * .05, vertical: 10),
           child: Column(
             children: [
-              Container(
+              /*Text(_weather?.cityName ?? "loading city.."),
+              Text("${_weather?.temperature.round()} c"),
+              ElevatedButton(onPressed: _fetchWeather, child: const Text('fetch weather',),),*/
+              /*Container(
                 height: 200,
                 decoration: BoxDecoration(
                   color: Colors.pink.shade900,
@@ -253,8 +291,8 @@ class _RoomsState extends State<Rooms> {
                 child: const Placeholder(
                   color: Colors.white,
                 ),
-              ),
-              const Padding(
+              ),*/
+              /*const Padding(
                 padding: EdgeInsets.all(15.0),
                 child: Divider(
                   height: 1,
@@ -263,62 +301,136 @@ class _RoomsState extends State<Rooms> {
                   indent: 10,
                   endIndent: 10,
                 ),
-              ),
+              ),*/
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Rooms',
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 26,
+                      color: Colors.pink.shade900,
                     ),
                   ),
                   IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const UDPScreen()));
-                      },
-                      iconSize: 30,
+                    onPressed: () {
+                      setState(() {
+                        toggle = !toggle;
+                      });
+                    },
+                    icon: Icon(
+                      toggle ? Icons.grid_view_rounded : Icons.list_outlined,
                       color: Colors.pink.shade900,
-                      icon: const Icon(Icons.add_circle_sharp))
+                    ),
+                  ),
                 ],
               ),
-              Flexible(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // number of items in each row
-                    mainAxisSpacing: 15.0, // spacing between rows
-                    crossAxisSpacing: 15.0, // spacing between columns
-                  ),
-                  padding: const EdgeInsets.all(8.0), // padding around the grid
-                  itemCount: items.length, // total number of items
-                  itemBuilder: (context, index) {
-                    return ElevatedButton(
-                      style: style.copyWith(side: side),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RoomDetail(room: items[index]),
-                          ),
-                        );
-                      },
-                      onLongPress: () {
-                        _showOptions(context, items[index]);
-                      },
-                      child: Center(
-                        child: Text(
-                          items[index],
-                          style: const TextStyle(
-                              fontSize: 18.0, color: Colors.white),
-                        ),
-                      ),
-                    );
-                  },
+              ElevatedButton(
+                onPressed: startListenJson,
+                child: const Text(
+                  'Start Listen',
                 ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  sendFrameJson(
+                    {"commands": "DEVICE_CONFIG_WRITE","mac_address":"08:3A:8D:D0:AA:20","update_period":"0"},
+                    '255.255.255.255',
+                    8888,
+                  );
+                },
+                child: const Text(
+                  'Send Json',
+                ),
+              ),
+              Flexible(
+                child: toggle
+                    ? ListView.builder(
+                        itemCount: items.length, // total number of items
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 7.5, horizontal: 8.0),
+                            child: GestureDetector(
+                              child: Container(
+                                height: 50.0,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(25.0),
+                                  color: Colors.pink.shade900,
+                                ),
+                                padding: const EdgeInsets.only(left: 15),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    items[index],
+                                    style: const TextStyle(
+                                      fontSize: 18.0,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        RoomDetail(room: items[index]),
+                                  ),
+                                );
+                              },
+                              onLongPress: () {
+                                _showOptions(context, items[index]);
+                              },
+                            ),
+                          );
+                        },
+                      )
+                    : GridView.builder(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, // number of items in each row
+                          mainAxisSpacing: 15.0, // spacing between rows
+                          crossAxisSpacing: 15.0, // spacing between columns
+                        ),
+                        /*padding: const EdgeInsets.all(
+                            8.0), // padding around the grid*/
+                        itemCount: items.length, // total number of items
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(25.0),
+                                color: Colors.pink.shade900,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  items[index],
+                                  style: const TextStyle(
+                                    fontSize: 18.0,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      RoomDetail(room: items[index]),
+                                ),
+                              );
+                            },
+                            onLongPress: () {
+                              _showOptions(context, items[index]);
+                            },
+                          );
+                        },
+                      ),
               )
             ],
           ),
@@ -327,11 +439,51 @@ class _RoomsState extends State<Rooms> {
     );
   }
 
+  void sendFrameJson(
+      Map<String, dynamic> jsonFrame, String ipAddress, int port) {
+    // Convert the Map to a JSON string
+    String frame = jsonEncode(jsonFrame);
+
+    // Bind to any available IPv4 address and port 0 (let the OS assign a port)
+    RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
+        .then((RawDatagramSocket socket) {
+      print('Sending JSON frame');
+      socket.broadcastEnabled = true;
+
+      // Send the JSON string as a list of bytes
+      socket.send(frame.codeUnits, InternetAddress(ipAddress), port);
+    });
+  }
+
+  void startListenJson() {
+    // Bind to any available IPv4 address and the specified port (8081)
+    RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081)
+        .then((RawDatagramSocket socket) {
+      socket.listen((RawSocketEvent event) {
+        if (event == RawSocketEvent.read) {
+          Datagram? datagram = socket.receive();
+          if (datagram != null) {
+            // Convert the received data to a string
+            String response = String.fromCharCodes(datagram.data);
+
+            try {
+              // Parse the JSON string to a Map
+              Map<String, dynamic> jsonResponse = jsonDecode(response);
+              print('Received JSON response: $jsonResponse');
+            } catch (e) {
+              print('Error decoding JSON: $e');
+            }
+          }
+        }
+      });
+    });
+  }
+
   void _showOptions(BuildContext context, String room) {
     showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return Wrap(
+      builder: (context) {
+        return ListView(
           children: <Widget>[
             Text(
               room,
@@ -350,6 +502,7 @@ class _RoomsState extends State<Rooms> {
               title: const Text('Delete'),
               onTap: () {
                 // delete container "based on  database"
+
                 Navigator.pop(context);
               },
             ),

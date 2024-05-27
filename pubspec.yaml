@@ -37,16 +37,22 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_colorpicker: ^1.0.3
   ##firebase packages
-  firebase_auth: ^4.19.2
-  firebase_database: ^10.5.2
-  cloud_firestore: ^4.17.0
-  firebase_core: ^2.30.1
+#  firebase_auth: ^4.19.2
+#  firebase_database: ^10.5.2
+#  cloud_firestore: ^4.17.0
+#  firebase_core: ^2.30.1
   get_storage: ^2.1.1
   shared_preferences: ^2.2.3
   flutter_native_splash: ^2.4.0
   get: ^4.6.6
-  google_sign_in: ^6.2.1
+#  google_sign_in: ^6.2.1
   provider: ^6.1.2
+  http: ^1.2.1
+  geolocator: ^11.0.0
+  geocoding: ^3.0.0
+  lottie: ^3.1.0
+  baseflow_plugin_template: ^2.1.2
+  modal_bottom_sheet: ^3.0.0
 
 dev_dependencies:
   flutter_test:

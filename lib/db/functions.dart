@@ -1,13 +1,15 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+/*
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+// import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mega/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../ui/rooms.dart';
 
-saveInDB(String collection) async {
+*/
+/*saveInDB(String collection) async {
   switch(collection){
     case 'Users':
       await FirebaseFirestore.instance
@@ -53,8 +55,10 @@ retrieve(String collection) async {
     case 'UserDevice':
       break;
   }
-}
+}*//*
+
 /// *sign_in**
+*/
 /*
 Future<void> handleSignIn() async {
   try {
@@ -82,8 +86,10 @@ Future<void> handleSignIn() async {
   } catch (error) {
     print(error);
   }
-}*/
-Future<void> loginUser(BuildContext context, String email, String password) async {
+}*//*
+
+*/
+/*Future<void> loginUser(BuildContext context, String email, String password) async {
   try {
     // Show loading dialog
     showDialog(
@@ -289,7 +295,9 @@ Future<void> setCredentials(String email, String password) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('email', email);
   await prefs.setString('password', password);
-}
+}*//*
+
+*/
 /*void signInWithEmailAndPassword(
     String email, String password, bool rememberMe) {
 
@@ -327,8 +335,11 @@ void checkStoredCredentials() {
   } else {
     signInWithEmailAndPassword(prefsEmail, prefsPassword, rememberPassword);
   }
-}*/
+}*//*
+
 //validations for text form fields
+*/
+/*
 bool isEmailValid(String email) {
   final RegExp emailRegex = RegExp(
     r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
@@ -348,4 +359,4 @@ bool isUsernameValid(String username){
     r'^[a-zA-Z0-9_]+$',
   );
   return userNameRegex.hasMatch(username);
-}
+}*/
