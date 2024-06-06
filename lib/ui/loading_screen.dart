@@ -27,7 +27,7 @@ class _LoadingPageState extends State<LoadingPage> {
             const Text('Loading...'),
             ElevatedButton(onPressed: (){setState(() {
               saved = true;
-            });}, child: const Text('nsv'))
+            });}, child: const Text('All set up'))
           ],
         ),
       ),

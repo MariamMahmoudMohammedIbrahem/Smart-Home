@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mega/constants.dart';
+import 'package:mega/db/functions.dart';
 import 'package:mega/ui/rooms.dart';
 import 'package:mega/ui/welcome_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,7 +10,13 @@ import 'package:provider/provider.dart';
 Future<void> main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => SwitchesProvider(),
+      child: const MyApp(),
+    ),
+  );
+  // runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

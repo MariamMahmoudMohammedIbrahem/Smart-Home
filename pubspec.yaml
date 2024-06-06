@@ -48,11 +48,13 @@ dependencies:
 #  google_sign_in: ^6.2.1
   provider: ^6.1.2
   http: ^1.2.1
-  geolocator: ^11.0.0
-  geocoding: ^3.0.0
+#  geolocator: ^11.0.0
+#  geocoding: ^3.0.0
   lottie: ^3.1.0
   baseflow_plugin_template: ^2.1.2
   modal_bottom_sheet: ^3.0.0
+  sqflite: ^2.3.3+1
+  fluttertoast: ^8.2.6
 
 dev_dependencies:
   flutter_test:

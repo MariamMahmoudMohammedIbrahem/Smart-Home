@@ -360,3 +360,15 @@ bool isUsernameValid(String username){
   );
   return userNameRegex.hasMatch(username);
 }*/
+import 'package:flutter/cupertino.dart';
+
+class SwitchesProvider extends ChangeNotifier{
+  List switches = [false,false,false];
+
+
+  void setSwitch(int no, bool state) {
+    switches[no] = state;
+
+    notifyListeners();
+  }
+}

@@ -1,20 +1,27 @@
 
 import 'package:flutter/material.dart';
+
+import 'db/sqldb.dart';
+SqlDb sqlDb = SqlDb();
 // import 'package:google_sign_in/google_sign_in.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 /// *sign_in**
 // GoogleSignIn googleSignIn = GoogleSignIn();
 // bool notFound = false;
-// bool eye = false;
+bool eye = false;
 // bool rememberPassword = false;
 // String usernameRetrieved = '';
 // String errorMessage = '';
 Color currentColor = Colors.amber;
-List<String> items = ['yhikeuw','yhikeuw','yhikeuw','yhikeuw','yhikeuw','yhikeuw','yhikeuw','yhikeuw','yhikeuw','yhikeuw','yhikeuw','yhikeuw'];//retrieve from db
-List<String> leds = ['switch1','switch2','switch3','switch4'];//couldn't know where should it be retrieved from
-List switches = [false,false,false,false];//couldn't know where should it be retrieved from
+Map<String, String> items = {
+  '84:F3:EB:20:8C:7A': 'livingRoom',
+  '08:3A:8D:D0:AA:20': 'babyRoom',
+};//retrieve from db
+final List<String> values = items.values.toList();
+List<String> leds = ['switch1','switch2','switch3'];//couldn't know where should it be retrieved from
+List switches = [false,false,false];//couldn't know where should it be retrieved from
 List icons = [Icons.ac_unit,Icons.lightbulb_circle_outlined,Icons.charging_station, Icons.colorize];
-bool rgb = false;
+// bool rgb = false;
 /// *add_devices**
 bool saved = false;
 // final StreamController<bool> controller = StreamController<bool>();

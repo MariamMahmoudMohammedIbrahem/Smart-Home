@@ -37,13 +37,81 @@ class _RoomsState extends State<Rooms> {
       print(e);
     }
   }*/
+  var commandResponse = '';
+  void startListen() {
+    // Bind to any available IPv4 address and the specified port (8081)
+    RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081)
+        .then((RawDatagramSocket socket) {
+      socket.listen((RawSocketEvent event) {
+        if (event == RawSocketEvent.read) {
+          Datagram? datagram = socket.receive();
+          if (datagram != null) {
+            // Convert the received data to a string
+            String response = String.fromCharCodes(datagram.data);
+            print('response $response');
+            if (response == "OK") {
+              commandResponse = response;
+            } else {
+              try {
+                // Parse the JSON string to a Map
+                Map<String, dynamic> jsonResponse = jsonDecode(response);
+                print('response3 $response');
+                // print('Received JSON response: $jsonResponse');
+                commandResponse = jsonResponse['commands'];
+                if (commandResponse == 'SWITCH_READ_OK') {
+                } else if (commandResponse == 'UPDATE_OK') {
+                  setState(() {
+                    switches[0] = jsonResponse['sw0'] != 0;
+                    switches[1] = jsonResponse['sw1'] != 0;
+                    switches[2] = jsonResponse['sw2'] != 0;
+                    /*currentColor = Color.fromRGBO(jsonResponse['red'], jsonResponse['green'], jsonResponse['blue'], 100);
+                    print(currentColor);*/
+                  });
+                }
+                /*else if (commandResponse == 'SWITCH_WRITE_OK') {
 
-  /*@override
+                }*/
+                else if (commandResponse == 'RGB_READ_OK') {}
+                /* else if (commandResponse == 'RGB_WRITE_OK') {
+
+                }*/
+
+                /*if (response.startsWith('WIFI_CONFIG::[@MS_SEP@]::')) {
+                setState(() {
+                  configured = true;
+                });
+              } else if (response.startsWith('MAC_ADDRESS_READ::[@MS_SEP@]::')) {
+                setState(() {
+                  readOnly = false;
+                });
+                print('true');
+              } else if (response.startsWith('WIFI_CONNECT_OK')) {
+                setState(() {
+                  connectionSuccess = true;
+                  showSnack(context, 'Connected Successfully');
+                });
+              } else if (response.startsWith('STATUS_READ::[@MS_SEP@]::')) {
+                setState(() {});
+              } else if (response.startsWith('RGB_READ::')) {
+                setState(() {});
+              }*/
+              } catch (e) {
+                print('Error decoding JSON: $e');
+              }
+            }
+          }
+        }
+      });
+    });
+  }
+
+  @override
   void initState() {
     super.initState();
+    startListen();
     //fetch weather on startup
-    _fetchWeather();
-  }*/
+    // _fetchWeather();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,8 +188,12 @@ class _RoomsState extends State<Rooms> {
         actions: [
           IconButton(
               onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => const UDPScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UDPScreen(),
+                  ),
+                );
               },
               iconSize: 30,
               color: Colors.pink.shade900,
@@ -326,28 +398,36 @@ class _RoomsState extends State<Rooms> {
                   ),
                 ],
               ),
-              ElevatedButton(
-                onPressed: startListenJson,
-                child: const Text(
-                  'Start Listen',
+              /*ElevatedButton(
+                  onPressed: startListenJson,
+                  child: const Text(
+                    'Start Listen',
+                  ),
                 ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  sendFrameJson(
-                    {"commands": "DEVICE_CONFIG_WRITE","mac_address":"08:3A:8D:D0:AA:20","update_period":"0"},
-                    '255.255.255.255',
-                    8888,
-                  );
-                },
-                child: const Text(
-                  'Send Json',
-                ),
-              ),
+                ElevatedButton(
+                  onPressed: () {
+                    sendFrameJson(
+                      {"commands": 'MAC_ADDRESS_READ'},
+                      '255.255.255.255',
+                      8888,
+                    );
+                    */ /*sendFrameJson(
+                      {"commands": "WIFI_CONFIG",
+                        "mac_address": "60:01:64:21:4B:06",
+                        "wifi_ssid": "Hardware_room",
+                        "wifi_password": "01019402855EOIP",},
+                      '255.255.255.255',
+                      8888,
+                    );*/ /*
+                  },
+                  child: const Text(
+                    'Send Json',
+                  ),
+                ),*/
               Flexible(
                 child: toggle
                     ? ListView.builder(
-                        itemCount: items.length, // total number of items
+                        itemCount: values.length, // total number of items
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: const EdgeInsets.symmetric(
@@ -363,7 +443,7 @@ class _RoomsState extends State<Rooms> {
                                 child: Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    items[index],
+                                    values[index],
                                     style: const TextStyle(
                                       fontSize: 18.0,
                                       color: Colors.white,
@@ -376,13 +456,17 @@ class _RoomsState extends State<Rooms> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        RoomDetail(room: items[index]),
+                                    builder: (context) => RoomDetail(
+                                        roomName: values[index],
+                                        macAddress: items.entries
+                                            .firstWhere((entry) =>
+                                                entry.value == values[index])
+                                            .key),
                                   ),
                                 );
                               },
                               onLongPress: () {
-                                _showOptions(context, items[index]);
+                                _showOptions(context, values[index]);
                               },
                             ),
                           );
@@ -391,13 +475,13 @@ class _RoomsState extends State<Rooms> {
                     : GridView.builder(
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2, // number of items in each row
+                          crossAxisCount: 2, // number of values in each row
                           mainAxisSpacing: 15.0, // spacing between rows
                           crossAxisSpacing: 15.0, // spacing between columns
                         ),
                         /*padding: const EdgeInsets.all(
                             8.0), // padding around the grid*/
-                        itemCount: items.length, // total number of items
+                        itemCount: values.length, // total number of values
                         itemBuilder: (context, index) {
                           return GestureDetector(
                             child: Container(
@@ -405,28 +489,77 @@ class _RoomsState extends State<Rooms> {
                                 borderRadius: BorderRadius.circular(25.0),
                                 color: Colors.pink.shade900,
                               ),
-                              child: Center(
-                                child: Text(
-                                  items[index],
-                                  style: const TextStyle(
-                                    fontSize: 18.0,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Text(
+                                    values[index],
+                                    style: const TextStyle(
+                                      fontSize: 25.0,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Colors.white),
+                                          borderRadius:
+                                          BorderRadius.circular(10),
+                                        ),
+                                        child: Icon(icons[0],color: Colors.white,size: 28,),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Colors.white,),
+                                          borderRadius:
+                                          BorderRadius.circular(10),
+                                        ),
+                                        child: Icon(icons[1],color: Colors.white,size: 28,),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Colors.white,),
+                                          borderRadius:
+                                          BorderRadius.circular(10),
+                                        ),
+                                        child: Icon(icons[2],color: Colors.white,size: 28,),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Colors.white,),
+                                          borderRadius:
+                                          BorderRadius.circular(10),
+                                        ),
+                                        child: Icon(icons[3],color: Colors.white,size: 28,),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      RoomDetail(room: items[index]),
+                                  builder: (context) => RoomDetail(
+                                      roomName: values[index],
+                                      macAddress: items.entries
+                                          .firstWhere((entry) =>
+                                              entry.value == values[index])
+                                          .key),
                                 ),
                               );
                             },
                             onLongPress: () {
-                              _showOptions(context, items[index]);
+                              _showOptions(context, values[index]);
                             },
                           );
                         },

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/state_manager.dart';
 import 'package:mega/ui/loading_screen.dart';
 import 'package:mega/ui/rooms.dart';
 
@@ -25,6 +26,7 @@ class _UDPScreenState extends State<UDPScreen> {
   bool readOnly = false;
   bool navigate = false;
   bool connectionSuccess = false;
+  bool roomConfig = false;
   var commandResponse = '';
   String macAddress = "";
   void sendFrame(Map<String, dynamic> jsonFrame, String ipAddress, int port) {
@@ -53,12 +55,10 @@ class _UDPScreenState extends State<UDPScreen> {
           if (datagram != null) {
             // Convert the received data to a string
             String response = String.fromCharCodes(datagram.data);
-
-
-            if(response == "OK") {
+            print('response $response');
+            if (response == "OK") {
               commandResponse = response;
-            }
-            else {
+            } else {
               try {
                 // Parse the JSON string to a Map
                 Map<String, dynamic> jsonResponse = jsonDecode(response);
@@ -71,40 +71,41 @@ class _UDPScreenState extends State<UDPScreen> {
                     macAddress = jsonResponse["mac_address"];
                     readOnly = true;
                   });
-                }
-                else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
+                } else if (commandResponse == 'UPDATE_OK') {
+                } else if (commandResponse == 'WIFI_CONFIG_OK') {
+                  /*setState(() {
+                    configured = true;
+                  });*/
+                } else if (commandResponse == 'WIFI_CONFIG_FAIL') {
+                } else if (commandResponse == 'WIFI_CONFIG_CONNECTING') {
+                  setState(() {
+                    configured = true;
+                  });
+                } else if (commandResponse == 'WIFI_CONFIG_MISSED_DATA') {
+                } else if (commandResponse == 'WIFI_CONFIG_SAME') {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text("WIFI_CONFIG_SAME"),
+                  ));
+                } else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
                   setState(() {
                     connectionSuccess = true;
                     showSnack(context, 'Connected Successfully');
                   });
+                } else if (commandResponse == 'SWITCH_READ_OK') {
                 }
-                else if (commandResponse == 'UPDATE_OK') {
-                  setState(() {
-                    macAddress = jsonResponse["mac_address"];
-                    readOnly = true;
-                  });
-                }
-                else if (commandResponse == 'WIFI_CONFIG_OK') {
-                  setState(() {
-                    configured = true;
-                  });
-                }
-                else if (commandResponse == 'SWITCH_READ_OK') {
+                /*else if (commandResponse == 'SWITCH_WRITE_OK') {
 
-                }
-                else if (commandResponse == 'SWITCH_WRITE_OK') {
-
-                }
+                }*/
                 else if (commandResponse == 'RGB_READ_OK') {
-
                 }
-                else if (commandResponse == 'RGB_WRITE_OK') {
+                /* else if (commandResponse == 'RGB_WRITE_OK') {
 
-                }
+                }*/
                 else if (commandResponse == 'DEVICE_CONFIG_WRITE_OK') {
-
+                  setState(() {
+                    roomConfig = true;
+                  });
                 }
-
                 /*if (response.startsWith('WIFI_CONFIG::[@MS_SEP@]::')) {
                 setState(() {
                   configured = true;
@@ -299,6 +300,7 @@ class _UDPScreenState extends State<UDPScreen> {
                     textAlign: TextAlign.center,
                   ),
                   Text('command $commandResponse'),
+
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
@@ -312,6 +314,87 @@ class _UDPScreenState extends State<UDPScreen> {
       Step(
         state: _currentStep > 1 ? StepState.complete : StepState.indexed,
         isActive: _currentStep >= 1,
+        title: const Text(''),
+        content: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40.0),
+          child: Column(
+            children: [
+              const Text(
+                'Wifi Network Configuration',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 26,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const Text(
+                'Please add your home\'s Wifi Network Name and Password',
+                style: TextStyle(
+                  fontSize: 23,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Text('command $commandResponse'),
+              Form(
+                key: _formKey,
+                /*autovalidateMode: !readOnly
+                    ? AutovalidateMode.always
+                    : AutovalidateMode.disabled,*/
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    TextFormField(
+                      controller: _nameController,
+                      decoration:
+                          const InputDecoration(labelText: 'Wifi Network Name'),
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Please enter your Wifi Network\'s name';
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        name = _nameController.text;
+                      },
+                    ),
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Wifi Network Password',
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              eye = !eye;
+                            });
+                          },
+                          icon: Icon(
+                            eye
+                                ? Icons.remove_red_eye_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                        ),
+                      ),
+                      obscureText: eye,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Please enter your Wifi Network\'s password';
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        password = _passwordController.text;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      Step(
+        state: _currentStep > 2 ? StepState.complete : StepState.indexed,
+        isActive: _currentStep >= 2,
         title: const Text(''),
         content: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -330,84 +413,19 @@ class _UDPScreenState extends State<UDPScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const Text(
-                    'subtitle',
+                    'Please Make Sure That you are connected to the Wifi Network that your Device is connected to',
                     style: TextStyle(
                       fontSize: 23,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   Text('command $commandResponse'),
+
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
                   ),
                 ],
-              ),
-            ],
-          ),
-        ),
-      ),
-      Step(
-        state: _currentStep > 2 ? StepState.complete : StepState.indexed,
-        isActive: _currentStep >= 2,
-        title: const Text(''),
-        content: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40.0),
-          child: Column(
-            children: [
-              const Text(
-                'Add Wifi-Network',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 26,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const Text(
-                'Please add your home\'s wifi network data',
-                style: TextStyle(
-                  fontSize: 23,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              Text('command $commandResponse'),
-              Form(
-                key: _formKey,
-                /*autovalidateMode: !readOnly
-                    ? AutovalidateMode.always
-                    : AutovalidateMode.disabled,*/
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'Name'),
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please enter your name';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        name = _nameController.text;
-                      },
-                    ),
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: const InputDecoration(labelText: 'Password'),
-                      obscureText: true,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        password = _passwordController.text;
-                      },
-                    ),
-                  ],
-                ),
               ),
             ],
           ),
@@ -492,8 +510,6 @@ class _UDPScreenState extends State<UDPScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       body: SafeArea(
         child: Stepper(
@@ -526,8 +542,9 @@ class _UDPScreenState extends State<UDPScreen> {
               children: [
                 Visibility(
                   visible: (_currentStep != 0 && readOnly) ||
-                      (_currentStep == 2 && !configured) ||
-                      (_currentStep == 1 && !connectionSuccess),
+                      (_currentStep == 1 && !configured) ||
+                      (_currentStep == 2 && !connectionSuccess) ||
+                  !roomConfig,
                   child: Expanded(
                     child: SizedBox(
                       // width: width * .4,
@@ -562,18 +579,23 @@ class _UDPScreenState extends State<UDPScreen> {
                               8888,
                             );
                           }
-                        } else if (_currentStep == 1) {
+                        } 
+                        else if (_currentStep == 2) {
                           if (connectionSuccess) {
                             controls.onStepContinue!();
                           } else {
                             sendFrame(
-                              {"commands": 'WIFI_CONNECT_CHECK',"mac_address":macAddress,},
+                              {
+                                "commands": 'WIFI_CONNECT_CHECK',
+                                "mac_address": macAddress,
+                              },
                               '255.255.255.255',
                               8888,
                             );
                             showSnack(context, 'Wait A Second');
                           }
-                        } else if (_currentStep == 2) {
+                        } 
+                        else if (_currentStep == 1) {
                           if (configured) {
                             controls.onStepContinue!();
                           } else {
@@ -594,9 +616,11 @@ class _UDPScreenState extends State<UDPScreen> {
                               showSnack(context, 'Fields are Empty');
                             }
                           }
-                        } else {
-                          /*saveInDB('Devices');*/
-                          if (!readOnly) {
+                        } 
+                        else {
+                          // items.assign(macAddress, roomName);
+                          items[macAddress] = roomName;
+                          if(roomConfig){
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -616,24 +640,30 @@ class _UDPScreenState extends State<UDPScreen> {
                                 ),
                               ),
                             );
-                          } else {
-                            showSnack(
-                              context,
-                              'Make Sure You Are Connected to Wifi',
+                          }
+                          else{
+                            sendFrame(
+                              {
+                                "commands": 'DEVICE_CONFIG_WRITE',
+                                "mac_address": macAddress,
+                                "device_location":roomName,
+                              },
+                              '255.255.255.255',
+                              8888,
                             );
+                            items.assign(macAddress, roomName);
+                            /*saveInDB('Devices');*/
                           }
                         }
                       },
                       child: Text(
                         _currentStep == 0
                             ? (readOnly ? 'Next' : 'connect')
-                            : _currentStep == 1
-                                ? (connectionSuccess
-                                    ? 'Next'
-                                    : 'Check Connection')
-                                : _currentStep == 2
-                                    ? (configured ? 'Next' : 'Configure')
-                                    : 'Finish',
+                            : _currentStep == 2
+                                ? (connectionSuccess ? 'Next' : 'Configure')
+                                : _currentStep == 1
+                                    ? (configured ? 'Next' : 'Check Connection')
+                                    : roomConfig? 'Finish':'Save',
                         /*_currentStep == getSteps().length - 1
                             ? 'Finish'
                             : (_currentStep != 1 || connectionSuccess)
