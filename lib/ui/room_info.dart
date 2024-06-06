@@ -3,7 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:mega/db/functions.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:provider/provider.dart';
 
 import '../constants.dart';
 import '../udp.dart';
@@ -136,68 +138,74 @@ class _RoomDetailState extends State<RoomDetail> {
                                   'on/off',
                                   style: TextStyle(color: Colors.white),
                                 ),
-                                Switch(
-                                  activeColor: Colors.pink.shade300,
-                                  activeTrackColor: Colors.pink.shade100,
-                                  inactiveThumbColor: Colors.grey.shade600,
-                                  inactiveTrackColor: Colors.grey.shade400,
-                                  splashRadius: 50.0,
-                                  value: switches[index],
-                                  onChanged: (value) {
-                                    //send packet
-                                    if (index == 0) {
-                                      sendFrame(
-                                        {
-                                          "commands": 'SWITCH_WRITE',
-                                          "mac_address": widget.macAddress,
-                                          "sw0": !switches[0] ? 1 : 0,
-                                          "sw1": switches[1] ? 1 : 0,
-                                          "sw2": switches[2] ? 1 : 0,
+                                Consumer<SwitchesProvider>(
+                                    builder: (context, switchesProvider, child) {
+                                      return  Switch(
+                                        activeColor: Colors.pink.shade300,
+                                        activeTrackColor: Colors.pink.shade100,
+                                        inactiveThumbColor: Colors.grey.shade600,
+                                        inactiveTrackColor: Colors.grey.shade400,
+                                        splashRadius: 50.0,
+                                        value: switchesProvider.switches[index],
+                                        onChanged: (value) {
+                                          //send packet
+                                          if (index == 0) {
+                                            sendFrame(
+                                              {
+                                                "commands": 'SWITCH_WRITE',
+                                                "mac_address": widget.macAddress,
+                                                "sw0": !switchesProvider.switches[0] ? 1 : 0,
+                                                // "sw1": switchesProvider.switches[1] ? 1 : 0,
+                                                // "sw2": switchesProvider.switches[2] ? 1 : 0,
+                                              },
+                                              '255.255.255.255',
+                                              8888,
+                                            );
+                                          } else if (index == 1) {
+                                            sendFrame(
+                                              {
+                                                "commands": 'SWITCH_WRITE',
+                                                "mac_address": widget.macAddress,
+                                                // "sw0": switchesProvider.switches[0] ? 1 : 0,
+                                                "sw1": !switchesProvider.switches[1] ? 1 : 0,
+                                                // "sw2": switchesProvider.switches[2] ? 1 : 0,
+                                              },
+                                              '255.255.255.255',
+                                              8888,
+                                            );
+                                          } else {
+                                            sendFrame(
+                                              {
+                                                "commands": 'SWITCH_WRITE',
+                                                "mac_address": widget.macAddress,
+                                                // "sw0": switchesProvider.switches[0] ? 1 : 0,
+                                                // "sw1": switchesProvider.switches[1] ? 1 : 0,
+                                                "sw2": !switchesProvider.switches[2] ? 1 : 0,
+                                              },
+                                              '255.255.255.255',
+                                              8888,
+                                            );
+                                          }
+                                          // setState(() {
+                                            switchesProvider.setSwitch(index, !switchesProvider.switches[index]);
+                                            // if (index == 1) {
+                                            //   rgb = !rgb;
+                                            //   _showColorPicker(context);
+                                            // }
+                                          // });
                                         },
-                                        '255.255.255.255',
-                                        8888,
-                                      );
-                                    } else if (index == 1) {
-                                      sendFrame(
-                                        {
-                                          "commands": 'SWITCH_WRITE',
-                                          "mac_address": widget.macAddress,
-                                          "sw0": switches[0] ? 1 : 0,
-                                          "sw1": !switches[1] ? 1 : 0,
-                                          "sw2": switches[2] ? 1 : 0,
-                                        },
-                                        '255.255.255.255',
-                                        8888,
-                                      );
-                                    } else {
-                                      sendFrame(
-                                        {
-                                          "commands": 'SWITCH_WRITE',
-                                          "mac_address": widget.macAddress,
-                                          "sw0": switches[0] ? 1 : 0,
-                                          "sw1": switches[1] ? 1 : 0,
-                                          "sw2": !switches[2] ? 1 : 0,
-                                        },
-                                        '255.255.255.255',
-                                        8888,
                                       );
                                     }
-                                    setState(() {
-                                      switches[index] = !switches[index];
-                                      // if (index == 1) {
-                                      //   rgb = !rgb;
-                                      //   _showColorPicker(context);
-                                      // }
-                                    });
-                                  },
+
                                 ),
+
                               ],
                             ),
                           ],
                         ),
                       ),
                       onLongPress: () {
-                        if (index == 1 && switches[1]) {
+                        if (index == 1 && Provider.of<SwitchesProvider>(context).switches[1]) {
                           // rgb = !rgb;
                           _showColorPicker(context);
                         }

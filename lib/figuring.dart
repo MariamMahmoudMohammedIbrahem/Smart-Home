@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:mega/udp.dart';
+import 'package:mega/ui/rooms.dart';
+
+import 'constants.dart';
 
 class Figuring extends StatefulWidget {
   const Figuring({super.key});
@@ -28,6 +32,11 @@ class _FiguringState extends State<Figuring> {
     });
   }
 
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  String name = '';
+  String password = '';
+  String macAddress = "";
   void startListen() {
     // Bind to any available IPv4 address and the specified port (8081)
     RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081)
@@ -41,13 +50,16 @@ class _FiguringState extends State<Figuring> {
             });
             // Convert the received data to a string
             print('response $response');
+            Map<String, dynamic> jsonResponse = jsonDecode(response);
+            macAddress = jsonResponse["mac_address"];
           }
         }
       });
     });
   }
+
   @override
-  void initState(){
+  void initState() {
     super.initState();
     startListen();
   }
@@ -57,50 +69,112 @@ class _FiguringState extends State<Figuring> {
     return SafeArea(
       child: Scaffold(
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            // crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text('response: $response'),
-              ElevatedButton(
-                onPressed: () {
-                  sendFrame(
-                    {"commands": 'MAC_ADDRESS_READ'},
-                    '255.255.255.255',
-                    8888,
-                  );
-                },
-                child: const Text('Sending Mac Address Packet'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  sendFrame(
-                    {
-                      "commands": 'WIFI_CONNECT_CHECK',
-                      "mac_address": "84:F3:EB:20:8C:7A",
-                    },
-                    '255.255.255.255',
-                    8888,
-                  );
-                },
-                child: const Text('Sending Mac Address Packet'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  sendFrame(
-                    {
-                      "commands": "WIFI_CONFIG",
-                      "mac_address": "84:F3:EB:20:8C:7A",
-                      "wifi_ssid": "Hardware_room",
-                      "wifi_password": '01019407823EOIP',
-                    },
-                    '192.168.4.1',
-                    8888,
-                  );
-                },
-                child: const Text('send wifi config packet'),
-              ),
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              // crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => const UDPScreen()));
+                  },
+                  child: const Text(
+                    'add device',
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Rooms()));
+                  },
+                  child: const Text(
+                    'rooms',
+                  ),
+                ),
+                Text('response: $response'),
+                ElevatedButton(
+                  onPressed: () {
+                    sendFrame(
+                      {"commands": 'MAC_ADDRESS_READ'},
+                      '255.255.255.255',
+                      8888,
+                    );
+                  },
+                  child: const Text('Sending Mac Address Packet'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    sendFrame(
+                      {
+                        "commands": 'WIFI_CONNECT_CHECK',
+                        "mac_address": macAddress,
+                      },
+                      '255.255.255.255',
+                      8888,
+                    );
+                  },
+                  child: const Text('Sending Mac Address Packet'),
+                ),
+                TextFormField(
+                  controller: _nameController,
+                  decoration:
+                      const InputDecoration(labelText: 'Wifi Network Name'),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter your Wifi Network\'s name';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    name = _nameController.text;
+                  },
+                ),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Wifi Network Password',
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          eye = !eye;
+                        });
+                      },
+                      icon: Icon(
+                        eye
+                            ? Icons.remove_red_eye_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                    ),
+                  ),
+                  obscureText: eye,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please enter your Wifi Network\'s password';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    password = _passwordController.text;
+                  },
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    sendFrame(
+                      {
+                        "commands": "WIFI_CONFIG",
+                        "mac_address": macAddress,
+                        "wifi_ssid": name,
+                        "wifi_password": password,
+                      },
+                      '255.255.255.255',
+                      8888,
+                    );
+                  },
+                  child: const Text('send wifi config packet'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

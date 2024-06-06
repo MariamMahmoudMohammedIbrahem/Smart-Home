@@ -14,18 +14,17 @@ bool eye = false;
 // String errorMessage = '';
 Color currentColor = Colors.amber;
 Map<String, String> items = {
-  '84:F3:EB:20:8C:7A': 'livingRoom',
+  '00:F3:00:20:00:7A': 'livingRoom',
   '08:3A:8D:D0:AA:20': 'babyRoom',
 };//retrieve from db
 final List<String> values = items.values.toList();
 List<String> leds = ['switch1','switch2','switch3'];//couldn't know where should it be retrieved from
-List switches = [false,false,false];//couldn't know where should it be retrieved from
 List icons = [Icons.ac_unit,Icons.lightbulb_circle_outlined,Icons.charging_station, Icons.colorize];
 // bool rgb = false;
 /// *add_devices**
 bool saved = false;
 // final StreamController<bool> controller = StreamController<bool>();
-String roomName = '';
+String roomName = 'livingRoom';
 ///*auto_signin**
 // late SharedPreferences prefs;
 // String prefsPassword = '';

@@ -5,19 +5,15 @@ import 'package:flutter/material.dart';
 // import 'package:mega/services/weather_service.dart';
 import 'package:mega/udp.dart';
 import 'package:mega/ui/room_info.dart';
+import 'package:provider/provider.dart';
 
 import '../constants.dart';
+import '../db/functions.dart';
 
 // import '../models/weather_model.dart';
 
-class Rooms extends StatefulWidget {
-  const Rooms({super.key});
+class Rooms extends StatelessWidget{
 
-  @override
-  State<Rooms> createState() => _RoomsState();
-}
-
-class _RoomsState extends State<Rooms> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   /*//api key
   final _weatherService = WeatherService('7ef5de939aeeef2465e631149e968016');
@@ -38,7 +34,11 @@ class _RoomsState extends State<Rooms> {
     }
   }*/
   var commandResponse = '';
-  void startListen() {
+  printFun(){
+    print('object');
+  }
+  int startListen(BuildContext context) {
+    print("Enter listen out");
     // Bind to any available IPv4 address and the specified port (8081)
     RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081)
         .then((RawDatagramSocket socket) {
@@ -48,25 +48,27 @@ class _RoomsState extends State<Rooms> {
           if (datagram != null) {
             // Convert the received data to a string
             String response = String.fromCharCodes(datagram.data);
-            print('response $response');
+            print('response out $response');
             if (response == "OK") {
               commandResponse = response;
             } else {
               try {
                 // Parse the JSON string to a Map
                 Map<String, dynamic> jsonResponse = jsonDecode(response);
-                print('response3 $response');
+                // print('response3 out $response');
                 // print('Received JSON response: $jsonResponse');
                 commandResponse = jsonResponse['commands'];
                 if (commandResponse == 'SWITCH_READ_OK') {
                 } else if (commandResponse == 'UPDATE_OK') {
-                  setState(() {
-                    switches[0] = jsonResponse['sw0'] != 0;
-                    switches[1] = jsonResponse['sw1'] != 0;
-                    switches[2] = jsonResponse['sw2'] != 0;
+                  // setState(() {
+                  //   context.read<SwitchesProvider>().setSwitch(0, jsonResponse['sw0'] != 0);
+                    Provider.of<SwitchesProvider>(context, listen: false).setSwitch(0, jsonResponse['sw0'] != 0);
+                    Provider.of<SwitchesProvider>(context, listen: false).setSwitch(1, jsonResponse['sw1'] != 0);
+                    Provider.of<SwitchesProvider>(context, listen: false).setSwitch(2, jsonResponse['sw2'] != 0);
+
                     /*currentColor = Color.fromRGBO(jsonResponse['red'], jsonResponse['green'], jsonResponse['blue'], 100);
                     print(currentColor);*/
-                  });
+                  // });
                 }
                 /*else if (commandResponse == 'SWITCH_WRITE_OK') {
 
@@ -103,18 +105,24 @@ class _RoomsState extends State<Rooms> {
         }
       });
     });
+
+    return 0;
   }
 
   @override
   void initState() {
-    super.initState();
-    startListen();
+    print("Enter initSate");
+    // super.initState();
+    // startListen();
     //fetch weather on startup
     // _fetchWeather();
   }
 
   @override
   Widget build(BuildContext context) {
+
+    // startListen(context);
+
     Color getForegroundColor(Set<MaterialState> states) {
       if (states.contains(MaterialState.focused)) return Colors.pink.shade600;
       if (states.contains(MaterialState.pressed)) return Colors.pink.shade400;
@@ -349,6 +357,25 @@ class _RoomsState extends State<Rooms> {
           padding: EdgeInsets.symmetric(horizontal: width * .05, vertical: 10),
           child: Column(
             children: [
+              // 1 > startListen(context) ? SizedBox(width: 1,) : SizedBox(width: 1,),
+              // ElevatedButton(
+              //   // onLongPress: startListen(context),
+              //   onPressed: (){
+              //     startListen(context);
+              //   },
+              //   child: const Text(
+              //     'Start Listen',
+              //   ),
+              // ),
+              // ElevatedButton(
+              //   onLongPress: printFun(),
+              //   onPressed: (){
+              //     // startListen(context);
+              //   },
+              //   child: const Text(
+              //     'print ',
+              //   ),
+              // ),
               /*Text(_weather?.cityName ?? "loading city.."),
               Text("${_weather?.temperature.round()} c"),
               ElevatedButton(onPressed: _fetchWeather, child: const Text('fetch weather',),),*/
@@ -387,9 +414,9 @@ class _RoomsState extends State<Rooms> {
                   ),
                   IconButton(
                     onPressed: () {
-                      setState(() {
-                        toggle = !toggle;
-                      });
+                      // setState(() {
+                      //   toggle = !toggle;
+                      // });
                     },
                     icon: Icon(
                       toggle ? Icons.grid_view_rounded : Icons.list_outlined,
@@ -588,29 +615,29 @@ class _RoomsState extends State<Rooms> {
     });
   }
 
-  void startListenJson() {
-    // Bind to any available IPv4 address and the specified port (8081)
-    RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081)
-        .then((RawDatagramSocket socket) {
-      socket.listen((RawSocketEvent event) {
-        if (event == RawSocketEvent.read) {
-          Datagram? datagram = socket.receive();
-          if (datagram != null) {
-            // Convert the received data to a string
-            String response = String.fromCharCodes(datagram.data);
-
-            try {
-              // Parse the JSON string to a Map
-              Map<String, dynamic> jsonResponse = jsonDecode(response);
-              print('Received JSON response: $jsonResponse');
-            } catch (e) {
-              print('Error decoding JSON: $e');
-            }
-          }
-        }
-      });
-    });
-  }
+  // void startListenJson() {
+  //   // Bind to any available IPv4 address and the specified port (8081)
+  //   RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081)
+  //       .then((RawDatagramSocket socket) {
+  //     socket.listen((RawSocketEvent event) {
+  //       if (event == RawSocketEvent.read) {
+  //         Datagram? datagram = socket.receive();
+  //         if (datagram != null) {
+  //           // Convert the received data to a string
+  //           String response = String.fromCharCodes(datagram.data);
+  //
+  //           try {
+  //             // Parse the JSON string to a Map
+  //             Map<String, dynamic> jsonResponse = jsonDecode(response);
+  //             print('Received JSON response: $jsonResponse');
+  //           } catch (e) {
+  //             print('Error decoding JSON: $e');
+  //           }
+  //         }
+  //       }
+  //     });
+  //   });
+  // }
 
   void _showOptions(BuildContext context, String room) {
     showModalBottomSheet(

@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mega/constants.dart';
 import 'package:mega/db/functions.dart';
+import 'package:mega/udp.dart';
 import 'package:mega/ui/rooms.dart';
 import 'package:mega/ui/welcome_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+
+import 'figuring.dart';
 
 Future<void> main() async {
   await GetStorage.init();
@@ -25,6 +28,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // Rooms().startListen(context);
     return ChangeNotifierProvider(
       create: (context) => AuthProvider(),
       child: MaterialApp(
@@ -37,7 +41,7 @@ class MyApp extends StatelessWidget {
         home: Consumer<AuthProvider>(
           builder: (context, authProvider, _) {
             return authProvider.isFirstTime
-                ? const Rooms() //opposite ||
+                ?  Figuring() //opposite ||
                 : const WelcomePage();
           },
         ),

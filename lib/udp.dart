@@ -46,6 +46,7 @@ class _UDPScreenState extends State<UDPScreen> {
   }
 
   void startListen() {
+    print("udp");
     // Bind to any available IPv4 address and the specified port (8081)
     RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081)
         .then((RawDatagramSocket socket) {
@@ -55,14 +56,14 @@ class _UDPScreenState extends State<UDPScreen> {
           if (datagram != null) {
             // Convert the received data to a string
             String response = String.fromCharCodes(datagram.data);
-            print('response $response');
+            print('response udp $response');
             if (response == "OK") {
               commandResponse = response;
             } else {
               try {
                 // Parse the JSON string to a Map
                 Map<String, dynamic> jsonResponse = jsonDecode(response);
-                print('response $response');
+                // print('response in $response');
                 // print('Received JSON response: $jsonResponse');
 
                 commandResponse = jsonResponse['commands'];
@@ -609,7 +610,7 @@ class _UDPScreenState extends State<UDPScreen> {
                                   "wifi_ssid": name,
                                   "wifi_password": password,
                                 },
-                                '192.168.4.1',
+                                '255.255.255.255',
                                 8888,
                               );
                             } else {
@@ -618,8 +619,11 @@ class _UDPScreenState extends State<UDPScreen> {
                           }
                         } 
                         else {
-                          // items.assign(macAddress, roomName);
-                          items[macAddress] = roomName;
+
+                          print('items before $items');
+                          items.assign(macAddress, roomName);
+                          // items[macAddress] = roomName;
+                          print('after $items');
                           if(roomConfig){
                             Navigator.push(
                               context,
@@ -632,7 +636,7 @@ class _UDPScreenState extends State<UDPScreen> {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => const Rooms(),
+                                          builder: (context) => Rooms(),
                                         ),
                                       );
                                     }
