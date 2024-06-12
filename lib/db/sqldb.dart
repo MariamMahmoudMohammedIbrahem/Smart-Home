@@ -1,6 +1,9 @@
 import 'dart:async';
-
+import 'package:path/path.dart';
+import 'package:mega/todoey.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../constants.dart';
 
 class SqlDb {
 
@@ -18,8 +21,9 @@ class SqlDb {
 
   Future<Database> initialDb() async {
     String databasePath = await getDatabasesPath();
+    String path = join(databasePath, 'GlowGrid.db');
     Database mydb = await openDatabase(
-        databasePath, onCreate: _onCreate, version: 1, onUpgrade: _onUpgrade);
+        path, onCreate: _onCreate, version: 1, onUpgrade: _onUpgrade);
     return mydb;
   }
 
@@ -31,16 +35,18 @@ class SqlDb {
   //JUST CALLED ONCE
   Future _onCreate(Database db, int version) async {
     await db.execute('''
-    CREATE TABLE "Table1"(
-      'column1' TEXT NOT NULL UNIQUE,
-      'column2' INTEGER NOT NULL,
-      'column3' INTEGER NOT NULL,
-      PRIMARY KEY ('column1')
+    CREATE TABLE "led"(
+      'id' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+      'mac_address' TEXT NOT NULL UNIQUE,
+      'device_type' TEXT NOT NULL,
+      'device_location' TEXT NOT NULL,
+      'wifi_ssid' TEXT NOT NULL,
+      'wifi_password' TEXT NOT NULL
     )
     ''');
 }
 
-  //check if the meter has previous stored data or not
+  /*//check if the meter has previous stored data or not
   Future<bool> isTableEmpty(String type, String name) async {
     Database? mydb = await db;
       String query = 'SELECT COUNT(*) FROM Electricity WHERE `title` =?';
@@ -80,12 +86,12 @@ class SqlDb {
       var time = map['time'].toString();
     }
     return response;
-  }
+  }*/
 
   //INSERT
-  Future<int> insertData(String sql) async {
+  Future insertData(String sql) async {
     Database? mydb = await db;
-    int response = await mydb!.rawInsert(sql);
+    var response = await mydb!.rawInsert(sql);
     return response;
   }
 
@@ -97,8 +103,24 @@ class SqlDb {
   }
 
   // delete database
-  Future mydeleteDatabase() async {
+  Future deleteMyDatabase() async {
     String databasePath = await getDatabasesPath();
     await deleteDatabase(databasePath);
+  }
+
+  Future<List<Map<String, dynamic>>> readData() async {
+    print('hello world');
+    Database? mydb = await db;
+    List<Map<String, dynamic>> databaseMap = await mydb!.rawQuery('''
+      SELECT * FROM led
+    ''');
+    Map<String, dynamic> resultMap = {
+      for (var item in databaseMap) item['mac_address'] as String: item['device_location']
+    };
+    print('resultMap$databaseMap');
+    print('resultMap$resultMap');
+    items = resultMap;
+    values = items.values.toList();
+    return databaseMap;
   }
 }

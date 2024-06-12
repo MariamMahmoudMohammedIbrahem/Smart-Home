@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/state_manager.dart';
 import 'package:mega/udp.dart';
 import 'package:mega/ui/rooms.dart';
 
@@ -61,9 +62,11 @@ class _FiguringState extends State<Figuring> {
   @override
   void initState() {
     super.initState();
+    // sqlDb.readData();
     startListen();
   }
 
+  int incrementNum = 0;
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -74,10 +77,42 @@ class _FiguringState extends State<Figuring> {
               mainAxisAlignment: MainAxisAlignment.center,
               // crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                /*ElevatedButton(
+                  onPressed: () {
+                    try{
+                      sqlDb.insertData('''
+                              INSERT OR IGNORE INTO led (`mac_address`, `device_type`, `device_location`, `wifi_ssid`, `wifi_password`)
+                              VALUES ('00:F3:00:20:00:7A', 'switch', 'livingRoom', 'Hardware_room', '01019407823EOIP')
+                            ''');
+                    }
+                    catch (e){
+                      print('while inserting $e');
+                    }
+                  },
+                  child: const Text(
+                    'testing db',
+                  ),
+                ),
+                Text('items $items'),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const UDPScreen()));
+                    try{
+                      var maps = sqlDb.readData();
+                    }
+                    catch (e){
+                      print('while reading $e');
+                    }
+                  },
+                  child: const Text(
+                    'retrieve items',
+                  ),
+                ),*/
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const UDPScreen()));
                   },
                   child: const Text(
                     'add device',

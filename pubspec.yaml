@@ -55,6 +55,7 @@ dependencies:
   modal_bottom_sheet: ^3.0.0
   sqflite: ^2.3.3+1
   fluttertoast: ^8.2.6
+  path: ^1.9.0
 
 dev_dependencies:
   flutter_test:
