@@ -57,169 +57,222 @@ class _RoomDetailState extends State<RoomDetail> {
           fontWeight: FontWeight.bold,
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UDPScreen(),
-                ),
-              );
-            },
-            iconSize: 30,
-            color: Colors.pink.shade900,
-            icon: const Icon(Icons.add_circle_sharp),
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     onPressed: () {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(
+        //           builder: (context) => const UDPScreen(),
+        //         ),
+        //       );
+        //     },
+        //     iconSize: 30,
+        //     color: Colors.pink.shade900,
+        //     icon: const Icon(Icons.add_circle_sharp),
+        //   ),
+        // ],
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: width * .07, vertical: 10),
-        child: SizedBox(
-          height: height,
+        child: SingleChildScrollView(
           child: Column(
             children: [
-              Center(child: Text('macAddress : ${widget.macAddress}')),
-              ElevatedButton(
-                onPressed: () {
-                  sendFrame(
-                    {
-                      "commands": 'DEVICE_CONFIG_WRITE',
-                      "mac_address": widget.macAddress,
-                      "device_location":"babyRoom",
-                    },
-                    '255.255.255.255',
-                    8888,
-                  );
-                },
-                child: Text('jfn'),
-              ),
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, // number of items in each row
-                    mainAxisSpacing: 30.0, // spacing between rows
-                    crossAxisSpacing: 30.0, // spacing between columns
-                  ),
-                  itemCount: leds.length,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.pink.shade900,
-                          borderRadius: BorderRadius.circular(
-                            20,
-                          ),
+              SizedBox(
+                height: height,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: GridView.builder(
+                        physics: NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, // number of items in each row
+                          mainAxisSpacing: 30.0, // spacing between rows
+                          crossAxisSpacing: 30.0, // spacing between columns
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                              icons[index],
-                              color: Colors.white,
-                              size: 40,
-                            ),
-
-                            ///TODO: timer
-                            Text(
-                              leds[index],
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'on/off',
-                                  style: TextStyle(color: Colors.white),
+                        itemCount: leds.length,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.pink.shade900,
+                                borderRadius: BorderRadius.circular(
+                                  20,
                                 ),
-                                Consumer<SwitchesProvider>(
-                                    builder: (context, switchesProvider, child) {
-                                      return  Switch(
-                                        activeColor: Colors.pink.shade300,
-                                        activeTrackColor: Colors.pink.shade100,
-                                        inactiveThumbColor: Colors.grey.shade600,
-                                        inactiveTrackColor: Colors.grey.shade400,
-                                        splashRadius: 50.0,
-                                        value: switchesProvider.switches[index],
-                                        onChanged: (value) {
-                                          //send packet
-                                          if (index == 0) {
-                                            sendFrame(
-                                              {
-                                                "commands": 'SWITCH_WRITE',
-                                                "mac_address": widget.macAddress,
-                                                "sw0": !switchesProvider.switches[0] ? 1 : 0,
-                                                // "sw1": switchesProvider.switches[1] ? 1 : 0,
-                                                // "sw2": switchesProvider.switches[2] ? 1 : 0,
-                                              },
-                                              '255.255.255.255',
-                                              8888,
-                                            );
-                                          } else if (index == 1) {
-                                            sendFrame(
-                                              {
-                                                "commands": 'SWITCH_WRITE',
-                                                "mac_address": widget.macAddress,
-                                                // "sw0": switchesProvider.switches[0] ? 1 : 0,
-                                                "sw1": !switchesProvider.switches[1] ? 1 : 0,
-                                                // "sw2": switchesProvider.switches[2] ? 1 : 0,
-                                              },
-                                              '255.255.255.255',
-                                              8888,
-                                            );
-                                          } else {
-                                            sendFrame(
-                                              {
-                                                "commands": 'SWITCH_WRITE',
-                                                "mac_address": widget.macAddress,
-                                                // "sw0": switchesProvider.switches[0] ? 1 : 0,
-                                                // "sw1": switchesProvider.switches[1] ? 1 : 0,
-                                                "sw2": !switchesProvider.switches[2] ? 1 : 0,
-                                              },
-                                              '255.255.255.255',
-                                              8888,
-                                            );
-                                          }
-                                          // setState(() {
-                                            switchesProvider.setSwitch(index, !switchesProvider.switches[index]);
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 10),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    iconsSwitches[index],
+                                    color: Colors.white,
+                                    size: 40,
+                                  ),
+              
+                                  ///TODO: timer
+                                  Text(
+                                    leds[index],
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Consumer<AuthProvider>(
+                                      builder: (context, switchesProvider, child) {
+                                    return Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          switchesProvider.switches[index]
+                                              ? 'on'
+                                              : 'off',
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        Switch(
+                                          activeColor: Colors.pink.shade300,
+                                          activeTrackColor: Colors.pink.shade100,
+                                          inactiveThumbColor: Colors.grey.shade600,
+                                          inactiveTrackColor: Colors.grey.shade400,
+                                          splashRadius: 50.0,
+                                          value: switchesProvider.switches[index],
+                                          onChanged: (value) {
+                                            //send packet
+                                            if (index == 0) {
+                                              sendFrame(
+                                                {
+                                                  "commands": 'SWITCH_WRITE',
+                                                  "mac_address": widget.macAddress,
+                                                  "sw0": !switchesProvider.switches[0]
+                                                      ? 1
+                                                      : 0,
+                                                  // "sw1": switchesProvider.switches[1] ? 1 : 0,
+                                                  // "sw2": switchesProvider.switches[2] ? 1 : 0,
+                                                },
+                                                '255.255.255.255',
+                                                8888,
+                                              );
+                                            } else if (index == 1) {
+                                              sendFrame(
+                                                {
+                                                  "commands": 'SWITCH_WRITE',
+                                                  "mac_address": widget.macAddress,
+                                                  // "sw0": switchesProvider.switches[0] ? 1 : 0,
+                                                  "sw1": !switchesProvider.switches[1]
+                                                      ? 1
+                                                      : 0,
+                                                  // "sw2": switchesProvider.switches[2] ? 1 : 0,
+                                                },
+                                                '255.255.255.255',
+                                                8888,
+                                              );
+                                            } else {
+                                              sendFrame(
+                                                {
+                                                  "commands": 'SWITCH_WRITE',
+                                                  "mac_address": widget.macAddress,
+                                                  // "sw0": switchesProvider.switches[0] ? 1 : 0,
+                                                  // "sw1": switchesProvider.switches[1] ? 1 : 0,
+                                                  "sw2": !switchesProvider.switches[2]
+                                                      ? 1
+                                                      : 0,
+                                                },
+                                                '255.255.255.255',
+                                                8888,
+                                              );
+                                            }
+                                            // setState(() {
+                                            switchesProvider.setSwitch(index,
+                                                !switchesProvider.switches[index]);
                                             // if (index == 1) {
                                             //   rgb = !rgb;
                                             //   _showColorPicker(context);
                                             // }
-                                          // });
-                                        },
-                                      );
-                                    }
-
-                                ),
-
-                              ],
+                                            // });
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  }),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
+                            onLongPress: () {
+                              if (index == 1 &&
+                                  Provider.of<AuthProvider>(context,
+                                          listen: false)
+                                      .switches[1]) {
+                                // rgb = !rgb;
+                                _showColorPicker(context);
+                              }
+                            },
+                          );
+                        },
                       ),
-                      onLongPress: () {
-                        if (index == 1 && Provider.of<SwitchesProvider>(context).switches[1]) {
-                          // rgb = !rgb;
-                          _showColorPicker(context);
-                        }
-                      },
-                    );
-                  },
+                    ),
+                    Consumer<AuthProvider>(
+                        builder: (context, switchesProvider, child) {
+                      return switchesProvider.switches[1]
+                          ? Container(
+                              decoration: const BoxDecoration(
+                                color: Colors
+                                    .white, // Set the background color as needed
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(50.0),
+                                  topRight: Radius.circular(50.0),
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 15.0, vertical: 15.0),
+                                child: Wrap(
+                                  children: <Widget>[
+                                    HueRingPicker(
+                                      pickerColor: currentColor,
+                                      onColorChanged: changeColor,
+                                    ),
+                                    Center(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          sendFrame(
+                                            {
+                                              "commands": "RGB_WRITE",
+                                              "mac_address": widget.macAddress,
+                                              "red": currentColor.red,
+                                              "green": currentColor.green,
+                                              "blue": currentColor.blue,
+                                            },
+                                            '255.255.255.255',
+                                            8888,
+                                          );
+                                          // Navigator.pop(context);
+                                        },
+                                        child: const Text(
+                                          'Save',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : const SizedBox();
+                    }),
+                    /*if(rgb)...[
+                      Expanded(
+                        child: HUEColorPicker(
+                            pickerColor: currentColor, onColorChanged: changeColor),
+                      ),
+                    ],*/
+                  ],
                 ),
               ),
-              /*if(rgb)...[
-                Expanded(
-                  child: HUEColorPicker(
-                      pickerColor: currentColor, onColorChanged: changeColor),
-                ),
-              ],*/
             ],
           ),
         ),
@@ -228,58 +281,53 @@ class _RoomDetailState extends State<RoomDetail> {
   }
 
   void _showColorPicker(BuildContext context) {
-    showMaterialModalBottomSheet(
+    showModalBottomSheet(
       context: context,
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
-          child: Wrap(
-            children: <Widget>[
-              // HUEColorPicker(pickerColor: currentColor, onColorChanged: changeColor),
-              HueRingPicker(
-                  pickerColor: currentColor, onColorChanged: changeColor),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    sendFrame(
-                      {
-                        "commands": "RGB_WRITE",
-                        "mac_address": widget.macAddress,
-                        "red": currentColor.red,
-                        "green": currentColor.green,
-                        "blue": currentColor.blue,
-                      },
-                      '255.255.255.255',
-                      8888,
-                    );
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'Save',
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white, // Set the background color as needed
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(50.0),
+              topRight: Radius.circular(50.0),
+            ),
+          ),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
+            child: Wrap(
+              children: <Widget>[
+                HueRingPicker(
+                  pickerColor: currentColor,
+                  onColorChanged: changeColor,
+                ),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      sendFrame(
+                        {
+                          "commands": "RGB_WRITE",
+                          "mac_address": widget.macAddress,
+                          "red": currentColor.red,
+                          "green": currentColor.green,
+                          "blue": currentColor.blue,
+                        },
+                        '255.255.255.255',
+                        8888,
+                      );
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      'Save',
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
     );
-    /*showModalBottomSheet(
-      useSafeArea: true,
-      context: context,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15.0,vertical: 15.0),
-          child: Wrap(
-            children: <Widget>[
-              // HUEColorPicker(pickerColor: currentColor, onColorChanged: changeColor),
-              HueRingPicker(pickerColor: currentColor, onColorChanged: changeColor),
-              Center(child: ElevatedButton(onPressed: (){Navigator.pop(context);}, child: const Text('Save',),)),
-            ],
-          ),
-        );
-      },
-    );*/
   }
 
   @override

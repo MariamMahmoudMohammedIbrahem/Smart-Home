@@ -2,14 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:get/state_manager.dart';
-import 'package:mega/db/sqldb.dart';
-import 'package:mega/ui/loading_screen.dart';
-import 'package:mega/ui/rooms.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 import 'constants.dart';
-import 'main.dart';
+import 'db/functions.dart';
 
 class UDPScreen extends StatefulWidget {
   const UDPScreen({super.key});
@@ -20,160 +17,16 @@ class UDPScreen extends StatefulWidget {
 
 class _UDPScreenState extends State<UDPScreen> {
   void sendFrame(Map<String, dynamic> jsonFrame, String ipAddress, int port) {
-    // Convert the Map to a JSON string
     String frame = jsonEncode(jsonFrame);
 
-    // Bind to any available IPv4 address and port 0 (let the OS assign a port)
     RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
         .then((RawDatagramSocket socket) {
-      print('Sending JSON frame');
       print(jsonFrame);
       socket.broadcastEnabled = true;
-
-      // Send the JSON string as a list of bytes
       socket.send(frame.codeUnits, InternetAddress(ipAddress), port);
     });
   }
 
-  /*void startListen() {
-    print("udp");
-    // Bind to any available IPv4 address and the specified port (8081)
-    RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081)
-        .then((RawDatagramSocket socket) {
-      socket.listen((RawSocketEvent event) {
-        if (event == RawSocketEvent.read) {
-          Datagram? datagram = socket.receive();
-          if (datagram != null) {
-            // Convert the received data to a string
-            String response = String.fromCharCodes(datagram.data);
-            print('response udp $response');
-            if (response == "OK") {
-              commandResponse = response;
-            } else {
-              try {
-                Map<String, dynamic> jsonResponse = jsonDecode(response);
-
-                commandResponse = jsonResponse['commands'];
-                deviceType = jsonResponse['device_type'];
-                deviceLocation = jsonResponse['device_location'];
-                wifiSsid = jsonResponse['wifi_ssid'];
-                wifiPassword = jsonResponse['wifi_password'];
-                if (commandResponse == 'MAC_ADDRESS_READ_OK') {
-                  setState(() {
-                    macAddress = jsonResponse["mac_address"];
-                    readOnly = true;
-                  });
-                }
-                else if (commandResponse == 'WIFI_CONFIG_OK') {
-                  *//*setState(() {
-                    configured = true;
-                  });*//*
-                }
-                else if (commandResponse == 'WIFI_CONFIG_FAIL') {
-                }
-                else if (commandResponse == 'WIFI_CONFIG_CONNECTING') {
-                  setState(() {
-                    configured = true;
-                  });
-                }
-                else if (commandResponse == 'WIFI_CONFIG_MISSED_DATA') {
-                }
-                else if (commandResponse == 'WIFI_CONFIG_SAME') {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text("WIFI_CONFIG_SAME"),
-                  ));
-                }
-                else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
-                  setState(() {
-                    connectionSuccess = true;
-                    showSnack(context, 'Connected Successfully');
-                  });
-                }
-                else if (commandResponse == 'DEVICE_CONFIG_WRITE_OK') {
-                  setState(() {
-                    roomConfig = true;
-                  });
-                }
-              } catch (e) {
-                print('Error decoding JSON: $e');
-              }
-            }
-          }
-        }
-      });
-    });
-  }*/
-  /*dynamic searchJson(Map<String, dynamic> json, String key) {
-    if (json.containsKey(key)) {
-      return json[key];
-    }
-
-    for (var value in json.values) {
-      if (value is Map) {
-        var result = searchJson(Map<String, dynamic>.from(value), key);
-        if (result != null) {
-          return result;
-        }
-      }
-      else if (value is List) {
-        for (var item in value) {
-          if (item is Map) {
-            var result = searchJson(Map<String, dynamic>.from(item), key);
-            if (result != null) {
-              return result;
-            }
-          }
-        }
-      }
-    }
-
-    return null;
-  }*/
-  /*void sendFrame(String frame, String ipAddress, int port) {
-    // Removed the ipAddress assignment
-    RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
-        .then((RawDatagramSocket socket) {
-      print('hello2');
-      socket.broadcastEnabled = true;
-      socket.send(frame.codeUnits, InternetAddress(ipAddress), port);
-    });
-  }
-///todo: json
-  void startListen() {
-    RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081) //local port
-        .then((RawDatagramSocket socket) {
-      socket.listen((RawSocketEvent event) {
-        if (event == RawSocketEvent.read) {
-          Datagram? datagram = socket.receive();
-          if (datagram != null) {
-            String response = String.fromCharCodes(datagram.data);
-            if (response.startsWith('WIFI_CONFIG::[@MS_SEP@]::')) {
-              setState(() {
-                configured = true;
-              });
-            } else if (response.startsWith('MAC_ADDRESS_READ::[@MS_SEP@]::')) {
-              setState(() {
-                readOnly = false;
-              });
-              print('true');
-            } else if (response.startsWith('WIFI_CONNECT_OK')) {
-              setState(() {
-                connectionSuccess = true;
-                showSnack(context, 'Connected Successfully');
-              });
-            } else if (response.startsWith('STATUS_READ::[@MS_SEP@]::')) {
-              setState(() {});
-            } else if (response.startsWith('RGB_READ::')) {
-              setState(() {});
-            }
-            setState(() {
-              responseAll = response;
-            });
-          }
-        }
-      });
-    });
-  }*/
   void showSnack(BuildContext context, String message) {
     final snackBar = SnackBar(
       content: Text(message),
@@ -182,41 +35,6 @@ class _UDPScreenState extends State<UDPScreen> {
   }
   int _currentStep = 0;
   IconData _selectedIcon = Icons.living_sharp;
-  List<IconData> icons = [
-    Icons.living_sharp,
-    Icons.bedroom_baby_sharp,
-    Icons.bedroom_parent_sharp,
-    Icons.kitchen_sharp,
-    Icons.bathroom_sharp,
-    Icons.dining_sharp,
-    Icons.desk_sharp,
-    Icons.local_laundry_service_sharp,
-    Icons.garage_sharp,
-    Icons.camera_outdoor_sharp,
-  ];
-  String getIconName(IconData icon) {
-    if (icon == Icons.living_sharp) {
-      return 'Living Room';
-    } else if (icon == Icons.bedroom_baby_sharp) {
-      return 'Baby Bedroom';
-    } else if (icon == Icons.bedroom_parent_sharp) {
-      return 'Parent Bedroom';
-    } else if (icon == Icons.kitchen_sharp) {
-      return 'Kitchen';
-    } else if (icon == Icons.bathroom_sharp) {
-      return 'Bathroom';
-    } else if (icon == Icons.dining_sharp) {
-      return 'Dining Room';
-    } else if (icon == Icons.desk_sharp) {
-      return 'Desk';
-    } else if (icon == Icons.local_laundry_service_sharp) {
-      return 'Laundry Room';
-    } else if (icon == Icons.garage_sharp) {
-      return 'Garage';
-    } else /* if (icon == Icons.camera_outdoor_sharp) */ {
-      return 'Outdoor';
-    }
-  }
 
   List<Step> getSteps() {
     return [
@@ -232,9 +50,10 @@ class _UDPScreenState extends State<UDPScreen> {
               Flex(
                 direction: Axis.vertical,
                 children: [
-                  const Text(
-                    'HEADLINE1',
+                  Text(
+                    'Connecting To The Device',
                     style: TextStyle(
+                      color: Colors.pink.shade900,
                       fontWeight: FontWeight.bold,
                       fontSize: 26,
                     ),
@@ -247,8 +66,6 @@ class _UDPScreenState extends State<UDPScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  Text('command $commandResponse'),
-
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
@@ -267,9 +84,10 @@ class _UDPScreenState extends State<UDPScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 40.0),
           child: Column(
             children: [
-              const Text(
+              Text(
                 'Wifi Network Configuration',
                 style: TextStyle(
+                  color: Colors.pink.shade900,
                   fontWeight: FontWeight.bold,
                   fontSize: 26,
                 ),
@@ -282,12 +100,8 @@ class _UDPScreenState extends State<UDPScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              Text('command $commandResponse'),
               Form(
                 key: formKey,
-                /*autovalidateMode: !readOnly
-                    ? AutovalidateMode.always
-                    : AutovalidateMode.disabled,*/
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -352,9 +166,10 @@ class _UDPScreenState extends State<UDPScreen> {
               Flex(
                 direction: Axis.vertical,
                 children: [
-                  const Text(
+                  Text(
                     'Check connection',
                     style: TextStyle(
+                      color: Colors.pink.shade900,
                       fontWeight: FontWeight.bold,
                       fontSize: 26,
                     ),
@@ -367,8 +182,6 @@ class _UDPScreenState extends State<UDPScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  Text('command $commandResponse'),
-
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
@@ -387,9 +200,10 @@ class _UDPScreenState extends State<UDPScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 40.0),
           child: Column(
             children: [
-              const Text(
+              Text(
                 'choose your room name',
                 style: TextStyle(
+                  color: Colors.pink.shade900,
                   fontWeight: FontWeight.bold,
                   fontSize: 26,
                 ),
@@ -402,7 +216,6 @@ class _UDPScreenState extends State<UDPScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              Text('command $commandResponse'),
               SingleChildScrollView(
                 child: DropdownButton<IconData>(
                   value: _selectedIcon,
@@ -422,7 +235,7 @@ class _UDPScreenState extends State<UDPScreen> {
                       }
                     });
                   },
-                  items: icons.map<DropdownMenuItem<IconData>>((IconData icon) {
+                  items: iconsRooms.map<DropdownMenuItem<IconData>>((IconData icon) {
                     return DropdownMenuItem<IconData>(
                       value: icon,
                       child: Row(
@@ -432,23 +245,19 @@ class _UDPScreenState extends State<UDPScreen> {
                             width: 10.0,
                           ),
                           Text(
-                            getIconName(icon),
+                            getRoomName(icon),
                           ),
                         ],
                       ),
                       onTap: () {
-                        roomName = getIconName(icon);
+                        setState(() {
+                          roomName = getRoomName(icon);
+                        });
                       },
                     );
                   }).toList(),
                 ),
               ),
-              /*ElevatedButton(
-                onPressed: () {},
-                child: const Text(
-                  'check connectivity',
-                ),
-              ),*/
             ],
           ),
         ),
@@ -460,189 +269,178 @@ class _UDPScreenState extends State<UDPScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Stepper(
-          steps: getSteps(),
-          physics: const ScrollPhysics(),
-          type: StepperType.horizontal,
-          currentStep: _currentStep,
-          onStepCancel: () => _currentStep == 0
-              ? null
-              : setState(() {
-                  _currentStep -= 1;
-                }),
-          onStepContinue: () {
-            bool isLastStep = (_currentStep == getSteps().length - 1);
-            if (isLastStep) {
-              //Do something with this information
-            } else {
-              setState(() {
-                _currentStep += 1;
-              });
-            }
-          },
-          onStepTapped: (step) {},
-          controlsBuilder: (BuildContext context, ControlsDetails controls) {
-            return Row(
-              mainAxisAlignment:
-                  _currentStep != 0 && !Provider.of<AuthProvider>(context).configured && !!Provider.of<AuthProvider>(context).connectionSuccess
-                      ? MainAxisAlignment.spaceBetween
-                      : MainAxisAlignment.center,
-              children: [
-                Visibility(
-                  visible: (_currentStep != 0 && Provider.of<AuthProvider>(context).readOnly) ||
-                      (_currentStep == 1 && !Provider.of<AuthProvider>(context).configured) ||
-                      (_currentStep == 2 && !!Provider.of<AuthProvider>(context).connectionSuccess) ||
-                      !!Provider.of<AuthProvider>(context).roomConfig,
-                  child: Expanded(
-                    child: SizedBox(
-                      // width: width * .4,
-                      child: ElevatedButton(
-                        onPressed: controls.onStepCancel,
-                        child: const Text(
-                          'Back',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+        child: Theme(
+          data: Theme.of(context).copyWith(
+              colorScheme: Theme.of(context)
+                  .colorScheme
+                  .copyWith(onSurface: Colors.pink.shade200,
+                  primary: Colors.pink.shade900)),
+          child: Stepper(
+            steps: getSteps(),
+            physics: const ScrollPhysics(),
+            type: StepperType.horizontal,
+            currentStep: _currentStep,
+            onStepCancel: () => _currentStep == 0
+                ? null
+                : setState(() {
+                    _currentStep -= 1;
+                  }),
+            onStepContinue: () {
+              bool isLastStep = (_currentStep == getSteps().length - 1);
+              if (isLastStep) {
+                //Do something with this information
+              } else {
+                setState(() {
+                  _currentStep += 1;
+                });
+              }
+            },
+            onStepTapped: (step) {},
+            controlsBuilder: (BuildContext context, ControlsDetails controls) {
+              return Row(
+                mainAxisAlignment:
+                    _currentStep != 0 && !Provider.of<AuthProvider>(context).configured && !!Provider.of<AuthProvider>(context).connectionSuccess
+                        ? MainAxisAlignment.spaceBetween
+                        : MainAxisAlignment.center,
+                children: [
+                  Visibility(
+                    visible: (_currentStep != 0 && Provider.of<AuthProvider>(context).readOnly) ||
+                        (_currentStep == 1 && !Provider.of<AuthProvider>(context).configured) ||
+                        (_currentStep == 2 && !!Provider.of<AuthProvider>(context).connectionSuccess) ||
+                        !!Provider.of<AuthProvider>(context).roomConfig,
+                    child: Expanded(
+                      child: SizedBox(
+                        // width: width * .4,
+                        child: ElevatedButton(
+                          onPressed: controls.onStepCancel,
+                          style: ElevatedButton.styleFrom(
+                            side: BorderSide(
+                              color: Colors.pink.shade900,
+                            ),
+                          ),
+                          child: Text(
+                            'Back',
+                            style: TextStyle(
+                              color: Colors.pink.shade900,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(
-                  width: 5,
-                ),
-                Expanded(
-                  child: SizedBox(
-                    // width: (_currentStep == 0 || connectionSuccess || configured) ? width * .7 : width * .4,
-                    child: Consumer<AuthProvider>(
-                      builder: (context, booleanProvider, child) {
-                        return ElevatedButton(
-                          onPressed: () {
-                            if (_currentStep == 0) {
-                              if (booleanProvider.readOnly) {
-                                if (items.containsKey(booleanProvider.macAddress)) {
-                                  showSnack(context,
-                                      'you already have this device configured');
+                  const SizedBox(
+                    width: 5,
+                  ),
+                  Expanded(
+                    child: SizedBox(
+                      child: Consumer<AuthProvider>(
+                        builder: (context, booleanProvider, child) {
+                          return ElevatedButton(
+                            onPressed: () {
+                              if (_currentStep == 0) {
+                                if (booleanProvider.readOnly) {
+                                  if (items.containsKey(booleanProvider.macAddress)) {
+                                    showSnack(context,
+                                        'you already have this device configured');
+                                  } else {
+                                    controls.onStepContinue!();
+                                  }
                                 } else {
-                                  controls.onStepContinue!();
+                                  sendFrame(
+                                    {"commands": 'MAC_ADDRESS_READ'},
+                                    '255.255.255.255',
+                                    8888,
+                                  );
                                 }
-                              } else {
-                                sendFrame(
-                                  {"commands": 'MAC_ADDRESS_READ'},
-                                  '255.255.255.255',
-                                  8888,
-                                );
                               }
-                            }
-                            else if (_currentStep == 2) {
-                              if (booleanProvider.connectionSuccess) {
-                                controls.onStepContinue!();
-                              } else {
-                                sendFrame(
-                                  {
-                                    "commands": 'WIFI_CONNECT_CHECK',
-                                    "mac_address": booleanProvider.macAddress,
-                                  },
-                                  '255.255.255.255',
-                                  8888,
-                                );
-                                showSnack(context, 'Wait A Second');
-                              }
-                            } else if (_currentStep == 1) {
-                              if (booleanProvider.configured) {
-                                controls.onStepContinue!();
-                              } else {
-                                if (formKey.currentState!.validate()) {
-                                  print(
-                                      'validated${formKey.currentState!.validate()}');
+                              else if (_currentStep == 2) {
+                                if (booleanProvider.connectionSuccess) {
+                                  controls.onStepContinue!();
+                                } else {
                                   sendFrame(
                                     {
-                                      "commands": "WIFI_CONFIG",
+                                      "commands": 'WIFI_CONNECT_CHECK',
                                       "mac_address": booleanProvider.macAddress,
-                                      "wifi_ssid": name,
-                                      "wifi_password": password,
                                     },
                                     '255.255.255.255',
                                     8888,
                                   );
+                                  showSnack(context, 'Wait A Second');
+                                }
+                              } else if (_currentStep == 1) {
+                                if (booleanProvider.configured) {
+                                  controls.onStepContinue!();
                                 } else {
-                                  showSnack(context, 'Fields are Empty');
+                                  if (formKey.currentState!.validate()) {
+                                    print(
+                                        'validated${formKey.currentState!.validate()}');
+                                    sendFrame(
+                                      {
+                                        "commands": "WIFI_CONFIG",
+                                        "mac_address": booleanProvider.macAddress,
+                                        "wifi_ssid": name,
+                                        "wifi_password": password,
+                                      },
+                                      '255.255.255.255',
+                                      8888,
+                                    );
+                                  } else {
+                                    showSnack(context, 'Fields are Empty');
+                                  }
+                                }
+                              } else {
+                                if (booleanProvider.roomConfig) {
+                                  Navigator.pop(context);
+                                }
+                                else {
+                                  sendFrame(
+                                    {
+                                      "commands": 'DEVICE_CONFIG_WRITE',
+                                      "mac_address": booleanProvider.macAddress,
+                                      "device_location": roomName,
+                                    },
+                                    '255.255.255.255',
+                                    8888,
+                                  );
+                                  print('boolean provider${booleanProvider.deviceLocation}');
+                                  sqlDb.insertData('''
+                                    INSERT OR IGNORE INTO led (`mac_address`, `device_type`, `device_location`, `wifi_ssid`, `wifi_password`)
+                                    VALUES ("${booleanProvider.macAddress}", "${booleanProvider.deviceType}", "$roomName", "${booleanProvider.wifiSsid}", "${booleanProvider.wifiPassword}")
+                                  ''');
+                                  sqlDb.readData();
                                 }
                               }
-                            } else {
-                              if (booleanProvider.roomConfig) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => LoadingPage(
-                                      onValueReceived: (bool value) {
-                                        // Navigate based on the received boolean value
-                                        if (value) {
-                                          Navigator.pop(context);
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => Rooms(),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                sendFrame(
-                                  {
-                                    "commands": 'DEVICE_CONFIG_WRITE',
-                                    "mac_address": booleanProvider.macAddress,
-                                    "device_location": roomName,
-                                  },
-                                  '255.255.255.255',
-                                  8888,
-                                );
-                                print('boolean provider${booleanProvider.deviceLocation}');
-                                sqlDb.insertData('''
-                                  INSERT OR IGNORE INTO led (`mac_address`, `device_type`, `device_location`, `wifi_ssid`, `wifi_password`)
-                                  VALUES ("${booleanProvider.macAddress}", "${booleanProvider.deviceType}", "${booleanProvider.deviceLocation}", "${booleanProvider.wifiSsid}", "${booleanProvider.wifiPassword}")
-                                ''');
-                                print('items before $items');
-                                // items.addIf(true, macAddress, roomName);
-                                sqlDb.readData();
-                                print('after $items');
-                                /*saveInDB('Devices');*/
-                              }
-                            }
-                          },
-                          child: Text(
-                            _currentStep == 0
-                                ? (booleanProvider.readOnly && !items.containsKey(booleanProvider.macAddress)
-                                    ? 'Next'
-                                    : 'connect')
-                                : _currentStep == 2
-                                    ? (booleanProvider.connectionSuccess ? 'Next' : 'Configure')
-                                    : _currentStep == 1
-                                        ? (booleanProvider.configured ? 'Next' : 'Check Connection')
-                                        : !booleanProvider.roomConfig
-                                            ? 'Finish'
-                                            : 'Save',
-                            /*_currentStep == getSteps().length - 1
-                                ? 'Finish'
-                                : (_currentStep != 1 || connectionSuccess)
-                                    ? 'Next'
-                                    : 'Check Connection',*/
-                            style: const TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          ),
-                        );
-                      }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.pink.shade900,
+                            ),
+                            child: Text(
+                              _currentStep == 0
+                                  ? (booleanProvider.readOnly && !items.containsKey(booleanProvider.macAddress)
+                                      ? 'Next'
+                                      : 'connect')
+                                  : _currentStep == 2
+                                      ? (booleanProvider.connectionSuccess ? 'Next' : 'Configure')
+                                      : _currentStep == 1
+                                          ? (booleanProvider.configured ? 'Next' : 'Check Connection')
+                                          : !booleanProvider.roomConfig
+                                              ? 'Finish'
+                                              : 'Save',
+                              style: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold,color: Colors.white),
+                              textAlign: TextAlign.center,
+                            ),
+                          );
+                        }
+                      ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

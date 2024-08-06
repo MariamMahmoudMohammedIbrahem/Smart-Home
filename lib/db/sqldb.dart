@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:path/path.dart';
-import 'package:mega/todoey.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../constants.dart';
@@ -109,7 +108,7 @@ class SqlDb {
   }
 
   Future<List<Map<String, dynamic>>> readData() async {
-    print('hello world');
+    loading = true;
     Database? mydb = await db;
     List<Map<String, dynamic>> databaseMap = await mydb!.rawQuery('''
       SELECT * FROM led
@@ -119,6 +118,7 @@ class SqlDb {
     };
     print('resultMap$databaseMap');
     print('resultMap$resultMap');
+    loading = false;
     items = resultMap;
     values = items.values.toList();
     return databaseMap;

@@ -360,9 +360,144 @@ bool isUsernameValid(String username){
   );
   return userNameRegex.hasMatch(username);
 }*/
-import 'package:flutter/cupertino.dart';
+import 'dart:convert';
+import 'dart:io';
 
-class SwitchesProvider extends ChangeNotifier{
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../constants.dart';
+
+// class SwitchesProvider extends ChangeNotifier{
+//   List switches = [false,false,false];
+//
+//   void setSwitch(int no, bool state) {
+//     switches[no] = state;
+//
+//     notifyListeners();
+//   }
+// }
+
+class SocketManager {
+  static final SocketManager _instance = SocketManager._internal();
+  RawDatagramSocket? _socket;
+  Color currentColor = Colors.transparent;
+
+  factory SocketManager() {
+    return _instance;
+  }
+
+  SocketManager._internal();
+
+  void startListen(BuildContext context) {
+    if (_socket != null) {
+      return; // If the socket is already initialized, do nothing
+    }
+
+    print("Enter listen out");
+    RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081).then((RawDatagramSocket socket) {
+      _socket = socket;
+      socket.listen((RawSocketEvent event) {
+        if (event == RawSocketEvent.read) {
+          Datagram? datagram = socket.receive();
+          if (datagram != null) {
+            String response = String.fromCharCodes(datagram.data);
+            print('response out $response');
+            if (response == "OK") {
+              commandResponse = response;
+            }
+            else {
+              try {
+                Map<String, dynamic> jsonResponse = jsonDecode(response);
+                commandResponse = jsonResponse['commands'];
+                if (commandResponse == 'SWITCH_READ_OK') {
+                }
+                else if (commandResponse == 'UPDATE_OK') {
+                  print('update-ok');
+                  Provider.of<AuthProvider>(context, listen: false).setSwitch(0, jsonResponse['sw0'] != 0);
+                  Provider.of<AuthProvider>(context, listen: false).setSwitch(1, jsonResponse['sw1'] != 0);
+                  Provider.of<AuthProvider>(context, listen: false).setSwitch(2, jsonResponse['sw2'] != 0);
+                  Provider.of<AuthProvider>(context, listen: false).addingDevice('UPDATE_OK', jsonResponse);
+                  currentColor = Color.fromRGBO(jsonResponse['red'], jsonResponse['green'], jsonResponse['blue'], 1.0);
+                  print(currentColor);
+                }
+                else if (commandResponse == 'SWITCH_WRITE_OK') {
+                }
+                else if (commandResponse == 'RGB_READ_OK') {
+                }
+                else if (commandResponse == 'RGB_WRITE_OK') {
+                }
+                else if (commandResponse == 'MAC_ADDRESS_READ_OK') {
+                  Provider.of<AuthProvider>(context, listen: false).addingDevice('MAC_ADDRESS_READ_OK', jsonResponse);
+                }
+                else if (commandResponse == 'WIFI_CONFIG_OK') {
+                }
+                else if (commandResponse == 'WIFI_CONFIG_FAIL') {
+                }
+                else if (commandResponse == 'WIFI_CONFIG_CONNECTING') {
+                  Provider.of<AuthProvider>(context, listen: false).addingDevice('WIFI_CONFIG_CONNECTING', {});
+                }
+                else if (commandResponse == 'WIFI_CONFIG_MISSED_DATA') {
+                }
+                else if (commandResponse == 'WIFI_CONFIG_SAME') {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("WIFI_CONFIG_SAME")));
+                }
+                else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
+                  Provider.of<AuthProvider>(context, listen: false).addingDevice('WIFI_CONNECT_CHECK_OK', {});
+                  const snackBar = SnackBar(content: Text('Connected Successfully'));
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                }
+                else if (commandResponse == 'DEVICE_CONFIG_WRITE_OK') {
+                  Provider.of<AuthProvider>(context, listen: false).addingDevice('DEVICE_CONFIG_WRITE_OK', jsonResponse);
+                }
+              }
+              catch (e) {
+                print('Error decoding JSON: $e');
+              }
+            }
+          }
+        }
+      });
+    });
+  }
+
+  void close() {
+    _socket?.close();
+    _socket = null;
+  }
+}
+
+class AuthProvider extends ChangeNotifier {
+  bool? _isFirstTime;
+
+  bool _toggle = true;
+
+  bool roomConfig = false;
+  bool connectionSuccess = false;
+  bool configured = false;
+  bool readOnly = false;
+  String macAddress = '';
+  String deviceType = '';
+  String deviceLocation = '';
+  String wifiSsid = '';
+  String wifiPassword = '';
+
+  bool get firstTimeCheck => _isFirstTime ?? true;
+
+  bool get toggle => _toggle;
+  bool get itemsEmpty => items.isEmpty;
+  bool get isLoading => loading;
+
+  // bool get roomConfig => _roomConfig;
+  // bool get connectionSuccess => _connectionSuccess;
+  // bool get configured => _configured;
+  // bool get readOnly => _readOnly;
+  // String get macAddress => _macAddress;
+  // String get deviceType => _deviceType;
+  // String get deviceLocation => _deviceLocation;
+  // String get wifiSsid => _wifiSsid;
+  // String get wifiPassword => _wifiPassword;
   List switches = [false,false,false];
 
   void setSwitch(int no, bool state) {
@@ -370,4 +505,101 @@ class SwitchesProvider extends ChangeNotifier{
 
     notifyListeners();
   }
+  Future<bool> checkFirstTime() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _isFirstTime = prefs.getBool('first_time') ?? true;
+    return prefs.getBool('first_time') ?? true;
+    // print('isFirstTime total ${prefs.getBool('first_time')}');
+    // print('isFirstTime $firstTimeCheck');
+    // notifyListeners();
+  }
+  Future<void> setFirstTime() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('first_time', false);
+    _isFirstTime = false;
+    print('Set first time to: $_isFirstTime');
+    notifyListeners();
+  }
+  void toggling(bool newValue) {
+    _toggle = newValue;
+    notifyListeners();
+  }
+  void addingDevice(String command, Map<String, dynamic> jsonResponse){
+    switch (command){
+      case 'MAC_ADDRESS_READ_OK':
+        macAddress = jsonResponse['mac_address'];
+        readOnly = true;
+        break;
+      case 'WIFI_CONFIG_CONNECTING':
+        configured = true;
+        break;
+      case 'WIFI_CONNECT_CHECK_OK':
+        connectionSuccess = true;
+        break;
+      case 'DEVICE_CONFIG_WRITE_OK':
+        roomConfig = true;
+        saved = true;
+        deviceType = jsonResponse["device_type"];
+        deviceLocation = jsonResponse["device_location"];
+        wifiSsid = jsonResponse["wifi_ssid"];
+        wifiPassword = jsonResponse["wifi_password"];
+        break;
+      case 'UPDATE_OK':
+        wifiSsid = jsonResponse["wifi_ssid"];
+        wifiPassword = jsonResponse["wifi_password"];
+        break;
+    }
+    notifyListeners();
+  }
+}
+String getRoomName(IconData icon) {
+  if (icon == Icons.living_sharp) {
+    return 'Living Room';
+  } else if (icon == Icons.bedroom_baby_sharp) {
+    return 'Baby Bedroom';
+  } else if (icon == Icons.bedroom_parent_sharp) {
+    return 'Parent Bedroom';
+  } else if (icon == Icons.kitchen_sharp) {
+    return 'Kitchen';
+  } else if (icon == Icons.bathroom_sharp) {
+    return 'Bathroom';
+  } else if (icon == Icons.dining_sharp) {
+    return 'Dining Room';
+  } else if (icon == Icons.desk_sharp) {
+    return 'Desk';
+  } else if (icon == Icons.local_laundry_service_sharp) {
+    return 'Laundry Room';
+  } else if (icon == Icons.garage_sharp) {
+    return 'Garage';
+  } else /* if (icon == Icons.camera_outdoor_sharp) */ {
+    return 'Outdoor';
+  }
+}
+IconData getIconName(String name) {
+  if (name == 'living Room') {
+    return Icons.living;
+  } else if (name == 'Baby Bedroom') {
+    return Icons.bedroom_baby;
+  } else if (name == 'Parent Bedroom') {
+    return Icons.bedroom_parent;
+  } else if (name == 'Kitchen') {
+    return Icons.kitchen;
+  } else if (name == 'Bathroom') {
+    return Icons.bathroom;
+  } else if (name == 'Dining Room') {
+    return Icons.dining;
+  } else if (name == 'Desk') {
+    return Icons.desk;
+  } else if (name == 'Laundry Room') {
+    return Icons.local_laundry_service;
+  } else if (name =='Garage') {
+    return Icons.garage;
+  } else /* if (icon =='Outdoor' ) */ {
+    return Icons.camera_outdoor;
+  }
+}
+
+Future<void> setCredentials() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('first_time', true);
 }

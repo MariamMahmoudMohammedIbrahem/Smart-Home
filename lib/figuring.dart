@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:get/state_manager.dart';
 import 'package:mega/udp.dart';
 import 'package:mega/ui/rooms.dart';
 
