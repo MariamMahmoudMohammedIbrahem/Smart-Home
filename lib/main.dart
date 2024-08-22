@@ -3,8 +3,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:mega/constants.dart';
 import 'package:mega/db/functions.dart';
 import 'package:mega/ui/initial.dart';
-import 'package:mega/ui/rooms.dart';
-import 'package:mega/ui/welcome_page.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async {
@@ -60,7 +58,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: currentColor),
         useMaterial3: true,
       ),
-      home: HomeScreen(),
+      home: const HomeScreen(),
     );
   }
 }

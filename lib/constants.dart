@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'db/sqldb.dart';
 SqlDb sqlDb = SqlDb();
+var departmentMap = [];
 // bool isFirstTime = true;
 // import 'package:google_sign_in/google_sign_in.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
@@ -14,18 +15,22 @@ bool eye = false;
 // String usernameRetrieved = '';
 // String errorMessage = '';
 Color currentColor = Colors.amber;
-Map<String, dynamic> items = {
-  // '00:F3:00:20:00:7A': 'livingRoom',
-  // '08:3A:8D:D0:AA:20': 'babyRoom',
-};//retrieve from db
-List values = [];
-List<String> leds = ['ceiling','wall lamp','table lamp'];//couldn't know where should it be retrieved from
-List iconsSwitches = [Icons.ac_unit,Icons.lightbulb_circle_outlined,Icons.charging_station, Icons.colorize];
+///items list of all macAddress
+List items = [];//retrieve from db
+// ValueNotifier<List<String>> roomNames = ValueNotifier<List<String>>([]);
+List<String> roomNames = [];
+List<int>  roomIDs = [];
+List<Map<String, dynamic>> deviceDetails = [];
+List<Map<String, dynamic>> deviceStatus = [];
+String macAddress = '';
+List<String> leds = ['light lamp','light lamp','light lamp'];//couldn't know where should it be retrieved from
+// List iconsSwitches = [Icons.lightbulb_circle_rounded,Icons.lightbulb_circle_rounded,Icons.lightbulb_circle_rounded];
+// String selectedMacAddress = '';
 // bool rgb = false;
 /// *add_devices**
 bool saved = false;
 // final StreamController<bool> controller = StreamController<bool>();
-String roomName = 'living Room';
+String roomName = 'Living Room';
 ///*auto_signin**
 // late SharedPreferences prefs;
 // String prefsPassword = '';
@@ -46,14 +51,15 @@ final TextEditingController passwordController = TextEditingController();
 bool navigate = false;
 var commandResponse = '';
 List<IconData> iconsRooms = [
-  Icons.living_sharp,
-  Icons.bedroom_baby_sharp,
-  Icons.bedroom_parent_sharp,
-  Icons.kitchen_sharp,
-  Icons.bathroom_sharp,
-  Icons.dining_sharp,
-  Icons.desk_sharp,
-  Icons.local_laundry_service_sharp,
-  Icons.garage_sharp,
-  Icons.camera_outdoor_sharp,
+  Icons.living,
+  Icons.bedroom_baby,
+  Icons.bedroom_parent,
+  Icons.kitchen,
+  Icons.bathroom,
+  Icons.dining,
+  Icons.desk,
+  Icons.local_laundry_service,
+  Icons.garage,
+  Icons.camera_outdoor,
 ];
+IconData selectedIcon = Icons.living;

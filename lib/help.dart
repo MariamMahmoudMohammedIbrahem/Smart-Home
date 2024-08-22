@@ -1,3 +1,124 @@
+import 'package:flutter/material.dart';
+
+int departmentID = 0;
+int roomID = 0;
+bool deviceSuccess = false;
+var tableList = [];
+int count = 0;
+
+class HelpDataBase extends StatefulWidget {
+  const HelpDataBase({super.key});
+
+  @override
+  State<HelpDataBase> createState() => _HelpDataBaseState();
+}
+
+class _HelpDataBaseState extends State<HelpDataBase> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: ListView(
+        children: [
+          /*ElevatedButton(
+            onPressed: () async {
+              // Insert a department
+              bool exist = await sqlDb.searchDepartmentByName("IT Department");
+              if(exist){
+                print('this department name is taken');
+              }
+              else{
+                departmentID = await sqlDb.insertDepartment("IT Department");
+              }
+            },
+            child: const Text(
+              'insert into department',
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // Insert a room in the department
+              if(departmentID != 0) {
+                roomID = await sqlDb.insertRoom("Server Room", departmentID);
+              }
+            },
+            child: const Text(
+              'insert into rooms',
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              // Insert a device in the room
+              deviceSuccess = await sqlDb.insertDevice(
+                "Router",
+                "00:1A:2B:3C:4D:5E",
+                "OfficeWifi",
+                "password123",
+                "Networking Device",
+                roomID,
+              );
+            },
+            child: const Text(
+              'insert into devices',
+            ),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: Text('department Id : $departmentID'),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: Text('room Id : $roomID'),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: Text('device Id : $deviceSuccess'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              tableList = await sqlDb.getDepartmentsAndRooms();
+            },
+            child: const Text('retrieve departments and rooms'),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: Text('$tableList'),
+          ),
+          ElevatedButton(onPressed: () async {await sqlDb.getAllDepartments();}, child: Text('print departments'),),
+          ElevatedButton(onPressed: () async {var listlst = await sqlDb.getAllRooms();print(listlst);}, child: Text('print rooms'),),
+          ElevatedButton(onPressed: () async {var listlst = await sqlDb.getAllDevices();print(listlst);}, child: Text('print devices'),),*/
+          /*ElevatedButton(
+            onPressed: () async {
+              int internalCount = await sqlDb.getDepartmentCount();
+              setState(() {
+                count = internalCount;
+              });
+            },
+            child: const Text('retrieve departments count'),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: Text('$count'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              var internalCount = await sqlDb.getAllDepartments();
+              print('internal Count all departments $internalCount');
+            },
+            child: const Text('retrieve all departments'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              var internalCount = await sqlDb.getAllRooms();
+              print('internal Count all rooms $internalCount');
+            },
+            child: const Text('retrieve all rooms'),
+          ),*/
+        ],
+      ),
+    );
+  }
+}
+
 /***connection_ip.dart***/
 /*import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -723,7 +844,7 @@ class MainActivity: FlutterActivity() {
         }
       });
     });
-  }*//*//mac address
+  }*/ /*//mac address
               ElevatedButton(
                 onPressed: () {
                   sendFrame(
@@ -804,7 +925,7 @@ class MainActivity: FlutterActivity() {
                         builder: (context) => const Rooms(),
                       ),
                     );
-                  }*//*
+                  }*/ /*
                 },
                 child: const Text(
                   'wifi connect check',

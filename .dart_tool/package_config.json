@@ -26,6 +26,12 @@
       "languageVersion": "2.18"
     },
     {
+      "name": "auto_size_text",
+      "rootUri": "file:///C:/Users/pc/AppData/Local/Pub/Cache/hosted/pub.dev/auto_size_text-3.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "baseflow_plugin_template",
       "rootUri": "file:///C:/Users/pc/AppData/Local/Pub/Cache/hosted/pub.dev/baseflow_plugin_template-2.1.2",
       "packageUri": "lib/",
@@ -90,6 +96,12 @@
       "rootUri": "file:///C:/Users/pc/AppData/Local/Pub/Cache/hosted/pub.dev/file-7.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.0"
+    },
+    {
+      "name": "floating_action_bubble",
+      "rootUri": "file:///C:/Users/pc/AppData/Local/Pub/Cache/hosted/pub.dev/floating_action_bubble-1.1.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "flutter",
@@ -506,7 +518,7 @@
       "languageVersion": "3.1"
     }
   ],
-  "generated": "2024-06-11T09:00:19.428047Z",
+  "generated": "2024-08-21T09:12:19.602984Z",
   "generator": "pub",
   "generatorVersion": "3.3.3"
 }

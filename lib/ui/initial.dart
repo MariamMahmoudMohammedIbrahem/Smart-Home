@@ -7,16 +7,17 @@ import 'package:provider/provider.dart';
 import '../db/functions.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    sqlDb.readData();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    sqlDb.getAllDepartments().then((value) =>WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<AuthProvider>(context, listen: false)
           .checkFirstTime()
           .then((_) {
@@ -30,11 +31,15 @@ class _HomeScreenState extends State<HomeScreen> {
         } else {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Rooms()),
+            MaterialPageRoute(builder: (context) => const Rooms()),
+            // Navigator.pushReplacement(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => const RoomDetail(roomName: 'living Room', macAddress: '84:F3:EB:20:8C:7A')),
           );
         }
       });
-    });
+    }),);
+
   }
 
   @override

@@ -411,13 +411,14 @@ class SocketManager {
               try {
                 Map<String, dynamic> jsonResponse = jsonDecode(response);
                 commandResponse = jsonResponse['commands'];
+                print('commandResponse is => $commandResponse');
                 if (commandResponse == 'SWITCH_READ_OK') {
                 }
                 else if (commandResponse == 'UPDATE_OK') {
                   print('update-ok');
-                  Provider.of<AuthProvider>(context, listen: false).setSwitch(0, jsonResponse['sw0'] != 0);
-                  Provider.of<AuthProvider>(context, listen: false).setSwitch(1, jsonResponse['sw1'] != 0);
-                  Provider.of<AuthProvider>(context, listen: false).setSwitch(2, jsonResponse['sw2'] != 0);
+                  Provider.of<AuthProvider>(context, listen: false).setSwitch(macAddress, 'sw1', jsonResponse['sw0']);
+                  Provider.of<AuthProvider>(context, listen: false).setSwitch(macAddress, 'sw2', jsonResponse['sw1']);
+                  Provider.of<AuthProvider>(context, listen: false).setSwitch(macAddress, 'sw3', jsonResponse['sw2']);
                   Provider.of<AuthProvider>(context, listen: false).addingDevice('UPDATE_OK', jsonResponse);
                   currentColor = Color.fromRGBO(jsonResponse['red'], jsonResponse['green'], jsonResponse['blue'], 1.0);
                   print(currentColor);
@@ -479,39 +480,31 @@ class AuthProvider extends ChangeNotifier {
   bool readOnly = false;
   String macAddress = '';
   String deviceType = '';
-  String deviceLocation = '';
+  // String deviceLocation = '';
   String wifiSsid = '';
   String wifiPassword = '';
 
   bool get firstTimeCheck => _isFirstTime ?? true;
 
   bool get toggle => _toggle;
-  bool get itemsEmpty => items.isEmpty;
-  bool get isLoading => loading;
+  // List switches = [false,false,false];
 
-  // bool get roomConfig => _roomConfig;
-  // bool get connectionSuccess => _connectionSuccess;
-  // bool get configured => _configured;
-  // bool get readOnly => _readOnly;
-  // String get macAddress => _macAddress;
-  // String get deviceType => _deviceType;
-  // String get deviceLocation => _deviceLocation;
-  // String get wifiSsid => _wifiSsid;
-  // String get wifiPassword => _wifiPassword;
-  List switches = [false,false,false];
-
-  void setSwitch(int no, bool state) {
-    switches[no] = state;
-
+  void setSwitch(String macAddress, String dataKey, int state) {
+    // switches[index] = state;
+    for (var device in deviceStatus) {
+      if (device['MacAddress'] == macAddress) {
+        // Update the specific data key (data1, data2, or data3)
+        device[dataKey] = state;
+        print('device$device');
+        break;
+      }
+    }
     notifyListeners();
   }
   Future<bool> checkFirstTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _isFirstTime = prefs.getBool('first_time') ?? true;
     return prefs.getBool('first_time') ?? true;
-    // print('isFirstTime total ${prefs.getBool('first_time')}');
-    // print('isFirstTime $firstTimeCheck');
-    // notifyListeners();
   }
   Future<void> setFirstTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -539,12 +532,9 @@ class AuthProvider extends ChangeNotifier {
       case 'DEVICE_CONFIG_WRITE_OK':
         roomConfig = true;
         saved = true;
-        deviceType = jsonResponse["device_type"];
-        deviceLocation = jsonResponse["device_location"];
-        wifiSsid = jsonResponse["wifi_ssid"];
-        wifiPassword = jsonResponse["wifi_password"];
         break;
       case 'UPDATE_OK':
+        deviceType = jsonResponse["device_type"];
         wifiSsid = jsonResponse["wifi_ssid"];
         wifiPassword = jsonResponse["wifi_password"];
         break;
@@ -553,30 +543,30 @@ class AuthProvider extends ChangeNotifier {
   }
 }
 String getRoomName(IconData icon) {
-  if (icon == Icons.living_sharp) {
+  if (icon == Icons.living) {
     return 'Living Room';
-  } else if (icon == Icons.bedroom_baby_sharp) {
+  } else if (icon == Icons.bedroom_baby) {
     return 'Baby Bedroom';
-  } else if (icon == Icons.bedroom_parent_sharp) {
+  } else if (icon == Icons.bedroom_parent) {
     return 'Parent Bedroom';
-  } else if (icon == Icons.kitchen_sharp) {
+  } else if (icon == Icons.kitchen) {
     return 'Kitchen';
-  } else if (icon == Icons.bathroom_sharp) {
+  } else if (icon == Icons.bathroom) {
     return 'Bathroom';
-  } else if (icon == Icons.dining_sharp) {
+  } else if (icon == Icons.dining) {
     return 'Dining Room';
-  } else if (icon == Icons.desk_sharp) {
+  } else if (icon == Icons.desk) {
     return 'Desk';
-  } else if (icon == Icons.local_laundry_service_sharp) {
+  } else if (icon == Icons.local_laundry_service) {
     return 'Laundry Room';
-  } else if (icon == Icons.garage_sharp) {
+  } else if (icon == Icons.garage) {
     return 'Garage';
-  } else /* if (icon == Icons.camera_outdoor_sharp) */ {
+  } else /* if (icon == Icons.camera_outdoor) */ {
     return 'Outdoor';
   }
 }
 IconData getIconName(String name) {
-  if (name == 'living Room') {
+  if (name == 'Living Room') {
     return Icons.living;
   } else if (name == 'Baby Bedroom') {
     return Icons.bedroom_baby;

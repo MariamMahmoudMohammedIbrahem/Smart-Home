@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 import 'constants.dart';
@@ -33,8 +32,9 @@ class _UDPScreenState extends State<UDPScreen> {
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
+
   int _currentStep = 0;
-  IconData _selectedIcon = Icons.living_sharp;
+
 
   List<Step> getSteps() {
     return [
@@ -66,6 +66,7 @@ class _UDPScreenState extends State<UDPScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
+
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
@@ -117,6 +118,7 @@ class _UDPScreenState extends State<UDPScreen> {
                       },
                       onChanged: (value) {
                         name = nameController.text;
+                        Provider.of<AuthProvider>(context).configured = false;
                       },
                     ),
                     TextFormField(
@@ -145,6 +147,7 @@ class _UDPScreenState extends State<UDPScreen> {
                       },
                       onChanged: (value) {
                         password = passwordController.text;
+                        Provider.of<AuthProvider>(context).configured = false;
                       },
                     ),
                   ],
@@ -182,6 +185,7 @@ class _UDPScreenState extends State<UDPScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
+
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
@@ -218,7 +222,7 @@ class _UDPScreenState extends State<UDPScreen> {
               ),
               SingleChildScrollView(
                 child: DropdownButton<IconData>(
-                  value: _selectedIcon,
+                  value: selectedIcon,
                   menuMaxHeight: 200,
                   icon: const Icon(Icons.arrow_downward),
                   iconSize: 24,
@@ -231,11 +235,12 @@ class _UDPScreenState extends State<UDPScreen> {
                   onChanged: (IconData? newValue) {
                     setState(() {
                       if (newValue != null) {
-                        _selectedIcon = newValue;
+                        selectedIcon = newValue;
                       }
                     });
                   },
-                  items: iconsRooms.map<DropdownMenuItem<IconData>>((IconData icon) {
+                  items: iconsRooms
+                      .map<DropdownMenuItem<IconData>>((IconData icon) {
                     return DropdownMenuItem<IconData>(
                       value: icon,
                       child: Row(
@@ -271,9 +276,8 @@ class _UDPScreenState extends State<UDPScreen> {
       body: SafeArea(
         child: Theme(
           data: Theme.of(context).copyWith(
-              colorScheme: Theme.of(context)
-                  .colorScheme
-                  .copyWith(onSurface: Colors.pink.shade200,
+              colorScheme: Theme.of(context).colorScheme.copyWith(
+                  onSurface: Colors.pink.shade200,
                   primary: Colors.pink.shade900)),
           child: Stepper(
             steps: getSteps(),
@@ -298,15 +302,20 @@ class _UDPScreenState extends State<UDPScreen> {
             onStepTapped: (step) {},
             controlsBuilder: (BuildContext context, ControlsDetails controls) {
               return Row(
-                mainAxisAlignment:
-                    _currentStep != 0 && !Provider.of<AuthProvider>(context).configured && !!Provider.of<AuthProvider>(context).connectionSuccess
-                        ? MainAxisAlignment.spaceBetween
-                        : MainAxisAlignment.center,
+                mainAxisAlignment: _currentStep != 0 &&
+                        !Provider.of<AuthProvider>(context).configured &&
+                        !!Provider.of<AuthProvider>(context).connectionSuccess
+                    ? MainAxisAlignment.spaceBetween
+                    : MainAxisAlignment.center,
                 children: [
                   Visibility(
-                    visible: (_currentStep != 0 && Provider.of<AuthProvider>(context).readOnly) ||
-                        (_currentStep == 1 && !Provider.of<AuthProvider>(context).configured) ||
-                        (_currentStep == 2 && !!Provider.of<AuthProvider>(context).connectionSuccess) ||
+                    visible: (_currentStep != 0 &&
+                            Provider.of<AuthProvider>(context).readOnly) ||
+                        (_currentStep == 1 &&
+                            !Provider.of<AuthProvider>(context).configured) ||
+                        (_currentStep == 2 &&
+                            !!Provider.of<AuthProvider>(context)
+                                .connectionSuccess) ||
                         !!Provider.of<AuthProvider>(context).roomConfig,
                     child: Expanded(
                       child: SizedBox(
@@ -336,105 +345,124 @@ class _UDPScreenState extends State<UDPScreen> {
                   Expanded(
                     child: SizedBox(
                       child: Consumer<AuthProvider>(
-                        builder: (context, booleanProvider, child) {
-                          return ElevatedButton(
-                            onPressed: () {
-                              if (_currentStep == 0) {
-                                if (booleanProvider.readOnly) {
-                                  if (items.containsKey(booleanProvider.macAddress)) {
-                                    showSnack(context,
-                                        'you already have this device configured');
-                                  } else {
-                                    controls.onStepContinue!();
-                                  }
+                          builder: (context, booleanProvider, child) {
+                        return ElevatedButton(
+                          onPressed: () {
+                            if (_currentStep == 0) {
+                              if (booleanProvider.readOnly) {
+                                if (items
+                                    .contains(booleanProvider.macAddress)) {
+                                  showSnack(context,
+                                      'you already have this device configured');
                                 } else {
-                                  sendFrame(
-                                    {"commands": 'MAC_ADDRESS_READ'},
-                                    '255.255.255.255',
-                                    8888,
-                                  );
-                                }
-                              }
-                              else if (_currentStep == 2) {
-                                if (booleanProvider.connectionSuccess) {
                                   controls.onStepContinue!();
-                                } else {
-                                  sendFrame(
-                                    {
-                                      "commands": 'WIFI_CONNECT_CHECK',
-                                      "mac_address": booleanProvider.macAddress,
-                                    },
-                                    '255.255.255.255',
-                                    8888,
-                                  );
-                                  showSnack(context, 'Wait A Second');
-                                }
-                              } else if (_currentStep == 1) {
-                                if (booleanProvider.configured) {
-                                  controls.onStepContinue!();
-                                } else {
-                                  if (formKey.currentState!.validate()) {
-                                    print(
-                                        'validated${formKey.currentState!.validate()}');
-                                    sendFrame(
-                                      {
-                                        "commands": "WIFI_CONFIG",
-                                        "mac_address": booleanProvider.macAddress,
-                                        "wifi_ssid": name,
-                                        "wifi_password": password,
-                                      },
-                                      '255.255.255.255',
-                                      8888,
-                                    );
-                                  } else {
-                                    showSnack(context, 'Fields are Empty');
-                                  }
                                 }
                               } else {
-                                if (booleanProvider.roomConfig) {
-                                  Navigator.pop(context);
-                                }
-                                else {
+                                sendFrame(
+                                  {"commands": 'MAC_ADDRESS_READ'},
+                                  '255.255.255.255',
+                                  8888,
+                                );
+                              }
+                            } else if (_currentStep == 2) {
+                              if (booleanProvider.connectionSuccess) {
+                                controls.onStepContinue!();
+                              } else {
+                                sendFrame(
+                                  {
+                                    "commands": 'WIFI_CONNECT_CHECK',
+                                    "mac_address": booleanProvider.macAddress,
+                                  },
+                                  '255.255.255.255',
+                                  8888,
+                                );
+                                showSnack(context, 'Wait A Second');
+                              }
+                            } else if (_currentStep == 1) {
+                              if (booleanProvider.configured) {
+                                controls.onStepContinue!();
+                              } else {
+                                if (formKey.currentState!.validate()) {
+                                  print(
+                                      'validated${formKey.currentState!.validate()}');
                                   sendFrame(
                                     {
-                                      "commands": 'DEVICE_CONFIG_WRITE',
+                                      "commands": "WIFI_CONFIG",
                                       "mac_address": booleanProvider.macAddress,
-                                      "device_location": roomName,
+                                      "wifi_ssid": name,
+                                      "wifi_password": password,
                                     },
                                     '255.255.255.255',
                                     8888,
                                   );
-                                  print('boolean provider${booleanProvider.deviceLocation}');
-                                  sqlDb.insertData('''
-                                    INSERT OR IGNORE INTO led (`mac_address`, `device_type`, `device_location`, `wifi_ssid`, `wifi_password`)
-                                    VALUES ("${booleanProvider.macAddress}", "${booleanProvider.deviceType}", "$roomName", "${booleanProvider.wifiSsid}", "${booleanProvider.wifiPassword}")
-                                  ''');
-                                  sqlDb.readData();
+                                } else {
+                                  showSnack(context, 'Fields are Empty');
                                 }
                               }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.pink.shade900,
-                            ),
-                            child: Text(
-                              _currentStep == 0
-                                  ? (booleanProvider.readOnly && !items.containsKey(booleanProvider.macAddress)
-                                      ? 'Next'
-                                      : 'connect')
-                                  : _currentStep == 2
-                                      ? (booleanProvider.connectionSuccess ? 'Next' : 'Configure')
-                                      : _currentStep == 1
-                                          ? (booleanProvider.configured ? 'Next' : 'Check Connection')
-                                          : !booleanProvider.roomConfig
-                                              ? 'Finish'
-                                              : 'Save',
-                              style: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold,color: Colors.white),
-                              textAlign: TextAlign.center,
-                            ),
-                          );
-                        }
-                      ),
+                            } else {
+                              if (booleanProvider.roomConfig) {
+                                Navigator.pop(context);
+                              } else {
+                                sendFrame(
+                                  {
+                                    "commands": 'DEVICE_CONFIG_WRITE',
+                                    "mac_address": booleanProvider.macAddress,
+                                    "device_location": roomName,
+                                  },
+                                  '255.255.255.255',
+                                  8888,
+                                );
+                                print(
+                                    'boolean provider${booleanProvider.deviceType}');
+                                // sqlDb.insertData('''
+                                //   INSERT OR IGNORE INTO led (`mac_address`, `device_type`, `device_location`, `wifi_ssid`, `wifi_password`)
+                                //   VALUES ("${booleanProvider.macAddress}", "${booleanProvider.deviceType}", "$roomName", "${booleanProvider.wifiSsid}", "${booleanProvider.wifiPassword}")
+                                // ''');
+                                sqlDb.insertRoom(roomName, 1).then(
+                                      (value)
+                                      {
+                                        sqlDb.getRoomsByDepartmentID(1);
+                                      sqlDb.insertDevice(
+                                        booleanProvider.macAddress,
+                                        booleanProvider.wifiSsid,
+                                        booleanProvider.wifiPassword,
+                                        booleanProvider.deviceType,
+                                        value,
+                                      );
+                                    });
+                                // sqlDb.readData();
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.pink.shade900,
+                          ),
+                          child: Text(
+                            _currentStep == 0
+                                ? (booleanProvider.readOnly &&
+                                        !items.contains(
+                                            booleanProvider.macAddress)
+                                    ? 'Next'
+                                    : 'connect')
+                                : _currentStep == 2
+                                    ? (booleanProvider.connectionSuccess
+                                        ? 'Next'
+                                        : 'Configure')
+                                    : _currentStep == 1
+                                        ? (booleanProvider.configured
+                                            ? 'Next'
+                                            : 'Check Connection')
+                                        : !booleanProvider.roomConfig
+                                            ? 'Finish'
+                                            : 'Save',
+                            style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      }),
                     ),
                   ),
                 ],
