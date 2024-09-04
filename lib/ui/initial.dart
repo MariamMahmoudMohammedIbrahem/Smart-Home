@@ -44,7 +44,7 @@ class HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.pink.shade900,
-      body: Center(child: Image.asset('images/download.gif',),),
+      body: Center(child: Image.asset('images/loading.gif',),),
     );
   }
 }
