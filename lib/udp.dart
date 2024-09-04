@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,17 +12,6 @@ class UDPScreen extends StatefulWidget {
 }
 
 class _UDPScreenState extends State<UDPScreen> {
-  void sendFrame(Map<String, dynamic> jsonFrame, String ipAddress, int port) {
-    String frame = jsonEncode(jsonFrame);
-
-    RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
-        .then((RawDatagramSocket socket) {
-      print(jsonFrame);
-      socket.broadcastEnabled = true;
-      socket.send(frame.codeUnits, InternetAddress(ipAddress), port);
-    });
-  }
-
   void showSnack(BuildContext context, String message) {
     final snackBar = SnackBar(
       content: Text(message),
@@ -34,7 +20,6 @@ class _UDPScreenState extends State<UDPScreen> {
   }
 
   int _currentStep = 0;
-
 
   List<Step> getSteps() {
     return [
@@ -66,7 +51,6 @@ class _UDPScreenState extends State<UDPScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
@@ -118,7 +102,8 @@ class _UDPScreenState extends State<UDPScreen> {
                       },
                       onChanged: (value) {
                         name = nameController.text;
-                        Provider.of<AuthProvider>(context).configured = false;
+                        Provider.of<AuthProvider>(context, listen: false)
+                            .configured = false;
                       },
                     ),
                     TextFormField(
@@ -147,7 +132,8 @@ class _UDPScreenState extends State<UDPScreen> {
                       },
                       onChanged: (value) {
                         password = passwordController.text;
-                        Provider.of<AuthProvider>(context).configured = false;
+                        Provider.of<AuthProvider>(context, listen: false)
+                            .configured = false;
                       },
                     ),
                   ],
@@ -185,7 +171,6 @@ class _UDPScreenState extends State<UDPScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
@@ -292,7 +277,6 @@ class _UDPScreenState extends State<UDPScreen> {
             onStepContinue: () {
               bool isLastStep = (_currentStep == getSteps().length - 1);
               if (isLastStep) {
-                //Do something with this information
               } else {
                 setState(() {
                   _currentStep += 1;
@@ -300,11 +284,13 @@ class _UDPScreenState extends State<UDPScreen> {
               }
             },
             onStepTapped: (step) {},
-            controlsBuilder: (BuildContext context, ControlsDetails controls) {
+            controlsBuilder:
+                (BuildContext context, ControlsDetails controls) {
               return Row(
                 mainAxisAlignment: _currentStep != 0 &&
                         !Provider.of<AuthProvider>(context).configured &&
-                        !!Provider.of<AuthProvider>(context).connectionSuccess
+                        !!Provider.of<AuthProvider>(context)
+                            .connectionSuccess
                     ? MainAxisAlignment.spaceBetween
                     : MainAxisAlignment.center,
                 children: [
@@ -312,14 +298,14 @@ class _UDPScreenState extends State<UDPScreen> {
                     visible: (_currentStep != 0 &&
                             Provider.of<AuthProvider>(context).readOnly) ||
                         (_currentStep == 1 &&
-                            !Provider.of<AuthProvider>(context).configured) ||
+                            !Provider.of<AuthProvider>(context)
+                                .configured) ||
                         (_currentStep == 2 &&
                             !!Provider.of<AuthProvider>(context)
                                 .connectionSuccess) ||
                         !!Provider.of<AuthProvider>(context).roomConfig,
                     child: Expanded(
                       child: SizedBox(
-                        // width: width * .4,
                         child: ElevatedButton(
                           onPressed: controls.onStepCancel,
                           style: ElevatedButton.styleFrom(
@@ -350,35 +336,39 @@ class _UDPScreenState extends State<UDPScreen> {
                           onPressed: () {
                             if (_currentStep == 0) {
                               if (booleanProvider.readOnly) {
-                                if (items
+                                if (deviceDetails
                                     .contains(booleanProvider.macAddress)) {
                                   showSnack(context,
                                       'you already have this device configured');
                                 } else {
                                   controls.onStepContinue!();
                                 }
-                              } else {
+                              }
+                              else {
                                 sendFrame(
                                   {"commands": 'MAC_ADDRESS_READ'},
                                   '255.255.255.255',
                                   8888,
                                 );
                               }
-                            } else if (_currentStep == 2) {
+                            }
+                            else if (_currentStep == 2) {
                               if (booleanProvider.connectionSuccess) {
                                 controls.onStepContinue!();
                               } else {
                                 sendFrame(
                                   {
                                     "commands": 'WIFI_CONNECT_CHECK',
-                                    "mac_address": booleanProvider.macAddress,
+                                    "mac_address":
+                                        booleanProvider.macAddress,
                                   },
                                   '255.255.255.255',
                                   8888,
                                 );
                                 showSnack(context, 'Wait A Second');
                               }
-                            } else if (_currentStep == 1) {
+                            }
+                            else if (_currentStep == 1) {
                               if (booleanProvider.configured) {
                                 controls.onStepContinue!();
                               } else {
@@ -388,7 +378,8 @@ class _UDPScreenState extends State<UDPScreen> {
                                   sendFrame(
                                     {
                                       "commands": "WIFI_CONFIG",
-                                      "mac_address": booleanProvider.macAddress,
+                                      "mac_address":
+                                          booleanProvider.macAddress,
                                       "wifi_ssid": name,
                                       "wifi_password": password,
                                     },
@@ -399,14 +390,16 @@ class _UDPScreenState extends State<UDPScreen> {
                                   showSnack(context, 'Fields are Empty');
                                 }
                               }
-                            } else {
+                            }
+                            else {
                               if (booleanProvider.roomConfig) {
                                 Navigator.pop(context);
                               } else {
                                 sendFrame(
                                   {
                                     "commands": 'DEVICE_CONFIG_WRITE',
-                                    "mac_address": booleanProvider.macAddress,
+                                    "mac_address":
+                                        booleanProvider.macAddress,
                                     "device_location": roomName,
                                   },
                                   '255.255.255.255',
@@ -414,23 +407,22 @@ class _UDPScreenState extends State<UDPScreen> {
                                 );
                                 print(
                                     'boolean provider${booleanProvider.deviceType}');
-                                // sqlDb.insertData('''
-                                //   INSERT OR IGNORE INTO led (`mac_address`, `device_type`, `device_location`, `wifi_ssid`, `wifi_password`)
-                                //   VALUES ("${booleanProvider.macAddress}", "${booleanProvider.deviceType}", "$roomName", "${booleanProvider.wifiSsid}", "${booleanProvider.wifiPassword}")
-                                // ''');
-                                sqlDb.insertRoom(roomName, 1).then(
-                                      (value)
-                                      {
-                                        sqlDb.getRoomsByDepartmentID(1);
-                                      sqlDb.insertDevice(
-                                        booleanProvider.macAddress,
-                                        booleanProvider.wifiSsid,
-                                        booleanProvider.wifiPassword,
-                                        booleanProvider.deviceType,
-                                        value,
-                                      );
-                                    });
-                                // sqlDb.readData();
+                                sqlDb
+                                    .insertRoom(roomName,
+                                        departmentMap.first['DepartmentID'])
+                                    .then((value) {
+                                  sqlDb.getRoomsByDepartmentID(context,
+                                      departmentMap.first['DepartmentID']);
+                                  sqlDb.insertDevice(
+                                    booleanProvider.macAddress,
+                                    booleanProvider.wifiSsid,
+                                    booleanProvider.wifiPassword,
+                                    booleanProvider.deviceType,
+                                    value,
+                                  );
+                                  Provider.of<AuthProvider>(context, listen:false)
+                                      .toggling('adding', false);
+                                });
                               }
                             }
                           },
@@ -440,7 +432,7 @@ class _UDPScreenState extends State<UDPScreen> {
                           child: Text(
                             _currentStep == 0
                                 ? (booleanProvider.readOnly &&
-                                        !items.contains(
+                                        !deviceDetails.contains(
                                             booleanProvider.macAddress)
                                     ? 'Next'
                                     : 'connect')

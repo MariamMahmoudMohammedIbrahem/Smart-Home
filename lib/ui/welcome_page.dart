@@ -13,11 +13,6 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage> {
-  // @override
-  // void initState() {
-  //   // Provider.of<AuthProvider>(context, listen: false).checkFirstTime();
-  //   super.initState();
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -39,16 +34,12 @@ class _WelcomePageState extends State<WelcomePage> {
                   'Welcome to GlowGrid!',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    // fontSize: 24,
                   ),
                   minFontSize: 22,
                   maxFontSize: 24,
                 ),
                 AutoSizeText(
                   'your ultimate LED lighting control solution! Effortlessly customize your space with vibrant colors and dynamic effects. Transform your home into a captivating oasis of light and ambiance. ',
-                  // style: TextStyle(
-                  //   fontSize: 20,
-                  // ),
                   textAlign: TextAlign.center,
                   minFontSize: 18,
                   maxFontSize: 20,
@@ -73,15 +64,11 @@ class _WelcomePageState extends State<WelcomePage> {
                           if (!firstTimeCheck) {
                             Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(builder: (context) => Rooms()),
+                              MaterialPageRoute(builder: (context) => const Rooms()),
                             );
                           }
                         }));
                       });
-                      // Navigator.pop(context);
-                      // .then((value) =>
-                      //     Provider.of<AuthProvider>(context, listen: false)
-                      //         .checkFirstTime());
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.pink.shade900,
@@ -92,38 +79,12 @@ class _WelcomePageState extends State<WelcomePage> {
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        // fontSize: 20,
                       ),
                       minFontSize: 18,
                       maxFontSize: 20,
                     ),
                   ),
                 ),
-                /*SizedBox(
-                    width: width * .6,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        SharedPreferences prefs = await SharedPreferences.getInstance();
-                        // Provider.of<AuthProvider>(context, listen: false)
-                        //     .checkFirstTime();
-                        print(
-                        Provider.of<AuthProvider>(context, listen: false).firstTimeCheck);
-                        print('welcome page${prefs.getBool('first_time')}');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pink.shade900,
-                        foregroundColor: Colors.pink.shade700,
-                      ),
-                      child: const Text(
-                        'Sign Up',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
-                    ),
-                  ),*/
               ],
             ),
           ],

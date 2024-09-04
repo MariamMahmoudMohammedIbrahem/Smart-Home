@@ -17,35 +17,34 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    sqlDb.getAllDepartments().then((value) =>WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AuthProvider>(context, listen: false)
-          .checkFirstTime()
-          .then((_) {
-        final firstTimeCheck =
-            Provider.of<AuthProvider>(context, listen: false).firstTimeCheck;
-        if (firstTimeCheck) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const WelcomePage()),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const Rooms()),
-            // Navigator.pushReplacement(
-            //   context,
-            //   MaterialPageRoute(builder: (context) => const RoomDetail(roomName: 'living Room', macAddress: '84:F3:EB:20:8C:7A')),
-          );
-        }
-      });
-    }),);
-
+    Future.delayed(const Duration(seconds: 5 ),(){
+      sqlDb.getAllDepartments().then((value) =>WidgetsBinding.instance.addPostFrameCallback((_) {
+        Provider.of<AuthProvider>(context, listen: false)
+            .checkFirstTime()
+            .then((_) {
+          final firstTimeCheck =
+              Provider.of<AuthProvider>(context, listen: false).firstTimeCheck;
+          if (firstTimeCheck) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const WelcomePage()),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const Rooms()),
+            );
+          }
+        });
+      }),);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(child: CircularProgressIndicator(color: Colors.pink.shade900,)),
+      backgroundColor: Colors.pink.shade900,
+      body: Center(child: Image.asset('images/download.gif',),),
     );
   }
 }

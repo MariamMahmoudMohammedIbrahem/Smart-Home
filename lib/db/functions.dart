@@ -55,10 +55,10 @@ retrieve(String collection) async {
     case 'UserDevice':
       break;
   }
-}*//*
+}*/
 
 /// *sign_in**
-*/
+
 /*
 Future<void> handleSignIn() async {
   try {
@@ -86,9 +86,7 @@ Future<void> handleSignIn() async {
   } catch (error) {
     print(error);
   }
-}*//*
-
-*/
+}*/
 /*Future<void> loginUser(BuildContext context, String email, String password) async {
   try {
     // Show loading dialog
@@ -295,9 +293,7 @@ Future<void> setCredentials(String email, String password) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('email', email);
   await prefs.setString('password', password);
-}*//*
-
-*/
+}*/
 /*void signInWithEmailAndPassword(
     String email, String password, bool rememberMe) {
 
@@ -335,10 +331,10 @@ void checkStoredCredentials() {
   } else {
     signInWithEmailAndPassword(prefsEmail, prefsPassword, rememberPassword);
   }
-}*//*
+}*/
 
 //validations for text form fields
-*/
+
 /*
 bool isEmailValid(String email) {
   final RegExp emailRegex = RegExp(
@@ -369,15 +365,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants.dart';
 
-// class SwitchesProvider extends ChangeNotifier{
-//   List switches = [false,false,false];
-//
-//   void setSwitch(int no, bool state) {
-//     switches[no] = state;
-//
-//     notifyListeners();
-//   }
-// }
 
 class SocketManager {
   static final SocketManager _instance = SocketManager._internal();
@@ -392,11 +379,12 @@ class SocketManager {
 
   void startListen(BuildContext context) {
     if (_socket != null) {
-      return; // If the socket is already initialized, do nothing
+      return;
     }
 
     print("Enter listen out");
-    RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081).then((RawDatagramSocket socket) {
+    RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081)
+        .then((RawDatagramSocket socket) {
       _socket = socket;
       socket.listen((RawSocketEvent event) {
         if (event == RawSocketEvent.read) {
@@ -406,54 +394,87 @@ class SocketManager {
             print('response out $response');
             if (response == "OK") {
               commandResponse = response;
-            }
-            else {
+            } else {
               try {
                 Map<String, dynamic> jsonResponse = jsonDecode(response);
                 commandResponse = jsonResponse['commands'];
+                print('deviceStatus is => $deviceStatus');
                 print('commandResponse is => $commandResponse');
-                if (commandResponse == 'SWITCH_READ_OK') {
-                }
-                else if (commandResponse == 'UPDATE_OK') {
+                if (commandResponse == 'UPDATE_OK' ||
+                    commandResponse == 'SWITCH_WRITE_OK' ||
+                    commandResponse == 'SWITCH_READ_OK') {
                   print('update-ok');
-                  Provider.of<AuthProvider>(context, listen: false).setSwitch(macAddress, 'sw1', jsonResponse['sw0']);
-                  Provider.of<AuthProvider>(context, listen: false).setSwitch(macAddress, 'sw2', jsonResponse['sw1']);
-                  Provider.of<AuthProvider>(context, listen: false).setSwitch(macAddress, 'sw3', jsonResponse['sw2']);
-                  Provider.of<AuthProvider>(context, listen: false).addingDevice('UPDATE_OK', jsonResponse);
-                  currentColor = Color.fromRGBO(jsonResponse['red'], jsonResponse['green'], jsonResponse['blue'], 1.0);
+                  if (deviceStatus.firstWhere(
+                        (device) =>
+                            device['MacAddress'] == jsonResponse['mac_address'],
+                      )['sw1'] !=
+                      jsonResponse['sw0']) {
+                    print('code works correctly');
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .setSwitch(macAddress, 'sw1', jsonResponse['sw0']);
+                  }
+                  if (deviceStatus.firstWhere(
+                        (device) =>
+                            device['MacAddress'] == jsonResponse['mac_address'],
+                      )['sw2'] !=
+                      jsonResponse['sw1']) {
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .setSwitch(macAddress, 'sw2', jsonResponse['sw1']);
+                    currentColor = Color.fromRGBO(jsonResponse['red'],
+                        jsonResponse['green'], jsonResponse['blue'], 1.0);
+                  }
+                  if (deviceStatus.firstWhere(
+                        (device) =>
+                            device['MacAddress'] == jsonResponse['mac_address'],
+                      )['sw3'] !=
+                      jsonResponse['sw2']) {
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .setSwitch(macAddress, 'sw3', jsonResponse['sw2']);
+                  }
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .addingDevice(commandResponse, jsonResponse);
                   print(currentColor);
-                }
-                else if (commandResponse == 'SWITCH_WRITE_OK') {
-                }
-                else if (commandResponse == 'RGB_READ_OK') {
-                }
-                else if (commandResponse == 'RGB_WRITE_OK') {
-                }
-                else if (commandResponse == 'MAC_ADDRESS_READ_OK') {
-                  Provider.of<AuthProvider>(context, listen: false).addingDevice('MAC_ADDRESS_READ_OK', jsonResponse);
-                }
-                else if (commandResponse == 'WIFI_CONFIG_OK') {
-                }
-                else if (commandResponse == 'WIFI_CONFIG_FAIL') {
-                }
-                else if (commandResponse == 'WIFI_CONFIG_CONNECTING') {
-                  Provider.of<AuthProvider>(context, listen: false).addingDevice('WIFI_CONFIG_CONNECTING', {});
-                }
-                else if (commandResponse == 'WIFI_CONFIG_MISSED_DATA') {
-                }
-                else if (commandResponse == 'WIFI_CONFIG_SAME') {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("WIFI_CONFIG_SAME")));
-                }
-                else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
-                  Provider.of<AuthProvider>(context, listen: false).addingDevice('WIFI_CONNECT_CHECK_OK', {});
-                  const snackBar = SnackBar(content: Text('Connected Successfully'));
+                } else if (commandResponse == 'RGB_READ_OK' ||
+                    commandResponse == 'RGB_WRITE_OK') {
+                  // Provider.of<AuthProvider>(context, listen: false).setSwitch(macAddress, 'sw2', jsonResponse['sw1']);
+                  currentColor = Color.fromRGBO(jsonResponse['red'],
+                      jsonResponse['green'], jsonResponse['blue'], 1.0);
+                } else if (commandResponse == 'MAC_ADDRESS_READ_OK') {
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .addingDevice('MAC_ADDRESS_READ_OK', jsonResponse);
+                } else if (commandResponse == 'WIFI_CONFIG_OK') {
+                } else if (commandResponse == 'WIFI_CONFIG_FAIL') {
+                } else if (commandResponse == 'WIFI_CONFIG_CONNECTING' ||
+                    commandResponse == 'WIFI_CONFIG_SAME') {
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .addingDevice('WIFI_CONFIG_CONNECTING', {});
+                  if (commandResponse == 'WIFI_CONFIG_SAME') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("WIFI_CONFIG_SAME")));
+                  }
+                } else if (commandResponse == 'WIFI_CONFIG_MISSED_DATA') {
+                } else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .addingDevice('WIFI_CONNECT_CHECK_OK', {});
+                  const snackBar =
+                      SnackBar(content: Text('Connected Successfully'));
                   ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                }
-                else if (commandResponse == 'DEVICE_CONFIG_WRITE_OK') {
-                  Provider.of<AuthProvider>(context, listen: false).addingDevice('DEVICE_CONFIG_WRITE_OK', jsonResponse);
-                }
-              }
-              catch (e) {
+                } else if (commandResponse == 'DEVICE_CONFIG_WRITE_OK') {
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .addingDevice('DEVICE_CONFIG_WRITE_OK', jsonResponse);
+                } else if (commandResponse == 'CHECK_FOR_NEW_FIRMWARE_OK' ||
+                    commandResponse == 'CHECK_FOR_NEW_FIRMWARE_FAIL' ||
+                    commandResponse == 'CHECK_FOR_NEW_FIRMWARE_SAME' ||
+                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_SAME' ||
+                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_START' ||
+                    commandResponse
+                        .contains('DOWNLOAD_NEW_FIRMWARE_UPDATING') ||
+                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_OK' ||
+                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_FAIL') {
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .firmwareUpdating(commandResponse);
+                } else if (commandResponse == 'READ_OK') {}
+              } catch (e) {
                 print('Error decoding JSON: $e');
               }
             }
@@ -469,43 +490,58 @@ class SocketManager {
   }
 }
 
+void sendFrame(Map<String, dynamic> jsonFrame, String ipAddress, int port) {
+  String frame = jsonEncode(jsonFrame);
+
+  RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
+      .then((RawDatagramSocket socket) {
+    print(jsonFrame);
+    socket.broadcastEnabled = true;
+    socket.send(frame.codeUnits, InternetAddress(ipAddress), port);
+  });
+}
+
 class AuthProvider extends ChangeNotifier {
   bool? _isFirstTime;
 
   bool _toggle = true;
-
+  bool _loading = false;
+  bool get isLoading => _loading;
   bool roomConfig = false;
   bool connectionSuccess = false;
   bool configured = false;
   bool readOnly = false;
   String macAddress = '';
   String deviceType = '';
-  // String deviceLocation = '';
   String wifiSsid = '';
   String wifiPassword = '';
+  String firmwareVersion = '';
 
   bool get firstTimeCheck => _isFirstTime ?? true;
 
   bool get toggle => _toggle;
-  // List switches = [false,false,false];
 
   void setSwitch(String macAddress, String dataKey, int state) {
     // switches[index] = state;
+    print('device BEFORE$deviceStatus');
     for (var device in deviceStatus) {
       if (device['MacAddress'] == macAddress) {
         // Update the specific data key (data1, data2, or data3)
+        //CHECK IF STATE IS THE SAME AS THE PREVIOUS
         device[dataKey] = state;
-        print('device$device');
+        print('device AFTER$device');
         break;
       }
     }
     notifyListeners();
   }
+
   Future<bool> checkFirstTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _isFirstTime = prefs.getBool('first_time') ?? true;
     return prefs.getBool('first_time') ?? true;
   }
+
   Future<void> setFirstTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('first_time', false);
@@ -513,12 +549,29 @@ class AuthProvider extends ChangeNotifier {
     print('Set first time to: $_isFirstTime');
     notifyListeners();
   }
-  void toggling(bool newValue) {
-    _toggle = newValue;
+
+  void toggling(String dataType, bool newValue) {
+    if (dataType == 'toggling') {
+      _toggle = newValue;
+    }
+    if (dataType == 'loading') {
+      _loading = newValue;
+    }
+    if (dataType == 'adding') {
+      wifiPassword = '';
+      wifiSsid = '';
+      deviceType = '';
+      macAddress = '';
+      readOnly = newValue;
+      configured = newValue;
+      connectionSuccess = newValue;
+      roomConfig = newValue;
+    }
     notifyListeners();
   }
-  void addingDevice(String command, Map<String, dynamic> jsonResponse){
-    switch (command){
+
+  void addingDevice(String command, Map<String, dynamic> jsonResponse) {
+    switch (command) {
       case 'MAC_ADDRESS_READ_OK':
         macAddress = jsonResponse['mac_address'];
         readOnly = true;
@@ -537,11 +590,61 @@ class AuthProvider extends ChangeNotifier {
         deviceType = jsonResponse["device_type"];
         wifiSsid = jsonResponse["wifi_ssid"];
         wifiPassword = jsonResponse["wifi_password"];
+        firmwareVersion = jsonResponse["firmware_version"];
+        break;
+    }
+    notifyListeners();
+  }
+
+  bool similarityCheck = false;
+  bool similarityDownload = false;
+  bool startedCheck = false;
+  bool startedDownload = false;
+  bool failedCheck = false;
+  bool failedDownload = false;
+  bool completedCheck = false;
+  bool completedDownload = false;
+  double downloadedBytesSize = 0;
+  double totalByteSize = 0;
+  int downloadPercentage = 0;
+  void firmwareUpdating(String command) {
+    switch (command) {
+      case 'CHECK_FOR_NEW_FIRMWARE_OK ':
+        completedCheck = true;
+        break;
+      case 'CHECK_FOR_NEW_FIRMWARE_SAME':
+        similarityCheck = true;
+        break;
+      case 'CHECK_FOR_NEW_FIRMWARE_FAIL':
+        failedCheck = true;
+        break;
+      case 'DOWNLOAD_NEW_FIRMWARE_SAME':
+        similarityDownload = true;
+        break;
+      case 'DOWNLOAD_NEW_FIRMWARE_START':
+        startedDownload = true;
+        break;
+      case 'DOWNLOAD_NEW_FIRMWARE_FAIL':
+        failedDownload = true;
+        break;
+      case 'DOWNLOAD_NEW_FIRMWARE_OK':
+        completedDownload = true;
+        break;
+      default:
+        RegExp regExp = RegExp(r'\((\d+)\)');
+        List<RegExpMatch> matches = regExp.allMatches(command).toList();
+        print(matches);
+        downloadedBytesSize = double.parse(matches.elementAt(0).group(1)!);
+        totalByteSize = double.parse(matches.elementAt(1).group(1)!);
+        double testingValue = downloadedBytesSize / totalByteSize * 100;
+        downloadPercentage = testingValue.toInt();
+        print('downloaded $downloadPercentage');
         break;
     }
     notifyListeners();
   }
 }
+
 String getRoomName(IconData icon) {
   if (icon == Icons.living) {
     return 'Living Room';
@@ -561,10 +664,11 @@ String getRoomName(IconData icon) {
     return 'Laundry Room';
   } else if (icon == Icons.garage) {
     return 'Garage';
-  } else /* if (icon == Icons.camera_outdoor) */ {
+  } else {
     return 'Outdoor';
   }
 }
+
 IconData getIconName(String name) {
   if (name == 'Living Room') {
     return Icons.living;
@@ -582,9 +686,9 @@ IconData getIconName(String name) {
     return Icons.desk;
   } else if (name == 'Laundry Room') {
     return Icons.local_laundry_service;
-  } else if (name =='Garage') {
+  } else if (name == 'Garage') {
     return Icons.garage;
-  } else /* if (icon =='Outdoor' ) */ {
+  } else {
     return Icons.camera_outdoor;
   }
 }

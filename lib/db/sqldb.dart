@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
+import 'package:mega/db/functions.dart';
 import 'package:path/path.dart';
+import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:sqflite/sqflite.dart';
-
+import 'dart:io';
 import '../constants.dart';
 
 class SqlDb {
@@ -33,16 +37,6 @@ class SqlDb {
 
   //JUST CALLED ONCE
   Future _onCreate(Database db, int version) async {
-    /*await db.execute('''
-      CREATE TABLE "led"(
-        'id' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-        'mac_address' TEXT NOT NULL UNIQUE,
-        'device_type' TEXT NOT NULL,
-        'device_location' TEXT NOT NULL,
-        'wifi_ssid' TEXT NOT NULL,
-        'wifi_password' TEXT NOT NULL
-      )
-    ''');*/
 
     ///updated database table
     await db.execute('''
@@ -94,22 +88,42 @@ class SqlDb {
     await deleteDatabase(databasePath);
   }
 
-  // Future<List<Map<String, dynamic>>> readData() async {
-  //   loading = true;
-  //   Database? myDb = await db;
-  //   List<Map<String, dynamic>> databaseMap = await myDb!.rawQuery('''
-  //     SELECT * FROM led
-  //   ''');
-  //   Map<String, dynamic> resultMap = {
-  //     for (var item in databaseMap) item['mac_address'] as String: item['device_location']
-  //   };
-  //   print('resultMap$databaseMap');
-  //   print('resultMap$resultMap');
-  //   loading = false;
-  //   items = resultMap;
-  //   // values = items.values.toList();
-  //   return databaseMap;
-  // }
+  ///sharing database file from android to another
+  Future<void> shareDatabase() async {
+    String databasesPath = await getDatabasesPath();
+    String dbPath = join(databasesPath, 'GlowGrid.db');
+    File dbFile = File(dbPath);
+
+    if (await dbFile.exists()) {
+      XFile xFile = XFile(dbFile.path);
+      Share.shareXFiles([xFile], text: 'Here is the database file.');
+    }
+    else {
+      print('Database file does not exist');
+    }
+  }
+
+  ///replacing the already created database file with another one
+  Future<void> replaceDatabase(File newDbFile) async {
+    try {
+      // Get the path to the database directory
+      String databasesPath = await getDatabasesPath();
+
+      // Specify the path to the current database file
+      String dbPath = join(databasesPath, 'GlowGrid.db'); // Replace with your actual database name
+
+      // Check if the new database file exists
+      if (await newDbFile.exists()) {
+        // Replace the old database file with the new one
+        await newDbFile.copy(dbPath);
+        print('Database replaced successfully.');
+      } else {
+        print('New database file does not exist.');
+      }
+    } catch (e) {
+      print('Error replacing database: $e');
+    }
+  }
 
   ///*updated database functions**
 
@@ -212,10 +226,9 @@ class SqlDb {
   }
 
   ///get rooms based on departmentID
-  Future<void> getRoomsByDepartmentID(int departmentID) async {
+  Future<void> getRoomsByDepartmentID(BuildContext context, int departmentID) async {
     Database? myDb = await db;
-    loading= true;
-    print('loading  = $loading');
+    Provider.of<AuthProvider>(context, listen: false).toggling('loading',true);
     // Query the Rooms table for entries with the given DepartmentID
     final List<Map<String, dynamic>> rooms = await myDb!.query(
       'Rooms',
@@ -226,22 +239,21 @@ class SqlDb {
     // Extract RoomName values from the result and return as a list of strings
     roomNames = rooms.map((room) => room['RoomName'] as String).toList();
     print('Room names: $roomNames');
-    // loading = false;
+    Provider.of<AuthProvider>(context, listen: false).toggling('loading',false);
   }
 
   ///retrieve device details for specific room
   Future<void> getDeviceDetailsByRoomID(int roomID) async {
     Database? myDb = await db;
 
-    // Query the Devices table for DeviceType and MacAddress where RoomID matches
+    // Query the Devices table for MacAddress where RoomID matches
     deviceDetails = await myDb!.query(
       'Devices',
-      columns: ['MacAddress'], // Select only DeviceType and MacAddress
-      where: 'RoomID = ?', // Filter by RoomID
-      whereArgs: [roomID], // RoomID value
+      columns: ['MacAddress'],
+      where: 'RoomID = ?',
+      whereArgs: [roomID],
     );
     macAddress = deviceDetails.first['MacAddress'];
-    // selectedMacAddress = deviceDetails.first['MacAddress'];
     for (var device in deviceDetails) {
       // Check if the device with the same macAddress is already in deviceStatus
       bool exists = deviceStatus.any((d) => d['MacAddress'] == device['MacAddress']);
@@ -269,10 +281,10 @@ class SqlDb {
 
   ///editing room info
   Future<void> updateRoomName(int departmentID, String newRoomName, String currentRoomName) async {
-    Database? _db = await db;
+    Database? myDb = await db;
 
     // Perform the update operation on the Rooms table
-    final int count = await _db!.update(
+    final int count = await myDb!.update(
       'Rooms',
       {'RoomName': newRoomName},
       where: 'DepartmentID = ? AND RoomName = ?',
@@ -290,58 +302,27 @@ class SqlDb {
     // Delete rows from the Devices table where RoomID matches
     final int count = await myDb!.delete(
       'Devices',
-      where: 'RoomID = ?', // Filter by RoomID
-      whereArgs: [roomID], // Provide the RoomID value
+      where: 'RoomID = ?',
+      whereArgs: [roomID],
     ).then((value) => myDb.delete('Rooms',where: 'RoomID = ?',whereArgs: [roomID],),);
 
     print('Number of rows deleted: $count');
-    // return count;
   }
 
-
-  Future<List<Map<String, dynamic>>> getAllRooms() async {
-    Database? myDb = await db;
-    return await myDb!.query('Rooms');
-  }
-  Future<void> getAllDevices() async {
-    Database? myDb = await db;
-    var listlst = await myDb!.query('Devices');
-    print('lstlist $listlst');
-  }
   Future<bool> searchDepartmentByName(String departmentName) async {
     Database? myDb = await db;
     final List<Map<String, dynamic>> result = await myDb!.query(
       'Departments',
       where: 'DepartmentName = ?',
       whereArgs: [departmentName],
-      limit: 1, // Only need one result
+      limit: 1,
     );
 
     // If the result is not empty, return the first match
     if (result.isNotEmpty) {
       return true;
     } else {
-      return false; // No match found
+      return false;
     }
   }
-/* Future<int> getDepartmentCount() async {
-    Database? myDb = await db;
-    final List<Map<String, dynamic>> result = await myDb!.rawQuery('SELECT COUNT(*) as count FROM Departments');
-    return Sqflite.firstIntValue(result) ?? 0;
-  }
-
-  */
-///get room ID
-// Future<void> getSpecificRoomID(String roomName, int departmentID)async{
-//   Database? myDb = await db;
-//   final List<Map<String, dynamic>> results = await myDb!.query(
-//     'Rooms',
-//     columns: ['RoomID'], // Select only RoomID
-//     where: 'RoomName = ? AND DepartmentID = ?', // Filter by RoomName and DepartmentID
-//     whereArgs: [roomName, departmentID], // Provide values for the placeholders
-//   );
-//   int roomID = results.first['RoomID'] as int;
-//   print('results is $roomID');
-//   await deleteRoomsAndDevices(roomID);
-// }
 }

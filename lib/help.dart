@@ -1,4 +1,441 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'dart:convert';
+
+import 'constants.dart';
+import 'db/functions.dart';
+
+class OtpScreen extends StatefulWidget {
+  const OtpScreen({super.key});
+
+  @override
+  OtpScreenState createState() => OtpScreenState();
+}
+
+class OtpScreenState extends State<OtpScreen> {
+  final List<TextEditingController> _controllers =
+      List.generate(5, (_) => TextEditingController());
+
+  void _submitOtp() {
+    String otp = _controllers.map((controller) => controller.text).join();
+    // Implement OTP validation logic with the complete OTP string
+    print("Entered OTP is: $otp");
+  }
+
+  @override
+  void dispose() {
+    _controllers.forEach((controller) => controller.dispose());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Enter OTP'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              'Enter the OTP on the other mobile',
+              style: TextStyle(fontSize: 16.0),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(5, (index) {
+                return SizedBox(
+                  width: 50,
+                  child: TextField(
+                    controller: _controllers[index],
+                    maxLength: 1,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      counterText: "",
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      if (value.length == 1 && index < 4) {
+                        FocusScope.of(context).nextFocus();
+                      }
+                    },
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _submitOtp,
+              child: const Text('Submit'),
+            ),
+            const SizedBox(height: 20),
+            TextButton(
+              onPressed: () {
+                int randomPort = min + random.nextInt(max - min + 1);
+
+                print('Random port: $randomPort');
+              },
+              child: const Text('generate random number'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+double downloadProgress = 0.0;
+
+Future<Map<String, dynamic>> getLatestFirmwareInfo() async {
+  final response = await http.get(Uri.parse(
+      'http://ahcodegenerator.freevar.com/get_latest_file.php?device=switch'));
+
+  if (response.statusCode == 200) {
+    return json.decode(response.body);
+  } else {
+    throw Exception('Failed to load latest firmware info');
+  }
+}
+
+class FirmwareScreen extends StatefulWidget {
+  const FirmwareScreen({super.key});
+
+  @override
+  FirmwareScreenState createState() => FirmwareScreenState();
+}
+
+class FirmwareScreenState extends State<FirmwareScreen> {
+  String? firmwareInfo;
+
+  Future<void> fetchFirmwareInfo() async {
+    try {
+      final info = await getLatestFirmwareInfo();
+      setState(() {
+        firmwareInfo = info['name'];
+      });
+    } catch (e) {
+      print('Error fetching firmware info: $e');
+    }
+  }
+
+  bool failed = false;
+  Timer? timerPeriodic;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SocketManager().startListen(context);
+    });
+    fetchFirmwareInfo().then((value) {
+      if (firmwareInfo ==
+          Provider.of<AuthProvider>(context, listen: false).firmwareVersion) {
+        Provider.of<AuthProvider>(context, listen: false)
+            .firmwareUpdating("CHECK_FOR_NEW_FIRMWARE_SAME");
+      } else {
+        sendFrame({
+          "commands": "DOWNLOAD_NEW_FIRMWARE",
+          "mac_address": "08:3A:8D:D0:AA:20"
+        }, "255.255.255.255", 8888);
+        print('not similar');
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Firmware Update'),
+      ),
+      body: Center(
+        child: ListView(
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                fetchFirmwareInfo().then((value) {
+                  if (firmwareInfo ==
+                      Provider.of<AuthProvider>(context, listen: false)
+                          .firmwareVersion) {
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .firmwareUpdating("CHECK_FOR_NEW_FIRMWARE_SAME");
+                  } else {
+                    sendFrame({
+                      "commands": "DOWNLOAD_NEW_FIRMWARE",
+                      "mac_address": "08:3A:8D:D0:AA:20"
+                    }, "255.255.255.255", 8888);
+                    print('not similar');
+                  }
+                });
+              },
+              child: const Text('get version name'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                sendFrame({"commands": 'DOWNLOAD_NEW_FIRMWARE'},
+                    '255.255.255.255', 8888);
+              },
+              child: const Text('download'),
+            ),
+            Consumer<AuthProvider>(builder: (context, firmwareUpdating, child) {
+              return firmwareUpdating.similarityCheck
+                  ? const Column(
+                      children: [
+                        Icon(Icons.file_download_off_rounded),
+                        Text('there is no updates'),
+                      ],
+                    )
+                  : firmwareUpdating.startedDownload
+                      ? const CircularProgressIndicator()
+                      : firmwareUpdating.downloadPercentage <= 100
+                          ? (firmwareUpdating.failedDownload
+                              ? CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: Colors.pink.shade900,
+                                  child: const Icon(
+                                    Icons.running_with_errors_rounded,
+                                    color: Colors.white,
+                                    size: 50,
+                                  ),
+                                )
+                              : Stack(
+                                  alignment: Alignment
+                                      .center,
+                                  children: [
+                                    SizedBox(
+                                      width: 100,
+                                      height: 100,
+                                      child: CircularProgressIndicator(
+                                        value:
+                                            downloadProgress, // Progress from 0.0 to 1.0
+                                        strokeWidth:
+                                            8, // Thickness of the circle
+                                        backgroundColor: Colors
+                                            .grey.shade200,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(Colors
+                                                .pink
+                                                .shade900),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${(downloadProgress * 100).toStringAsFixed(0)}%',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.pink.shade900,
+                                      ),
+                                    ),
+                                  ],
+                                ))
+                          : firmwareUpdating.completedDownload
+                              ? CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: Colors.pink.shade900,
+                                  child: const Icon(
+                                    Icons.done,
+                                    color: Colors.white,
+                                    size: 50,
+                                  ),
+                                )
+                              : const CircularProgressIndicator();
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/*class AddingDevice extends StatefulWidget {
+  const AddingDevice({super.key});
+
+  @override
+  State<AddingDevice> createState() => _AddingDeviceState();
+}
+
+class _AddingDeviceState extends State<AddingDevice> {
+  // @override
+  // void dispose() {
+    // Provider.of<AuthProvider>(context, listen: false).loadingToggling(false);
+    // super.dispose();
+  // }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          */
+/*ElevatedButton(
+            onPressed: () {
+              sqlDb.insertRoom('Living Room', 2).then((value) {
+                sqlDb.getRoomsByDepartmentID(2).then((value) {
+                  setState(() {
+                    loading = false;
+                  });
+                  Navigator.pop(context);
+                });
+              });
+            },
+            child: const Text(
+              'add Living Room',
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              sqlDb.insertRoom('Baby Bedroom', 2).then((value) {
+                sqlDb.getRoomsByDepartmentID(2).then((value) {
+                  setState(() {
+                    loading = false;
+                  });
+                  Navigator.pop(context);
+                });
+              });
+            },
+            child: const Text(
+              'add Baby Bedroom',
+            ),
+          ),*/
+/*
+          // ElevatedButton(
+          //   onPressed: () {
+          //     sqlDb.insertRoom('Parent Bedroom', 2).then((value) {
+          //       sqlDb.getRoomsByDepartmentID(2).then((value) {
+          //         // setState(() {
+          //           // loading = false;
+          //         // });
+          //         Navigator.pop(context);
+          //       });
+          //     });
+          //   },
+          //   child: const Text(
+          //     'add Parent Bedroom',
+          //   ),
+          // ),
+          // ElevatedButton(
+          //   onPressed: () {
+          //     sqlDb.insertRoom('Kitchen', 2).then((value) {
+          //       sqlDb.getRoomsByDepartmentID(2);
+          //     }).then((value) {
+          //       // setState(() {
+          //       //   loading = false;
+          //       // });
+          //       Navigator.pop(context);
+          //     });
+          //   },
+          //   child: const Text(
+          //     'add Kitchen',
+          //   ),
+          // ),
+          */
+/*ElevatedButton(
+            onPressed: () {
+              sqlDb.insertRoom('Bathroom', 2).then((value) {
+                sqlDb.getRoomsByDepartmentID(2);
+              }).then((value) {
+                setState(() {
+                  loading = false;
+                });
+                Navigator.pop(context);
+              });
+            },
+            child: const Text(
+              'add Bathroom',
+            ),
+          ),*/
+/*ElevatedButton(
+            onPressed: () {
+              sqlDb.insertRoom('Dining Room', 2).then((value) {
+                sqlDb.getRoomsByDepartmentID(2).then((value) {
+                  setState(() {
+                    loading = true;
+                  });
+                  Navigator.pop(context);
+                });
+              });
+            },
+            child: const Text(
+              'add Dining Room',
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              sqlDb.insertRoom('Garage', 2).then((value) {
+                sqlDb.getRoomsByDepartmentID(context, 2).then((value) {
+                  // setState(() {
+                    Provider.of<AuthProvider>(context, listen: false).loadingToggling(false);
+                    // loading = false;
+                  // });
+                  Navigator.pop(context);
+                });
+              });
+            },
+            child: const Text(
+              'add Garage',
+            ),
+          ),*/
+/*ElevatedButton(
+            onPressed: () {
+              setState(() {
+                sqlDb.insertRoom('Desk', 2).then((value) {
+                  sqlDb.getRoomsByDepartmentID(context, 2).then((value) {
+                  // setState(() {
+                  //   Provider.of<AuthProvider>(context, listen: false).loadingToggling(false);
+                  // });
+                  Navigator.pop(context);
+                });
+                });
+              });
+            },
+            child: const Text(
+              'add Desk',
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              sqlDb.insertRoom('Laundry Room', 2).then((value) {
+                sqlDb.getRoomsByDepartmentID(context, 2).then((value) {
+                  // setState(() {
+                  //   Provider.of<AuthProvider>(context, listen: false).loadingToggling(false);
+                  // });
+                  Navigator.pop(context);
+                });
+              });
+            },
+            child: const Text(
+              'add Laundry Room',
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              sqlDb.insertRoom('Outdoor', 2).then((value) {
+                sqlDb.getRoomsByDepartmentID(context, 2).then((value) {
+                  // setState(() {
+                  //   Provider.of<AuthProvider>(context, listen: false).loadingToggling(false);
+                  // });
+                  Navigator.pop(context);
+                });
+              });
+            },
+            child: const Text(
+              'add Outdoor',
+            ),
+          ),*/
+/*
+        ],
+      ),
+    );
+  }
+}
 
 int departmentID = 0;
 int roomID = 0;
@@ -19,7 +456,8 @@ class _HelpDataBaseState extends State<HelpDataBase> {
     return Scaffold(
       body: ListView(
         children: [
-          /*ElevatedButton(
+          */
+/*ElevatedButton(
             onPressed: () async {
               // Insert a department
               bool exist = await sqlDb.searchDepartmentByName("IT Department");
@@ -86,7 +524,7 @@ class _HelpDataBaseState extends State<HelpDataBase> {
           ElevatedButton(onPressed: () async {await sqlDb.getAllDepartments();}, child: Text('print departments'),),
           ElevatedButton(onPressed: () async {var listlst = await sqlDb.getAllRooms();print(listlst);}, child: Text('print rooms'),),
           ElevatedButton(onPressed: () async {var listlst = await sqlDb.getAllDevices();print(listlst);}, child: Text('print devices'),),*/
-          /*ElevatedButton(
+/*ElevatedButton(
             onPressed: () async {
               int internalCount = await sqlDb.getDepartmentCount();
               setState(() {
@@ -113,11 +551,12 @@ class _HelpDataBaseState extends State<HelpDataBase> {
             },
             child: const Text('retrieve all rooms'),
           ),*/
+/*
         ],
       ),
     );
   }
-}
+}*/
 
 /***connection_ip.dart***/
 /*import 'package:connectivity_plus/connectivity_plus.dart';
@@ -777,7 +1216,7 @@ class MainActivity: FlutterActivity() {
                   'start listen',
                 ),
               ),*/
-/*//connect check
+/*connect check
 
               //status read
               ElevatedButton(
@@ -826,7 +1265,7 @@ class MainActivity: FlutterActivity() {
                   'RGB_WRITE',
                 ),
               ),*/
-/*//send
+/*send
   void sendFrame(String frame, String ipAddress, int port) {
     // ipAddress = '255.255.255.255';
     print('hello');
@@ -844,7 +1283,8 @@ class MainActivity: FlutterActivity() {
         }
       });
     });
-  }*/ /*//mac address
+  }*/
+/*mac address
               ElevatedButton(
                 onPressed: () {
                   sendFrame(
@@ -925,7 +1365,8 @@ class MainActivity: FlutterActivity() {
                         builder: (context) => const Rooms(),
                       ),
                     );
-                  }*/ /*
+                  }*/
+/*
                 },
                 child: const Text(
                   'wifi connect check',
@@ -948,7 +1389,6 @@ class MainActivity: FlutterActivity() {
               ),*/
 
 /**sign_in.dart*/
-
 /*TextFormField(
                           controller: userController,
                           keyboardType: TextInputType.name,

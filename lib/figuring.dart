@@ -61,7 +61,6 @@ class _FiguringState extends State<Figuring> {
   @override
   void initState() {
     super.initState();
-    // sqlDb.readData();
     startListen();
   }
 
@@ -74,38 +73,7 @@ class _FiguringState extends State<Figuring> {
           child: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              // crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                /*ElevatedButton(
-                  onPressed: () {
-                    try{
-                      sqlDb.insertData('''
-                              INSERT OR IGNORE INTO led (`mac_address`, `device_type`, `device_location`, `wifi_ssid`, `wifi_password`)
-                              VALUES ('00:F3:00:20:00:7A', 'switch', 'livingRoom', 'Hardware_room', '01019407823EOIP')
-                            ''');
-                    }
-                    catch (e){
-                      print('while inserting $e');
-                    }
-                  },
-                  child: const Text(
-                    'testing db',
-                  ),
-                ),
-                Text('items $items'),
-                ElevatedButton(
-                  onPressed: () {
-                    try{
-                      var maps = sqlDb.readData();
-                    }
-                    catch (e){
-                      print('while reading $e');
-                    }
-                  },
-                  child: const Text(
-                    'retrieve items',
-                  ),
-                ),*/
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -120,7 +88,7 @@ class _FiguringState extends State<Figuring> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Rooms()));
+                        MaterialPageRoute(builder: (context) => const Rooms()));
                   },
                   child: const Text(
                     'rooms',
