@@ -35,10 +35,10 @@ class _UDPScreenState extends State<UDPScreen> {
               Flex(
                 direction: Axis.vertical,
                 children: [
-                  Text(
+                  const Text(
                     'Connecting To The Device',
                     style: TextStyle(
-                      color: Colors.pink.shade900,
+                      color: Color(0xFF047424),
                       fontWeight: FontWeight.bold,
                       fontSize: 26,
                     ),
@@ -51,6 +51,7 @@ class _UDPScreenState extends State<UDPScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
+
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
@@ -69,10 +70,10 @@ class _UDPScreenState extends State<UDPScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 40.0),
           child: Column(
             children: [
-              Text(
+              const Text(
                 'Wifi Network Configuration',
                 style: TextStyle(
-                  color: Colors.pink.shade900,
+                  color: Color(0xFF047424),
                   fontWeight: FontWeight.bold,
                   fontSize: 26,
                 ),
@@ -155,10 +156,10 @@ class _UDPScreenState extends State<UDPScreen> {
               Flex(
                 direction: Axis.vertical,
                 children: [
-                  Text(
+                  const Text(
                     'Check connection',
                     style: TextStyle(
-                      color: Colors.pink.shade900,
+                      color: Color(0xFF047424),
                       fontWeight: FontWeight.bold,
                       fontSize: 26,
                     ),
@@ -171,6 +172,7 @@ class _UDPScreenState extends State<UDPScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
+
                   ///TODO: change image
                   Image.asset(
                     'images/light-control.gif',
@@ -189,10 +191,10 @@ class _UDPScreenState extends State<UDPScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 40.0),
           child: Column(
             children: [
-              Text(
+              const Text(
                 'choose your room name',
                 style: TextStyle(
-                  color: Colors.pink.shade900,
+                  color: Color(0xFF047424),
                   fontWeight: FontWeight.bold,
                   fontSize: 26,
                 ),
@@ -262,8 +264,8 @@ class _UDPScreenState extends State<UDPScreen> {
         child: Theme(
           data: Theme.of(context).copyWith(
               colorScheme: Theme.of(context).colorScheme.copyWith(
-                  onSurface: Colors.pink.shade200,
-                  primary: Colors.pink.shade900)),
+                  onSurface: const Color(0xFF609e51),
+                  primary: const Color(0xFF047424))),
           child: Stepper(
             steps: getSteps(),
             physics: const ScrollPhysics(),
@@ -284,13 +286,11 @@ class _UDPScreenState extends State<UDPScreen> {
               }
             },
             onStepTapped: (step) {},
-            controlsBuilder:
-                (BuildContext context, ControlsDetails controls) {
+            controlsBuilder: (BuildContext context, ControlsDetails controls) {
               return Row(
                 mainAxisAlignment: _currentStep != 0 &&
                         !Provider.of<AuthProvider>(context).configured &&
-                        !!Provider.of<AuthProvider>(context)
-                            .connectionSuccess
+                        !!Provider.of<AuthProvider>(context).connectionSuccess
                     ? MainAxisAlignment.spaceBetween
                     : MainAxisAlignment.center,
                 children: [
@@ -298,8 +298,7 @@ class _UDPScreenState extends State<UDPScreen> {
                     visible: (_currentStep != 0 &&
                             Provider.of<AuthProvider>(context).readOnly) ||
                         (_currentStep == 1 &&
-                            !Provider.of<AuthProvider>(context)
-                                .configured) ||
+                            !Provider.of<AuthProvider>(context).configured) ||
                         (_currentStep == 2 &&
                             !!Provider.of<AuthProvider>(context)
                                 .connectionSuccess) ||
@@ -309,14 +308,14 @@ class _UDPScreenState extends State<UDPScreen> {
                         child: ElevatedButton(
                           onPressed: controls.onStepCancel,
                           style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colors.pink.shade900,
+                            side: const BorderSide(
+                              color: Color(0xFF047424),
                             ),
                           ),
-                          child: Text(
+                          child: const Text(
                             'Back',
                             style: TextStyle(
-                              color: Colors.pink.shade900,
+                              color: Color(0xFF047424),
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -343,32 +342,28 @@ class _UDPScreenState extends State<UDPScreen> {
                                 } else {
                                   controls.onStepContinue!();
                                 }
-                              }
-                              else {
+                              } else {
                                 sendFrame(
                                   {"commands": 'MAC_ADDRESS_READ'},
                                   '255.255.255.255',
                                   8888,
                                 );
                               }
-                            }
-                            else if (_currentStep == 2) {
+                            } else if (_currentStep == 2) {
                               if (booleanProvider.connectionSuccess) {
                                 controls.onStepContinue!();
                               } else {
                                 sendFrame(
                                   {
                                     "commands": 'WIFI_CONNECT_CHECK',
-                                    "mac_address":
-                                        booleanProvider.macAddress,
+                                    "mac_address": booleanProvider.macAddress,
                                   },
                                   '255.255.255.255',
                                   8888,
                                 );
                                 showSnack(context, 'Wait A Second');
                               }
-                            }
-                            else if (_currentStep == 1) {
+                            } else if (_currentStep == 1) {
                               if (booleanProvider.configured) {
                                 controls.onStepContinue!();
                               } else {
@@ -378,8 +373,7 @@ class _UDPScreenState extends State<UDPScreen> {
                                   sendFrame(
                                     {
                                       "commands": "WIFI_CONFIG",
-                                      "mac_address":
-                                          booleanProvider.macAddress,
+                                      "mac_address": booleanProvider.macAddress,
                                       "wifi_ssid": name,
                                       "wifi_password": password,
                                     },
@@ -390,16 +384,14 @@ class _UDPScreenState extends State<UDPScreen> {
                                   showSnack(context, 'Fields are Empty');
                                 }
                               }
-                            }
-                            else {
+                            } else {
                               if (booleanProvider.roomConfig) {
                                 Navigator.pop(context);
                               } else {
                                 sendFrame(
                                   {
                                     "commands": 'DEVICE_CONFIG_WRITE',
-                                    "mac_address":
-                                        booleanProvider.macAddress,
+                                    "mac_address": booleanProvider.macAddress,
                                     "device_location": roomName,
                                   },
                                   '255.255.255.255',
@@ -413,21 +405,26 @@ class _UDPScreenState extends State<UDPScreen> {
                                     .then((value) {
                                   sqlDb.getRoomsByDepartmentID(context,
                                       departmentMap.first['DepartmentID']);
-                                  sqlDb.insertDevice(
-                                    booleanProvider.macAddress,
-                                    booleanProvider.wifiSsid,
-                                    booleanProvider.wifiPassword,
-                                    booleanProvider.deviceType,
-                                    value,
-                                  );
-                                  Provider.of<AuthProvider>(context, listen:false)
-                                      .toggling('adding', false);
+                                  sqlDb
+                                      .insertDevice(
+                                        booleanProvider.macAddress,
+                                        booleanProvider.wifiSsid,
+                                        booleanProvider.wifiPassword,
+                                        booleanProvider.deviceType,
+                                        value,
+                                        booleanProvider.firmwareVersion,
+                                      )
+                                      .then((value) => sqlDb.exportData().then(
+                                          (value) => Provider.of<AuthProvider>(
+                                                  context,
+                                                  listen: false)
+                                              .toggling('adding', false)));
                                 });
                               }
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.pink.shade900,
+                            backgroundColor: const Color(0xFF047424),
                           ),
                           child: Text(
                             _currentStep == 0

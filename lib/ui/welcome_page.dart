@@ -71,8 +71,8 @@ class _WelcomePageState extends State<WelcomePage> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pink.shade900,
-                      foregroundColor: Colors.pink.shade700,
+                      backgroundColor: const Color(0xFF087424),
+                      foregroundColor: const Color(0xFF609e51),
                     ),
                     child: const AutoSizeText(
                       'Get Started',

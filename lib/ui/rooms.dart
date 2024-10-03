@@ -1,12 +1,25 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:floating_action_bubble/floating_action_bubble.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mega/udp.dart';
 import 'package:mega/ui/room_info.dart';
+import 'package:mega/ui/settings.dart';
+import 'package:mega/ui/upload_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart'
+    as qr_scan;
+import 'package:sqflite/sqflite.dart';
 import '../constants.dart';
 import '../db/functions.dart';
+import '../help.dart';
+import 'download_file.dart';
 
 class Rooms extends StatefulWidget {
   const Rooms({super.key});
@@ -26,6 +39,16 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
     setState(() {
       _isMenuOpen = !_isMenuOpen;
     });
+  }
+
+  Future<void> scanQR() async {
+    try {
+      barcodeScanRes = await qr_scan.FlutterBarcodeScanner.scanBarcode(
+          '#ff6666', 'Cancel', true, qr_scan.ScanMode.QR);
+    } on PlatformException {
+      barcodeScanRes = 'Failed to Scan QR Code';
+    }
+    if (!mounted) return;
   }
 
   @override
@@ -60,9 +83,12 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
+  String _status = 'Ready to export data';
+  String? _uploadStatus;
+  String downloadURL = '';
+
   @override
   Widget build(context) {
-
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
@@ -71,18 +97,142 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
         title: Text(
           departmentMap.isNotEmpty ? departmentMap.first['DepartmentName'] : '',
         ),
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           fontSize: 26,
           fontWeight: FontWeight.bold,
-          color: Colors.grey.shade800,
+          color: Color(0xFF047424),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context)=> const Setting()));
+            },
+            icon: const Icon(
+              Icons.settings_rounded,
+              color: Color(0xFF047424),
+            ),
+          )
+          /*PopupMenuButton<int>(
+            icon: const Icon(
+              Icons.menu_open_rounded,
+              color: Color(0xFF047424),
+            ), // The 3-dot icon
+            onSelected: (value) {
+              if (value == 1) {
+                Provider.of<AuthProvider>(context, listen: false)
+                    .checkFirstTime()
+                    .then((value) => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const UploadDatabase(),
+                        )));
+              } else if (value == 2) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ScanPage(),
+                    ));
+              } else if( value == 3){
+                Provider.of<AuthProvider>(context, listen: false)
+                    .toggling('adding', false);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UDPScreen(),
+                  ),
+                );
+              }
+              */
+          /*else if (value == 3) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const FirmwareScreen(),
+                    ));
+              }*/
+          /*
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 1,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.qr_code_2_rounded,
+                      color: Color(0xFF047424),
+                    ),
+                    Text(
+                      'Create QR Code',
+                      style: TextStyle(
+                        color: Color(0xFF047424),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 2,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.qr_code_scanner_rounded,
+                      color: Color(0xFF047424),
+                    ),
+                    Text(
+                      'Scan',
+                      style: TextStyle(
+                        color: Color(0xFF047424),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 3,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.device_unknown,
+                      color: Color(0xFF047424),
+                    ),
+                    Text(
+                      'Add Device',
+                      style: TextStyle(
+                        color: Color(0xFF047424),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+             */ /* const PopupMenuItem(
+                value: 3,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.system_security_update_rounded,
+                      color: Color(0xFF047424),
+                    ),
+                    Text(
+                      'Firmware Update',
+                      style: TextStyle(
+                        color: Color(0xFF047424),
+                      ),
+                    ),
+                  ],
+                ),
+              ),*/ /*
+            ],
+            offset: const Offset(
+                0, 50), // Adjust the Y-axis offset to move the menu down
+          ),*/
+        ],
       ),
-      floatingActionButton: FloatingActionBubble(
+      /*floatingActionButton: FloatingActionBubble(
         items: <Bubble>[
           Bubble(
             title: "Add Device",
             iconColor: Colors.white,
-            bubbleColor: Colors.pink.shade900,
+            bubbleColor: const Color(0xFF047424),
             icon: Icons.device_unknown,
             titleStyle: const TextStyle(fontSize: 16, color: Colors.white),
             onPress: () {
@@ -103,7 +253,7 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
           Bubble(
             title: "Add Department",
             iconColor: Colors.white,
-            bubbleColor: Colors.pink.shade900,
+            bubbleColor: const Color(0xFF047424),
             icon: Icons.home,
             titleStyle: const TextStyle(fontSize: 16, color: Colors.white),
             onPress: () {
@@ -118,24 +268,67 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
               : _animationController!.forward();
           _toggleMenu();
         },
-        backGroundColor: Colors.pink.shade900,
+        backGroundColor: const Color(0xFF047424),
         iconColor: Colors.white,
         iconData: _isMenuOpen ? Icons.close : Icons.add,
-      ),
+      ),*/
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: width * .05, vertical: 10),
           child: Column(
             children: [
+              /*ElevatedButton(
+                onPressed: () {
+                  checkFirmwareVersion('firmware-update/switch','firmware_version.txt').then((value) {
+                    if (firmwareInfo ==
+                        Provider.of<AuthProvider>(context, listen: false)
+                            .firmwareVersion) {
+                      Provider.of<AuthProvider>(context, listen: false)
+                          .firmwareUpdating("CHECK_FOR_NEW_FIRMWARE_SAME");
+                    } else {
+                      sendFrame({
+                        "commands": "DOWNLOAD_NEW_FIRMWARE",
+                        "mac_address": "08:3A:8D:D0:AA:20"
+                      }, "255.255.255.255", 8888);
+                      print('not similar');
+                    }
+                  });
+                },
+                child: const Text('get version name'),
+              ),*/
+              /*ElevatedButton(
+                onPressed: () {
+                  sqlDb
+                      .insertRoom('Desk', departmentMap.first['DepartmentID'])
+                      .then((value) {
+                    sqlDb.getRoomsByDepartmentID(
+                        context, departmentMap.first['DepartmentID']);
+                    sqlDb.insertDevice(
+                      '60:01:94:21:4B:06',
+                      'Hardware_room',
+                      '01019407823EOIP',
+                      'switch',
+                      value,
+                    ).then((value) => sqlDb.exportData().then(
+                            (value) => Provider.of<AuthProvider>(
+                            context,
+                            listen: false)
+                            .toggling('adding', false)));
+                  });
+                },
+                child: const Text(
+                  'insert rooms and devices',
+                ),
+              ),*/
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Rooms',
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 26,
-                      color: Colors.pink.shade900,
+                      color: Color(0xFF047424),
                     ),
                   ),
                   Consumer<AuthProvider>(
@@ -149,7 +342,7 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                           toggleProvider.toggle
                               ? Icons.grid_view_rounded
                               : Icons.list_outlined,
-                          color: Colors.pink.shade900,
+                          color: const Color(0xFF047424),
                         ),
                       );
                     },
@@ -160,17 +353,17 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                 builder: (context, loadingProvider, child) {
                   return Flexible(
                     child: loadingProvider.isLoading
-                        ? CircularProgressIndicator(
-                            color: Colors.pink.shade900,
+                        ? const CircularProgressIndicator(
+                            color: Color(0xFF047424),
                           )
                         : roomNames.isEmpty
-                            ? SizedBox(
+                            ? const SizedBox(
                                 child: Text(
                                   'There is no data to show',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 22,
-                                    color: Colors.pink.shade900,
+                                    color: Color(0xFF047424),
                                   ),
                                 ),
                               )
@@ -191,7 +384,7 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                                           decoration: BoxDecoration(
                                             borderRadius:
                                                 BorderRadius.circular(25.0),
-                                            color: Colors.pink.shade900,
+                                            color: const Color(0xFF047424),
                                           ),
                                           child: Column(
                                             mainAxisAlignment:
@@ -257,7 +450,7 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                                             decoration: BoxDecoration(
                                               borderRadius:
                                                   BorderRadius.circular(25.0),
-                                              color: Colors.pink.shade900,
+                                              color: const Color(0xFF047424),
                                             ),
                                             padding:
                                                 const EdgeInsets.only(left: 15),
@@ -341,14 +534,14 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               ListTile(
-                leading: Icon(
+                leading: const Icon(
                   Icons.edit,
-                  color: Colors.pink.shade900,
+                  color: Color(0xFF047424),
                 ),
-                title: Text(
+                title: const Text(
                   'Edit',
                   style: TextStyle(
-                    color: Colors.pink.shade900,
+                    color: Color(0xFF047424),
                   ),
                 ),
                 onTap: () {
@@ -357,14 +550,14 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                 },
               ),
               ListTile(
-                leading: Icon(
+                leading: const Icon(
                   Icons.delete,
-                  color: Colors.pink.shade900,
+                  color: Color(0xFF047424),
                 ),
-                title: Text(
+                title: const Text(
                   'Delete',
                   style: TextStyle(
-                    color: Colors.pink.shade900,
+                    color: Color(0xFF047424),
                   ),
                 ),
                 onTap: () {
@@ -400,27 +593,27 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
           String? hintMessage;
           return type == 'addDepartment'
               ? AlertDialog(
-                  title: Text(
+                  title: const Text(
                     'Add New Department',
-                    style: TextStyle(color: Colors.pink.shade900),
+                    style: TextStyle(color: Color(0xFF047424)),
                   ),
                   content: TextFormField(),
                   actions: [
                     TextButton(
                       style: ElevatedButton.styleFrom(
-                        side: BorderSide(
-                          color: Colors.pink.shade900,
+                        side: const BorderSide(
+                          color: Color(0xFF047424),
                         ),
                       ),
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: Text('Cancel',
-                          style: TextStyle(color: Colors.pink.shade900)),
+                      child: const Text('Cancel',
+                          style: TextStyle(color: Color(0xFF047424))),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.pink.shade900),
+                          backgroundColor: const Color(0xFF047424)),
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
@@ -434,9 +627,9 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
               : StatefulBuilder(
                   builder: (context, setStateDialog) {
                     return AlertDialog(
-                      title: Text(
+                      title: const Text(
                         'Edit Room Name',
-                        style: TextStyle(color: Colors.pink.shade900),
+                        style: TextStyle(color: Color(0xFF047424)),
                       ),
                       content: SingleChildScrollView(
                         child: Column(
@@ -444,16 +637,16 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                             DropdownButton<IconData>(
                               value: selectedIconInDialog,
                               menuMaxHeight: 200,
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.arrow_downward,
-                                color: Colors.pink.shade900,
+                                color: Color(0xFF047424),
                               ),
                               iconSize: 24,
                               elevation: 16,
-                              style: TextStyle(color: Colors.pink.shade900),
+                              style: const TextStyle(color: Color(0xFF047424)),
                               underline: Container(
                                 height: 2,
-                                color: Colors.pink.shade900,
+                                color: const Color(0xFF047424),
                               ),
                               onChanged: (IconData? newValue) {
                                 setStateDialog(() {
@@ -476,7 +669,10 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                                   value: icon,
                                   child: Row(
                                     children: [
-                                      Icon(icon),
+                                      Icon(
+                                        icon,
+                                        color: const Color(0xFF455D56),
+                                      ),
                                       const SizedBox(
                                         width: 10.0,
                                       ),
@@ -493,8 +689,7 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                                 );
                               }).toList(),
                             ),
-                            if (hintMessage !=
-                                null)
+                            if (hintMessage != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 10.0),
                                 child: Text(
@@ -508,19 +703,19 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                       actions: [
                         TextButton(
                           style: ElevatedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colors.pink.shade900,
+                            side: const BorderSide(
+                              color: Color(0xFF047424),
                             ),
                           ),
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: Text('Cancel',
-                              style: TextStyle(color: Colors.pink.shade900)),
+                          child: const Text('Cancel',
+                              style: TextStyle(color: Color(0xFF047424))),
                         ),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.pink.shade900),
+                              backgroundColor: const Color(0xFF047424)),
                           onPressed: () {
                             if (hintMessage == null) {
                               sqlDb

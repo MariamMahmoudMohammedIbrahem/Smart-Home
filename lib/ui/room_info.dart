@@ -26,9 +26,9 @@ class _RoomDetailState extends State<RoomDetail> {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: Colors.pink.shade100,
-        shadowColor: Colors.pink.shade200,
-        backgroundColor: Colors.pink.shade900,
+        surfaceTintColor: const Color(0xFF70AD61),
+        shadowColor: const Color(0xFF609e51),
+        backgroundColor: const Color(0xFF047424),
         foregroundColor: Colors.white,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(20),),),
         title: Row(
@@ -86,14 +86,14 @@ class _RoomDetailState extends State<RoomDetail> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: <Widget>[
                                       ListTile(
-                                        leading: Icon(
+                                        leading: const Icon(
                                           Icons.delete,
-                                          color: Colors.pink.shade900,
+                                          color: Color(0xFF047424),
                                         ),
-                                        title: Text(
+                                        title: const Text(
                                           'Delete',
                                           style: TextStyle(
-                                            color: Colors.pink.shade900,
+                                            color: Color(0xFF047424),
                                           ),
                                         ),
                                         onTap: () {
@@ -111,16 +111,16 @@ class _RoomDetailState extends State<RoomDetail> {
                           style: ElevatedButton.styleFrom(
                             side: BorderSide(
                               color: macAddress == macAddressDevice
-                                  ? Colors.pink.shade900
+                                  ? const Color(0xFF047424)
                                   : Colors.grey,
                             ),
                             backgroundColor: macAddress == macAddressDevice
-                                ? Colors.pink.shade100
+                                ? const Color(0xffcbe3c5)
                                 : Colors.white,
                           ),
                           child: Text(
                             device['DeviceType'] ?? "Switch",
-                            style: TextStyle(color: Colors.pink.shade900),
+                            style: const TextStyle(color: Color(0xFF047424)),
                           ),
                         ),
                       );
@@ -140,22 +140,22 @@ class _RoomDetailState extends State<RoomDetail> {
                   mainAxisSpacing: 30.0,
                   crossAxisSpacing: 10.0,
                 ),
-                itemCount: 3,
+                itemCount: 4,
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     child: Consumer<AuthProvider>(builder:
                         (context, switchesProvider, child) {
                      return Container(
                        decoration: BoxDecoration(
-                         color: deviceStatus.firstWhere(
+                         color: index == 3?deviceStatus.firstWhere((device) => device['MacAddress'] == macAddress,)['led'] == 1 ? const Color(0xffcbe3c5):Colors.grey.shade200 :deviceStatus.firstWhere(
                                (device) => device['MacAddress'] == macAddress,
-                         )['sw${index+1}']==1?Colors.pink.shade50:Colors.grey.shade200,
+                         )['sw${index+1}']==1?const Color(0xffcbe3c5):Colors.grey.shade200,
                          borderRadius: BorderRadius.circular(
                            20,
                          ),
                          border: Border.all(color: deviceStatus.firstWhere(
                                (device) => device['MacAddress'] == macAddress,
-                         )['sw${index+1}']==1?Colors.pink.shade900:Colors.grey.shade800,),
+                         )['sw${index+1}']==1?const Color(0xFF047424):Colors.grey.shade800,),
                        ),
                        padding:
                        const EdgeInsets.symmetric(horizontal: 20),
@@ -167,10 +167,10 @@ class _RoomDetailState extends State<RoomDetail> {
                              MainAxisAlignment.spaceBetween,
                              children: [
                                Icon(
-                                 Icons.lightbulb_circle,
+                                 index == 3?Icons.light_mode_outlined:Icons.lightbulb_circle,
                                  color: deviceStatus.firstWhere(
                                        (device) => device['MacAddress'] == macAddress,
-                                 )['sw${index+1}']==1?Colors.pink.shade900:Colors.grey.shade800,
+                                 )['sw${index+1}']==1?const Color(0xFF047424):Colors.grey.shade800,
                                  size: 40,
                                ),
                                Row(
@@ -178,15 +178,17 @@ class _RoomDetailState extends State<RoomDetail> {
                                  MainAxisAlignment.spaceBetween,
                                  children: [
                                    Switch(
-                                     activeColor: Colors.pink.shade300,
+                                     activeColor: const Color(0xFF609e51),
                                      activeTrackColor:
-                                     Colors.pink.shade700,
+                                     const Color(0xFF047424),
                                      inactiveThumbColor:
                                      Colors.grey.shade300,
                                      inactiveTrackColor:
                                      Colors.grey.shade800,
                                      splashRadius: 50.0,
-                                     value: deviceStatus.firstWhere(
+                                     value: index == 3 ? deviceStatus.firstWhere(
+                                           (device) => device['MacAddress'] == macAddress,
+                                     )['led']==1?true:false: deviceStatus.firstWhere(
                                            (device) => device['MacAddress'] == macAddress,
                                      )['sw${index+1}']==1?true:false,
                                      onChanged: (value) {
@@ -204,7 +206,8 @@ class _RoomDetailState extends State<RoomDetail> {
                                            '255.255.255.255',
                                            8888,
                                          );
-                                       } else if (index == 1) {
+                                       }
+                                       else if (index == 1) {
                                          sendFrame(
                                            {
                                              "commands":
@@ -218,7 +221,8 @@ class _RoomDetailState extends State<RoomDetail> {
                                            '255.255.255.255',
                                            8888,
                                          );
-                                       } else {
+                                       }
+                                       else if (index == 2) {
                                          sendFrame(
                                            {
                                              "commands":
@@ -228,6 +232,21 @@ class _RoomDetailState extends State<RoomDetail> {
                                              "sw2": deviceStatus.firstWhere(
                                                    (device) => device['MacAddress'] == macAddress,
                                              )['sw3']==0?1:0,
+                                           },
+                                           '255.255.255.255',
+                                           8888,
+                                         );
+                                       }
+                                       else {
+                                         sendFrame(
+                                           {
+                                             "commands":
+                                             'SWITCH_WRITE',
+                                             "mac_address":
+                                             macAddress,
+                                             "led": deviceStatus.firstWhere(
+                                                   (device) => device['MacAddress'] == macAddress,
+                                             )['led']==0?1:0,
                                            },
                                            '255.255.255.255',
                                            8888,
@@ -245,7 +264,7 @@ class _RoomDetailState extends State<RoomDetail> {
                              style: TextStyle(
                                  color: deviceStatus.firstWhere(
                                        (device) => device['MacAddress'] == macAddress,
-                                 )['sw${index+1}']==1?Colors.pink.shade900:Colors.grey.shade800,
+                                 )['sw${index+1}']==1?const Color(0xFF047424):Colors.grey.shade800,
                                  fontSize: 20,
                                  fontWeight: FontWeight.bold),
                            ),
@@ -282,7 +301,7 @@ class _RoomDetailState extends State<RoomDetail> {
                               Center(
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.pink.shade900,
+                                    backgroundColor: const Color(0xFF047424),
                                   ),
                                   onPressed: () {
                                     sendFrame(

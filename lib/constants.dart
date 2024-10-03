@@ -11,7 +11,7 @@ int max = 65535;
 List<Map<String, dynamic>> departmentMap = [];
 var macMap = [];
 bool eye = false;
-Color currentColor = Colors.amber;
+Color currentColor = const Color(0xFF087424);
 ///items list of all macAddress
 List<String> roomNames = [];
 List<int>  roomIDs = [];
@@ -41,3 +41,11 @@ List<IconData> iconsRooms = [
   Icons.camera_outdoor,
 ];
 IconData selectedIcon = Icons.living;
+String barcodeScanRes = '';
+bool reformattingData = false;
+String localFileName = '';
+bool startUpdate = false;
+String? firmwareInfo;
+String? version;
+String? info;
+bool connectionLed = true;

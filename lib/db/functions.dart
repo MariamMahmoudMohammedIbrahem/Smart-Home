@@ -358,14 +358,32 @@ bool isUsernameValid(String username){
 }*/
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:get/state_manager.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:http/http.dart' as http;
+Future<void> uploadFile(File file) async {
+  try {
+    // Create a reference to the file location in Firebase Storage
+    final storageRef = FirebaseStorage.instance.ref().child('uploads/${file.path.split('/').last}');
 
+    // Upload the file to Firebase Storage
+    await storageRef.putFile(file);
+    print('File uploaded successfully');
+  } catch (e) {
+    print('Error uploading file: $e');
+  }
+}
 class SocketManager {
   static final SocketManager _instance = SocketManager._internal();
   RawDatagramSocket? _socket;
@@ -431,6 +449,14 @@ class SocketManager {
                     Provider.of<AuthProvider>(context, listen: false)
                         .setSwitch(macAddress, 'sw3', jsonResponse['sw2']);
                   }
+                  if (deviceStatus.firstWhere(
+                        (device) =>
+                            device['MacAddress'] == jsonResponse['mac_address'],
+                      )['led'] !=
+                      jsonResponse['led']) {
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .setSwitch(macAddress, 'led', jsonResponse['led']);
+                  }
                   Provider.of<AuthProvider>(context, listen: false)
                       .addingDevice(commandResponse, jsonResponse);
                   print(currentColor);
@@ -472,7 +498,7 @@ class SocketManager {
                     commandResponse == 'DOWNLOAD_NEW_FIRMWARE_OK' ||
                     commandResponse == 'DOWNLOAD_NEW_FIRMWARE_FAIL') {
                   Provider.of<AuthProvider>(context, listen: false)
-                      .firmwareUpdating(commandResponse);
+                      .firmwareUpdating(jsonResponse);
                 } else if (commandResponse == 'READ_OK') {}
               } catch (e) {
                 print('Error decoding JSON: $e');
@@ -502,7 +528,7 @@ void sendFrame(Map<String, dynamic> jsonFrame, String ipAddress, int port) {
 }
 
 class AuthProvider extends ChangeNotifier {
-  bool? _isFirstTime;
+  String? _isFirstTime;
 
   bool _toggle = true;
   bool _loading = false;
@@ -517,7 +543,7 @@ class AuthProvider extends ChangeNotifier {
   String wifiPassword = '';
   String firmwareVersion = '';
 
-  bool get firstTimeCheck => _isFirstTime ?? true;
+  bool get firstTimeCheck => _isFirstTime?.isEmpty ?? true;
 
   bool get toggle => _toggle;
 
@@ -536,17 +562,31 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> checkFirstTime() async {
+  Future<String?> checkFirstTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    _isFirstTime = prefs.getBool('first_time') ?? true;
-    return prefs.getBool('first_time') ?? true;
+    _isFirstTime = prefs.getString('first_time') ?? ''; // Return the saved string or an empty string if not set
+    localFileName = prefs.getString('first_time') ?? '';
+    return _isFirstTime;
   }
 
   Future<void> setFirstTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('first_time', false);
-    _isFirstTime = false;
+
+    // Generate a 6-character random string
+    String randomString = getRandomString(6);
+
+    // Get the current time in microseconds
+    int microseconds = DateTime.now().microsecondsSinceEpoch;
+
+    // Combine the random string and microseconds
+    String firstTimeValue = '$randomString$microseconds';
+
+    // Save the concatenated string
+    await prefs.setString('first_time', firstTimeValue);
+
+    _isFirstTime = firstTimeValue;
     print('Set first time to: $_isFirstTime');
+
     notifyListeners();
   }
 
@@ -607,13 +647,23 @@ class AuthProvider extends ChangeNotifier {
   double downloadedBytesSize = 0;
   double totalByteSize = 0;
   int downloadPercentage = 0;
-  void firmwareUpdating(String command) {
+  bool updating = false;
+  String macFirmware = '';
+  void firmwareUpdating(Map<String, dynamic> jsonResponse) {
+    similarityDownload = false;
+    startedDownload = false;
+    failedDownload = false;
+    completedDownload = false;
+    downloadPercentage = 0;
+    macFirmware = jsonResponse['mac_address'];
+    String command = jsonResponse['commands'];
     switch (command) {
-      case 'CHECK_FOR_NEW_FIRMWARE_OK ':
+      case 'CHECK_FOR_NEW_FIRMWARE_OK':
         completedCheck = true;
         break;
       case 'CHECK_FOR_NEW_FIRMWARE_SAME':
         similarityCheck = true;
+        // macVersion[jsonResponse['mac_address']] = true;
         break;
       case 'CHECK_FOR_NEW_FIRMWARE_FAIL':
         failedCheck = true;
@@ -622,22 +672,32 @@ class AuthProvider extends ChangeNotifier {
         similarityDownload = true;
         break;
       case 'DOWNLOAD_NEW_FIRMWARE_START':
+        updating = true;
         startedDownload = true;
         break;
       case 'DOWNLOAD_NEW_FIRMWARE_FAIL':
         failedDownload = true;
         break;
       case 'DOWNLOAD_NEW_FIRMWARE_OK':
+        updating = false;
         completedDownload = true;
+        sqlDb.updateVersionByMacAddress(jsonResponse['mac_address'], jsonResponse['firmware_version']);
         break;
       default:
-        RegExp regExp = RegExp(r'\((\d+)\)');
+        RegExp regExp = RegExp(r'_(\d+)'); // Match all numbers preceded by an underscore
         List<RegExpMatch> matches = regExp.allMatches(command).toList();
-        print(matches);
-        downloadedBytesSize = double.parse(matches.elementAt(0).group(1)!);
-        totalByteSize = double.parse(matches.elementAt(1).group(1)!);
+        for (var match in matches) {
+          print('Match: ${match.group(1)}'); // Print each matched number
+        }
+        downloadedBytesSize = double.parse(matches[0].group(1)!);
+        totalByteSize = double.parse(matches[1].group(1)!);
         double testingValue = downloadedBytesSize / totalByteSize * 100;
         downloadPercentage = testingValue.toInt();
+        if(downloadPercentage == 100){
+          completedDownload = true;
+          updating = false;
+          sqlDb.updateVersionByMacAddress(jsonResponse['mac_address'], jsonResponse['firmware_version']);
+        }
         print('downloaded $downloadPercentage');
         break;
     }
@@ -696,4 +756,92 @@ IconData getIconName(String name) {
 Future<void> setCredentials() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setBool('first_time', true);
+}
+
+///*firebase_cloud**
+Future<void> storeListOfIds(String documentId, List<String> ids) async {
+  CollectionReference collection = FirebaseFirestore.instance.collection('your_collection_name');
+
+  try {
+    await collection.doc(documentId).set({
+      'ids': ids,
+    });
+    print("List of IDs successfully stored!");
+  } catch (e) {
+    print("Error storing list of IDs: $e");
+  }
+}
+Future<List<String>?> getListOfIds(String documentId) async {
+  DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection('your_collection_name').doc(documentId).get();
+
+  if (snapshot.exists) {
+    List<String> ids = List<String>.from(snapshot['ids']);
+    return ids;
+  }
+  return null;
+}
+
+///*upload functions**
+// Helper function to generate a random string of a given length
+String getRandomString(int length) {
+  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  Random random = Random();
+  return String.fromCharCodes(Iterable.generate(
+    length, (_) => characters.codeUnitAt(random.nextInt(characters.length)),
+  ));
+}
+
+String convertDataToJson(Map<String, dynamic> data) {
+  return jsonEncode(data);
+}
+
+Future<void> saveJsonToFile(String jsonData) async {
+  final directory = await getApplicationDocumentsDirectory();
+  final file = File('${directory.path}/$localFileName.json');
+
+  // Upload the JSON file to Firebase (optional)
+  // uploadDatabaseToFirebase();
+
+  // Save the file locally
+  await file.writeAsString(jsonData);
+  print("JSON file saved to ${file.path}");
+}
+
+
+Future<Map<String, dynamic>> getLatestFirmwareInfo() async {
+  final response = await http.get(Uri.parse(
+      'https://firebasestorage.googleapis.com/v0/b/smart-home-aae4e.appspot.com/o/firmware-update%2Fswitch%2Ffirmware_version.txt?alt=media&token=43405f1e-187c-420c-8137-9fd34c9d566c'));
+print('response $response');
+  if (response.statusCode == 200) {
+    return json.decode(response.body);
+  } else {
+    throw Exception('Failed to load latest firmware info');
+  }
+}
+Future<bool> isConnectedToInternet() async {
+  // Check connection type (Wi-Fi, mobile, etc.)
+  var connectivityResult = await (Connectivity().checkConnectivity());
+
+  if (connectivityResult == ConnectivityResult.none) {
+    // No connection
+    return false;
+  }
+
+  // Perform a simple ping to Google to verify actual internet access
+  try {
+    final response = await http.get(Uri.parse('https://www.google.com')).timeout(
+      const Duration(seconds: 5),
+    );
+
+    if (response.statusCode == 200) {
+      // Successfully connected to the internet
+      return true;
+    } else {
+      // Server responded, but not reachable
+      return false;
+    }
+  } catch (e) {
+    // Couldn't reach the server, no internet
+    return false;
+  }
 }

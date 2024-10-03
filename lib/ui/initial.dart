@@ -17,34 +17,39 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 5 ),(){
+    // Future.delayed(const Duration(seconds: 5 ),(){
       sqlDb.getAllDepartments().then((value) =>WidgetsBinding.instance.addPostFrameCallback((_) {
         Provider.of<AuthProvider>(context, listen: false)
             .checkFirstTime()
             .then((_) {
           final firstTimeCheck =
               Provider.of<AuthProvider>(context, listen: false).firstTimeCheck;
-          if (firstTimeCheck) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const WelcomePage()),
-            );
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const Rooms()),
-            );
-          }
+          print('firstTimeCheck $firstTimeCheck');
+          Future.delayed(const Duration(seconds: 3),(){
+            if (firstTimeCheck) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const WelcomePage()),
+              );
+            }
+            else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const Rooms()),
+              );
+            }
+          });
+
         });
       }),);
-    });
+    // });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink.shade900,
-      body: Center(child: Image.asset('images/loading.gif',),),
+      backgroundColor:  const Color(0xFF047424),
+      body: Center(child: Image.asset('images/loading-animate.gif',),),
     );
   }
 }

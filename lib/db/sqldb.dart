@@ -32,6 +32,9 @@ class SqlDb {
 
   //version changed
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    /*if (oldVersion < 2) {
+      await db.execute("ALTER TABLE Devices ADD COLUMN FirmwareVersion TEXT").then((value) => updateAllRowsWithNewValue);
+    }*/
     print("onUpgrade");
   }
 
@@ -62,11 +65,33 @@ class SqlDb {
         'MacAddress' VARCHAR(17) NOT NULL UNIQUE,
         'WifiName' VARCHAR(255),
         'WifiPassword' VARCHAR(255),
+        'FirmwareVersion' TEXT,
         'RoomID' INTEGER,
         FOREIGN KEY (RoomID) REFERENCES Rooms(RoomID)
       )
     ''');
 }
+  Future<void> updateAllRowsWithNewValue() async {
+    Database? _db = await db;
+
+    await _db!.update(
+      'Devices',
+      {'FirmwareVersion': '0.13.9'},
+    );
+    print('updating.......');
+  }
+
+  Future<void> updateVersionByMacAddress(String macAddress, String newVersion) async {
+    Database? myDb = await db;
+
+    // Update the specified column for the device with the given MAC address
+    await myDb!.update(
+      'Devices',
+      {'FirmwareVersion': newVersion},
+      where: 'MacAddress = ?', // Condition to find the specific device
+      whereArgs: [macAddress], // Argument for the condition
+    );
+  }
 
   //INSERT
   Future insertData(String sql) async {
@@ -175,6 +200,7 @@ class SqlDb {
       String wifiPassword,
       String deviceType,
       int roomID,
+      String firmwareVersion,
       ) async {
     Database? myDb = await db;
 
@@ -201,6 +227,7 @@ class SqlDb {
           'WifiName': wifiName,
           'WifiPassword': wifiPassword,
           'RoomID': roomID,
+          'FirmwareVersion': firmwareVersion,
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
@@ -243,13 +270,13 @@ class SqlDb {
   }
 
   ///retrieve device details for specific room
-  Future<void> getDeviceDetailsByRoomID(int roomID) async {
+  Future<List<Map<String, dynamic>>> getDeviceDetailsByRoomID(int roomID) async {
     Database? myDb = await db;
 
     // Query the Devices table for MacAddress where RoomID matches
     deviceDetails = await myDb!.query(
       'Devices',
-      columns: ['MacAddress'],
+      columns: ['MacAddress', 'FirmwareVersion'],
       where: 'RoomID = ?',
       whereArgs: [roomID],
     );
@@ -265,11 +292,13 @@ class SqlDb {
           'sw1': 0,
           'sw2': 0,
           'sw3': 0,
+          'led': 0,
         });
       }
     }
-
     print('Devices in Room $roomID: $deviceDetails');
+    return deviceDetails;
+
   }
 
   ///retrieve all departments
@@ -323,6 +352,47 @@ class SqlDb {
       return true;
     } else {
       return false;
+    }
+  }
+  Future<List<Map<String, dynamic>>> getDataFromTable(String tableName) async {
+    final database = openDatabase(
+      join(await getDatabasesPath(), 'GlowGrid.db'),
+    );
+    final db = await database;
+    return await db.query(tableName);
+  }
+  Future<void> exportData() async {
+    try {
+      /*setState(() {
+        preparingData = true;
+      });*/
+
+      // Read data from multiple tables
+      final departmentsData = await sqlDb.getDataFromTable('Departments');
+      final roomsData = await sqlDb.getDataFromTable('Rooms');
+      final devicesData = await sqlDb.getDataFromTable('Devices');
+
+      // Combine data from multiple tables
+      final Map<String, dynamic> allData = {
+        'Departments': departmentsData,
+        'Rooms': roomsData,
+        'Devices': devicesData,
+      };
+
+      // Convert combined data to JSON
+      final jsonData = convertDataToJson(allData);
+
+      // Save JSON data to a file
+      await saveJsonToFile(jsonData);
+
+      // setState(() {
+      //   _status = 'Data exported successfully!';
+        /*preparingData = false;*/
+      // });
+    } catch (e) {
+      // setState(() {
+      //   _status = 'Error exporting data: $e';
+      // });
     }
   }
 }
