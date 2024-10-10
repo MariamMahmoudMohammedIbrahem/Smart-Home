@@ -18,30 +18,35 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     // Future.delayed(const Duration(seconds: 5 ),(){
-      sqlDb.getAllDepartments().then((value) =>WidgetsBinding.instance.addPostFrameCallback((_) {
-        Provider.of<AuthProvider>(context, listen: false)
-            .checkFirstTime()
-            .then((_) {
-          final firstTimeCheck =
-              Provider.of<AuthProvider>(context, listen: false).firstTimeCheck;
-          print('firstTimeCheck $firstTimeCheck');
-          Future.delayed(const Duration(seconds: 3),(){
-            if (firstTimeCheck) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const WelcomePage()),
-              );
-            }
-            else {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const Rooms()),
-              );
-            }
-          });
-
+      sqlDb.getAllApartments().then((value) =>
+      {
+        sqlDb.getAllMacAddresses().then((value) =>
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Provider.of<AuthProvider>(context, listen: false)
+            .checkTheme();
+            Provider.of<AuthProvider>(context, listen: false)
+                .checkFirstTime()
+                .then((_) {
+              final firstTimeCheck =
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .firstTimeCheck;
+              Future.delayed(const Duration(seconds: 3), () {
+                if (firstTimeCheck) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const WelcomePage()),
+                  );
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Rooms()),
+                  );
+                }
+              });
+            });
+          }),),
         });
-      }),);
     // });
   }
 

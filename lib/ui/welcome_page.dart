@@ -56,8 +56,8 @@ class _WelcomePageState extends State<WelcomePage> {
                           .setFirstTime()
                           .then((value) {
                         sqlDb
-                            .insertDepartment('My Home')
-                            .then((value) => sqlDb.getAllDepartments().then((value) {
+                            .insertApartment('My Home')
+                            .then((value) => sqlDb.getAllApartments().then((value) {
                           final firstTimeCheck =
                               Provider.of<AuthProvider>(context, listen: false)
                                   .firstTimeCheck;

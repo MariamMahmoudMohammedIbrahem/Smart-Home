@@ -363,7 +363,6 @@ import 'dart:math';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:get/state_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -387,7 +386,7 @@ Future<void> uploadFile(File file) async {
 class SocketManager {
   static final SocketManager _instance = SocketManager._internal();
   RawDatagramSocket? _socket;
-  Color currentColor = Colors.transparent;
+  // Color currentColor = Colors.transparent;
 
   factory SocketManager() {
     return _instance;
@@ -429,7 +428,7 @@ class SocketManager {
                       jsonResponse['sw0']) {
                     print('code works correctly');
                     Provider.of<AuthProvider>(context, listen: false)
-                        .setSwitch(macAddress, 'sw1', jsonResponse['sw0']);
+                        .setSwitch(jsonResponse['mac_address'], 'sw1', jsonResponse['sw0']);
                   }
                   if (deviceStatus.firstWhere(
                         (device) =>
@@ -437,9 +436,7 @@ class SocketManager {
                       )['sw2'] !=
                       jsonResponse['sw1']) {
                     Provider.of<AuthProvider>(context, listen: false)
-                        .setSwitch(macAddress, 'sw2', jsonResponse['sw1']);
-                    currentColor = Color.fromRGBO(jsonResponse['red'],
-                        jsonResponse['green'], jsonResponse['blue'], 1.0);
+                        .setSwitch(jsonResponse['mac_address'], 'sw2', jsonResponse['sw1']);
                   }
                   if (deviceStatus.firstWhere(
                         (device) =>
@@ -447,7 +444,7 @@ class SocketManager {
                       )['sw3'] !=
                       jsonResponse['sw2']) {
                     Provider.of<AuthProvider>(context, listen: false)
-                        .setSwitch(macAddress, 'sw3', jsonResponse['sw2']);
+                        .setSwitch(jsonResponse['mac_address'], 'sw3', jsonResponse['sw2']);
                   }
                   if (deviceStatus.firstWhere(
                         (device) =>
@@ -455,21 +452,22 @@ class SocketManager {
                       )['led'] !=
                       jsonResponse['led']) {
                     Provider.of<AuthProvider>(context, listen: false)
-                        .setSwitch(macAddress, 'led', jsonResponse['led']);
+                        .setSwitch(jsonResponse['mac_address'], 'led', jsonResponse['led']);
                   }
+                  // Provider.of<AuthProvider>(context, listen: false).setCurrentColor(macAddress, jsonResponse['red'], jsonResponse['green'], jsonResponse['blue']);
                   Provider.of<AuthProvider>(context, listen: false)
                       .addingDevice(commandResponse, jsonResponse);
-                  print(currentColor);
+
                 } else if (commandResponse == 'RGB_READ_OK' ||
                     commandResponse == 'RGB_WRITE_OK') {
-                  // Provider.of<AuthProvider>(context, listen: false).setSwitch(macAddress, 'sw2', jsonResponse['sw1']);
-                  currentColor = Color.fromRGBO(jsonResponse['red'],
-                      jsonResponse['green'], jsonResponse['blue'], 1.0);
+                  // Provider.of<AuthProvider>(context, listen: false).setCurrentColor(macAddress, jsonResponse['red'], jsonResponse['green'], jsonResponse['blue']);
                 } else if (commandResponse == 'MAC_ADDRESS_READ_OK') {
                   Provider.of<AuthProvider>(context, listen: false)
                       .addingDevice('MAC_ADDRESS_READ_OK', jsonResponse);
                 } else if (commandResponse == 'WIFI_CONFIG_OK') {
-                } else if (commandResponse == 'WIFI_CONFIG_FAIL') {
+                } else if (commandResponse == 'WIFI_CONFIG_FAILED') {
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .addingDevice('WIFI_CONFIG_FAILED', {});
                 } else if (commandResponse == 'WIFI_CONFIG_CONNECTING' ||
                     commandResponse == 'WIFI_CONFIG_SAME') {
                   Provider.of<AuthProvider>(context, listen: false)
@@ -531,11 +529,14 @@ class AuthProvider extends ChangeNotifier {
   String? _isFirstTime;
 
   bool _toggle = true;
+  bool _isDarkMode = false;
+  bool _delete = false;
   bool _loading = false;
   bool get isLoading => _loading;
   bool roomConfig = false;
   bool connectionSuccess = false;
   bool configured = false;
+  bool connectionFailed = false;
   bool readOnly = false;
   String macAddress = '';
   String deviceType = '';
@@ -546,12 +547,15 @@ class AuthProvider extends ChangeNotifier {
   bool get firstTimeCheck => _isFirstTime?.isEmpty ?? true;
 
   bool get toggle => _toggle;
+  bool get isDarkMode => _isDarkMode;
+  bool? get delete => _delete;
 
   void setSwitch(String macAddress, String dataKey, int state) {
     // switches[index] = state;
     print('device BEFORE$deviceStatus');
     for (var device in deviceStatus) {
       if (device['MacAddress'] == macAddress) {
+        print('${device['MacAddress']} is equal to $macAddress');
         // Update the specific data key (data1, data2, or data3)
         //CHECK IF STATE IS THE SAME AS THE PREVIOUS
         device[dataKey] = state;
@@ -562,11 +566,30 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> checkFirstTime() async {
+  void setCurrentColor(String macAddress, int red, int green, int blue) {
+    // switches[index] = state;
+    for (var device in deviceStatus) {
+      if (device['MacAddress'] == macAddress) {
+        // Update the specific data key (data1, data2, or data3)
+        //CHECK IF STATE IS THE SAME AS THE PREVIOUS
+        device['CurrentColor'] = Color.fromRGBO(red, green, blue, 1.0);
+        // tempColor.add({macAddress: device['CurrentColor'],});
+        // print('functions $tempColor');
+        break;
+      }
+    }
+    notifyListeners();
+  }
+
+  Future<void> checkFirstTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _isFirstTime = prefs.getString('first_time') ?? ''; // Return the saved string or an empty string if not set
-    localFileName = prefs.getString('first_time') ?? '';
-    return _isFirstTime;
+    localFileName = _isFirstTime!;
+  }
+
+  Future<void> checkTheme() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _isDarkMode = prefs.getBool('dark_theme') ?? false;
   }
 
   Future<void> setFirstTime() async {
@@ -580,7 +603,7 @@ class AuthProvider extends ChangeNotifier {
 
     // Combine the random string and microseconds
     String firstTimeValue = '$randomString$microseconds';
-
+    localFileName = firstTimeValue;
     // Save the concatenated string
     await prefs.setString('first_time', firstTimeValue);
 
@@ -590,9 +613,23 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setTheme(bool isDark) async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _isDarkMode = isDark;
+    print('inside set theme $_isDarkMode');
+    await prefs.setBool('dark_theme', isDark);
+    notifyListeners();
+  }
+
   void toggling(String dataType, bool newValue) {
     if (dataType == 'toggling') {
       _toggle = newValue;
+    }
+    if (dataType == 'darkMode') {
+      _isDarkMode = newValue;
+    }
+    if(dataType == 'delete'){
+      _delete = newValue;
     }
     if (dataType == 'loading') {
       _loading = newValue;
@@ -605,7 +642,7 @@ class AuthProvider extends ChangeNotifier {
       readOnly = newValue;
       configured = newValue;
       connectionSuccess = newValue;
-      roomConfig = newValue;
+      // roomConfig = newValue;
     }
     notifyListeners();
   }
@@ -618,14 +655,18 @@ class AuthProvider extends ChangeNotifier {
         break;
       case 'WIFI_CONFIG_CONNECTING':
         configured = true;
+        connectionFailed = false;
+        break;
+      case 'WIFI_CONFIG_FAILED':
+        connectionFailed = true;
         break;
       case 'WIFI_CONNECT_CHECK_OK':
         connectionSuccess = true;
         break;
-      case 'DEVICE_CONFIG_WRITE_OK':
+      /*case 'DEVICE_CONFIG_WRITE_OK':
         roomConfig = true;
         saved = true;
-        break;
+        break;*/
       case 'UPDATE_OK':
         deviceType = jsonResponse["device_type"];
         wifiSsid = jsonResponse["wifi_ssid"];
@@ -797,6 +838,7 @@ String convertDataToJson(Map<String, dynamic> data) {
 
 Future<void> saveJsonToFile(String jsonData) async {
   final directory = await getApplicationDocumentsDirectory();
+  print('local file name => $localFileName');
   final file = File('${directory.path}/$localFileName.json');
 
   // Upload the JSON file to Firebase (optional)
@@ -843,5 +885,39 @@ Future<bool> isConnectedToInternet() async {
   } catch (e) {
     // Couldn't reach the server, no internet
     return false;
+  }
+}
+
+Future<void> deleteOldFiles() async {
+  try {
+    final Reference storageRef =
+    FirebaseStorage.instance.ref().child('databases/');
+    final ListResult result = await storageRef.listAll();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    const oneHourInMs = 60 * 60;
+
+    for (var item in result.items) {
+      final metadata = await item.getMetadata();
+      final uploadTimeStr = metadata.customMetadata?['uploadTime'];
+
+      if (uploadTimeStr != null) {
+        try {
+          final uploadTime =
+              DateTime.parse(uploadTimeStr).millisecondsSinceEpoch;
+
+          if (now - uploadTime > oneHourInMs) {
+            await item.delete();
+            print("Deleted old file: ${item.name}");
+          }
+        } catch (e) {
+          print(
+              "Error parsing upload time for file: ${item.name}. Error: $e");
+        }
+      } else {
+        print("Upload time metadata not found for file: ${item.name}");
+      }
+    }
+  } catch (e) {
+    print("Error deleting files: $e");
   }
 }

@@ -103,8 +103,10 @@ class _UDPScreenState extends State<UDPScreen> {
                       },
                       onChanged: (value) {
                         name = nameController.text;
-                        Provider.of<AuthProvider>(context, listen: false)
-                            .configured = false;
+                        setState(() {
+                          Provider.of<AuthProvider>(context, listen: false)
+                              .configured = false;
+                        });
                       },
                     ),
                     TextFormField(
@@ -133,8 +135,10 @@ class _UDPScreenState extends State<UDPScreen> {
                       },
                       onChanged: (value) {
                         password = passwordController.text;
-                        Provider.of<AuthProvider>(context, listen: false)
-                            .configured = false;
+                        setState(() {
+                          Provider.of<AuthProvider>(context, listen: false)
+                              .configured = false;
+                        });
                       },
                     ),
                   ],
@@ -259,6 +263,7 @@ class _UDPScreenState extends State<UDPScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: SafeArea(
         child: Theme(
@@ -295,14 +300,14 @@ class _UDPScreenState extends State<UDPScreen> {
                     : MainAxisAlignment.center,
                 children: [
                   Visibility(
-                    visible: (_currentStep != 0 &&
-                            Provider.of<AuthProvider>(context).readOnly) ||
-                        (_currentStep == 1 &&
-                            !Provider.of<AuthProvider>(context).configured) ||
+                    visible: // (_currentStep != 0 && Provider.of<AuthProvider>(context).readOnly) ||
+                        //     (_currentStep == 1 && !Provider.of<AuthProvider>(context).configured) ||
                         (_currentStep == 2 &&
-                            !!Provider.of<AuthProvider>(context)
-                                .connectionSuccess) ||
-                        !!Provider.of<AuthProvider>(context).roomConfig,
+                                (/*!Provider.of<AuthProvider>(context)
+                                    .connectionSuccess ||*/
+                            Provider.of<AuthProvider>(context)
+                                .connectionFailed)), // ||
+                    // !!Provider.of<AuthProvider>(context).roomConfig,
                     child: Expanded(
                       child: SizedBox(
                         child: ElevatedButton(
@@ -335,7 +340,7 @@ class _UDPScreenState extends State<UDPScreen> {
                           onPressed: () {
                             if (_currentStep == 0) {
                               if (booleanProvider.readOnly) {
-                                if (deviceDetails
+                                if (macMap
                                     .contains(booleanProvider.macAddress)) {
                                   showSnack(context,
                                       'you already have this device configured');
@@ -350,7 +355,9 @@ class _UDPScreenState extends State<UDPScreen> {
                                 );
                               }
                             } else if (_currentStep == 2) {
-                              if (booleanProvider.connectionSuccess) {
+                              if (booleanProvider.connectionFailed) {
+                                showSnack(context, 'Connection Failed');
+                              } else if (booleanProvider.connectionSuccess && !booleanProvider.connectionFailed) {
                                 controls.onStepContinue!();
                               } else {
                                 sendFrame(
@@ -386,9 +393,10 @@ class _UDPScreenState extends State<UDPScreen> {
                               }
                             } else {
                               if (booleanProvider.roomConfig) {
+                                booleanProvider.roomConfig = false;
                                 Navigator.pop(context);
                               } else {
-                                sendFrame(
+                                /*sendFrame(
                                   {
                                     "commands": 'DEVICE_CONFIG_WRITE',
                                     "mac_address": booleanProvider.macAddress,
@@ -396,15 +404,15 @@ class _UDPScreenState extends State<UDPScreen> {
                                   },
                                   '255.255.255.255',
                                   8888,
-                                );
+                                );*/
                                 print(
                                     'boolean provider${booleanProvider.deviceType}');
                                 sqlDb
                                     .insertRoom(roomName,
-                                        departmentMap.first['DepartmentID'])
+                                        apartmentMap.first['ApartmentID'])
                                     .then((value) {
-                                  sqlDb.getRoomsByDepartmentID(context,
-                                      departmentMap.first['DepartmentID']);
+                                  sqlDb.getRoomsByApartmentID(context,
+                                      apartmentMap.first['ApartmentID']);
                                   sqlDb
                                       .insertDevice(
                                         booleanProvider.macAddress,
@@ -412,13 +420,15 @@ class _UDPScreenState extends State<UDPScreen> {
                                         booleanProvider.wifiPassword,
                                         booleanProvider.deviceType,
                                         value,
-                                        booleanProvider.firmwareVersion,
                                       )
-                                      .then((value) => sqlDb.exportData().then(
-                                          (value) => Provider.of<AuthProvider>(
-                                                  context,
-                                                  listen: false)
-                                              .toggling('adding', false)));
+                                      .then((value) => {
+                                        Provider.of<AuthProvider>(context, listen: false).roomConfig = true,
+                                            sqlDb.exportData().then((value) =>
+                                                Provider.of<AuthProvider>(
+                                                        context,
+                                                        listen: false)
+                                                    .toggling('adding', false))
+                                          });
                                 });
                               }
                             }
@@ -434,20 +444,22 @@ class _UDPScreenState extends State<UDPScreen> {
                                     ? 'Next'
                                     : 'connect')
                                 : _currentStep == 2
-                                    ? (booleanProvider.connectionSuccess
+                                    ? (booleanProvider.connectionSuccess && !booleanProvider.connectionFailed
                                         ? 'Next'
-                                        : 'Configure')
+                                        : 'Check Connection')
                                     : _currentStep == 1
                                         ? (booleanProvider.configured
                                             ? 'Next'
-                                            : 'Check Connection')
+                                            : 'Configure')
                                         : !booleanProvider.roomConfig
-                                            ? 'Finish'
-                                            : 'Save',
-                            style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
+                                            ? 'Save'
+                                            : 'Finish',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  isDarkMode ? Colors.grey[900] : Colors.white,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         );
@@ -461,5 +473,12 @@ class _UDPScreenState extends State<UDPScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    nameController.clear();
+    passwordController.clear();
+    super.dispose();
   }
 }

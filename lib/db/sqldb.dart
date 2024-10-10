@@ -9,15 +9,13 @@ import 'dart:io';
 import '../constants.dart';
 
 class SqlDb {
-
   static Database? _db;
 
-  Future <Database?> get db async {
+  Future<Database?> get db async {
     if (_db == null) {
       _db = await initialDb();
       return _db;
-    }
-    else {
+    } else {
       return _db;
     }
   }
@@ -25,36 +23,32 @@ class SqlDb {
   Future<Database> initialDb() async {
     String databasePath = await getDatabasesPath();
     String path = join(databasePath, 'GlowGrid.db');
-    Database myDb = await openDatabase(
-        path, onCreate: _onCreate, version: 1, onUpgrade: _onUpgrade);
+    Database myDb = await openDatabase(path,
+        onCreate: _onCreate, version: 1, onUpgrade: _onUpgrade);
     return myDb;
   }
 
   //version changed
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    /*if (oldVersion < 2) {
-      await db.execute("ALTER TABLE Devices ADD COLUMN FirmwareVersion TEXT").then((value) => updateAllRowsWithNewValue);
-    }*/
     print("onUpgrade");
   }
 
   //JUST CALLED ONCE
   Future _onCreate(Database db, int version) async {
-
     ///updated database table
     await db.execute('''
-      CREATE TABLE "Departments" (
-        'DepartmentID' INTEGER PRIMARY KEY AUTOINCREMENT,
-        'DepartmentName' VARCHAR(255) NOT NULL UNIQUE
+      CREATE TABLE "Apartments" (
+        'ApartmentID' INTEGER PRIMARY KEY AUTOINCREMENT,
+        'ApartmentName' VARCHAR(255) NOT NULL UNIQUE
       )
     ''');
 
     await db.execute('''
       CREATE TABLE "Rooms" (
         'RoomID' INTEGER PRIMARY KEY AUTOINCREMENT,
-        'RoomName' VARCHAR(255) NOT NULL,
-        'DepartmentID' INTEGER,
-        FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID)
+        'RoomName' VARCHAR(255) UNIQUE NOT NULL,
+        'ApartmentID' INTEGER,
+        FOREIGN KEY (ApartmentID) REFERENCES Apartments(ApartmentID)
       )
     ''');
 
@@ -65,12 +59,12 @@ class SqlDb {
         'MacAddress' VARCHAR(17) NOT NULL UNIQUE,
         'WifiName' VARCHAR(255),
         'WifiPassword' VARCHAR(255),
-        'FirmwareVersion' TEXT,
         'RoomID' INTEGER,
         FOREIGN KEY (RoomID) REFERENCES Rooms(RoomID)
       )
     ''');
-}
+  }
+
   Future<void> updateAllRowsWithNewValue() async {
     Database? _db = await db;
 
@@ -81,7 +75,8 @@ class SqlDb {
     print('updating.......');
   }
 
-  Future<void> updateVersionByMacAddress(String macAddress, String newVersion) async {
+  Future<void> updateVersionByMacAddress(
+      String macAddress, String newVersion) async {
     Database? myDb = await db;
 
     // Update the specified column for the device with the given MAC address
@@ -122,8 +117,7 @@ class SqlDb {
     if (await dbFile.exists()) {
       XFile xFile = XFile(dbFile.path);
       Share.shareXFiles([xFile], text: 'Here is the database file.');
-    }
-    else {
+    } else {
       print('Database file does not exist');
     }
   }
@@ -135,7 +129,8 @@ class SqlDb {
       String databasesPath = await getDatabasesPath();
 
       // Specify the path to the current database file
-      String dbPath = join(databasesPath, 'GlowGrid.db'); // Replace with your actual database name
+      String dbPath = join(databasesPath,
+          'GlowGrid.db'); // Replace with your actual database name
 
       // Check if the new database file exists
       if (await newDbFile.exists()) {
@@ -152,26 +147,26 @@ class SqlDb {
 
   ///*updated database functions**
 
-  ///insert into departments
+  ///insert into Apartments
 
-  Future<int> insertDepartment(String departmentName) async {
+  Future<int> insertApartment(String apartmentName) async {
     Database? myDb = await db;
     return await myDb!.insert(
-      'Departments',
-      {'DepartmentName': departmentName},
+      'Apartments',
+      {'ApartmentName': apartmentName},
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
   ///insert into rooms
-  Future<int> insertRoom(String roomName, int departmentID) async {
+  Future<int> insertRoom(String roomName, int apartmentID) async {
     Database? myDb = await db;
 
-    // Check if the room already exists in the specified department
+    // Check if the room already exists in the specified Apartment
     final List<Map<String, dynamic>> result = await myDb!.query(
       'Rooms',
-      where: 'RoomName = ? AND DepartmentID = ?',
-      whereArgs: [roomName, departmentID],
+      where: 'RoomName = ? AND ApartmentID = ?',
+      whereArgs: [roomName, apartmentID],
       limit: 1,
     );
 
@@ -184,7 +179,7 @@ class SqlDb {
         'Rooms',
         {
           'RoomName': roomName,
-          'DepartmentID': departmentID,
+          'ApartmentID': apartmentID,
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
@@ -195,13 +190,12 @@ class SqlDb {
 
   ///insert into devices
   Future<bool> insertDevice(
-      String macAddress,
-      String wifiName,
-      String wifiPassword,
-      String deviceType,
-      int roomID,
-      String firmwareVersion,
-      ) async {
+    String macAddress,
+    String wifiName,
+    String wifiPassword,
+    String deviceType,
+    int roomID,
+  ) async {
     Database? myDb = await db;
 
     // Check if the device with the given MAC address already exists
@@ -227,7 +221,6 @@ class SqlDb {
           'WifiName': wifiName,
           'WifiPassword': wifiPassword,
           'RoomID': roomID,
-          'FirmwareVersion': firmwareVersion,
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
@@ -235,55 +228,59 @@ class SqlDb {
     }
   }
 
-
   ///retrieve devices in specific rooms
   Future<List<Map<String, dynamic>>> getDevicesInRoom(int roomID) async {
     Database? myDb = await db;
-    return await myDb!.query('Devices', where: 'RoomID = ?', whereArgs: [roomID]);
+    return await myDb!
+        .query('Devices', where: 'RoomID = ?', whereArgs: [roomID]);
   }
 
-  ///retrieve departments and their rooms
-  Future<List<Map<String, dynamic>>> getDepartmentsAndRooms() async {
+  ///retrieve Apartments and their rooms
+  Future<List<Map<String, dynamic>>> getApartmentsAndRooms() async {
     Database? myDb = await db;
     return await myDb!.rawQuery('''
-    SELECT Departments.DepartmentID, Departments.DepartmentName, Rooms.RoomID, Rooms.RoomName
-    FROM Departments
-    JOIN Rooms ON Departments.DepartmentID = Rooms.DepartmentID;
+    SELECT Apartments.ApartmentID, Apartments.ApartmentName, Rooms.RoomID, Rooms.RoomName
+    FROM Apartments
+    JOIN Rooms ON Apartments.ApartmentID = Rooms.ApartmentID;
   ''');
   }
 
-  ///get rooms based on departmentID
-  Future<void> getRoomsByDepartmentID(BuildContext context, int departmentID) async {
+  ///get rooms based on ApartmentID
+  Future<void> getRoomsByApartmentID(
+      BuildContext context, int apartmentID) async {
     Database? myDb = await db;
-    Provider.of<AuthProvider>(context, listen: false).toggling('loading',true);
-    // Query the Rooms table for entries with the given DepartmentID
+    Provider.of<AuthProvider>(context, listen: false).toggling('loading', true);
+    // Query the Rooms table for entries with the given ApartmentID
     final List<Map<String, dynamic>> rooms = await myDb!.query(
       'Rooms',
-      where: 'DepartmentID = ?',
-      whereArgs: [departmentID],
+      where: 'ApartmentID = ?',
+      whereArgs: [apartmentID],
     );
     roomIDs = rooms.map((room) => room['RoomID'] as int).toList();
     // Extract RoomName values from the result and return as a list of strings
     roomNames = rooms.map((room) => room['RoomName'] as String).toList();
     print('Room names: $roomNames');
-    Provider.of<AuthProvider>(context, listen: false).toggling('loading',false);
+    Provider.of<AuthProvider>(context, listen: false)
+        .toggling('loading', false);
   }
 
   ///retrieve device details for specific room
-  Future<List<Map<String, dynamic>>> getDeviceDetailsByRoomID(int roomID) async {
+  Future<List<Map<String, dynamic>>> getDeviceDetailsByRoomID(
+      int roomID) async {
     Database? myDb = await db;
 
     // Query the Devices table for MacAddress where RoomID matches
     deviceDetails = await myDb!.query(
       'Devices',
-      columns: ['MacAddress', 'FirmwareVersion'],
+      columns: ['MacAddress'],
       where: 'RoomID = ?',
       whereArgs: [roomID],
     );
     macAddress = deviceDetails.first['MacAddress'];
     for (var device in deviceDetails) {
       // Check if the device with the same macAddress is already in deviceStatus
-      bool exists = deviceStatus.any((d) => d['MacAddress'] == device['MacAddress']);
+      bool exists =
+          deviceStatus.any((d) => d['MacAddress'] == device['MacAddress']);
 
       if (!exists || deviceDetails.isEmpty) {
         // If not exists, add it with default data values
@@ -293,31 +290,47 @@ class SqlDb {
           'sw2': 0,
           'sw3': 0,
           'led': 0,
+          'CurrentColor': 0xffffff,
         });
       }
     }
     print('Devices in Room $roomID: $deviceDetails');
     return deviceDetails;
-
   }
 
-  ///retrieve all departments
-  Future<void> getAllDepartments() async {
+  ///retrieve all Apartments
+  Future<void> getAllApartments() async {
     Database? myDb = await db;
-    departmentMap = await myDb!.query('Departments');
-    print(departmentMap);
+    apartmentMap = await myDb!.query('Apartments');
+    print(apartmentMap);
+  }
+
+  Future<void> getAllMacAddresses() async {
+    Database? myDb = await db;
+
+    // Query to get all MacAddress values from the Devices table
+    final List<Map<String, dynamic>> result = await myDb!.query(
+      'Devices',
+      columns: [
+        'MacAddress'
+      ], // Specify that you only want the 'MacAddress' column
+    );
+
+    // Extract MacAddress values into a list of strings
+    macMap = result.map((row) => row['MacAddress'] as String).toList();
   }
 
   ///editing room info
-  Future<void> updateRoomName(int departmentID, String newRoomName, String currentRoomName) async {
+  Future<void> updateRoomName(
+      int apartmentID, String newRoomName, String currentRoomName) async {
     Database? myDb = await db;
 
     // Perform the update operation on the Rooms table
     final int count = await myDb!.update(
       'Rooms',
       {'RoomName': newRoomName},
-      where: 'DepartmentID = ? AND RoomName = ?',
-      whereArgs: [departmentID, currentRoomName],
+      where: 'ApartmentID = ? AND RoomName = ?',
+      whereArgs: [apartmentID, currentRoomName],
     );
 
     print('Number of rows updated: $count');
@@ -325,7 +338,7 @@ class SqlDb {
 
   ///deleting room
 
-  Future<void> deleteRoomsAndDevices(int roomID) async{
+  Future<void> deleteRoomAndDevices(int roomID) async {
     Database? myDb = await db;
 
     // Delete rows from the Devices table where RoomID matches
@@ -333,17 +346,23 @@ class SqlDb {
       'Devices',
       where: 'RoomID = ?',
       whereArgs: [roomID],
-    ).then((value) => myDb.delete('Rooms',where: 'RoomID = ?',whereArgs: [roomID],),);
+    ).then(
+      (value) => myDb.delete(
+        'Rooms',
+        where: 'RoomID = ?',
+        whereArgs: [roomID],
+      ),
+    );
 
     print('Number of rows deleted: $count');
   }
 
-  Future<bool> searchDepartmentByName(String departmentName) async {
+  Future<bool> searchApartmentByName(String apartmentName) async {
     Database? myDb = await db;
     final List<Map<String, dynamic>> result = await myDb!.query(
-      'Departments',
-      where: 'DepartmentName = ?',
-      whereArgs: [departmentName],
+      'Apartments',
+      where: 'ApartmentName = ?',
+      whereArgs: [apartmentName],
       limit: 1,
     );
 
@@ -354,6 +373,7 @@ class SqlDb {
       return false;
     }
   }
+
   Future<List<Map<String, dynamic>>> getDataFromTable(String tableName) async {
     final database = openDatabase(
       join(await getDatabasesPath(), 'GlowGrid.db'),
@@ -361,6 +381,7 @@ class SqlDb {
     final db = await database;
     return await db.query(tableName);
   }
+
   Future<void> exportData() async {
     try {
       /*setState(() {
@@ -368,13 +389,13 @@ class SqlDb {
       });*/
 
       // Read data from multiple tables
-      final departmentsData = await sqlDb.getDataFromTable('Departments');
+      final apartmentsData = await sqlDb.getDataFromTable('Apartments');
       final roomsData = await sqlDb.getDataFromTable('Rooms');
       final devicesData = await sqlDb.getDataFromTable('Devices');
 
       // Combine data from multiple tables
       final Map<String, dynamic> allData = {
-        'Departments': departmentsData,
+        'Apartments': apartmentsData,
         'Rooms': roomsData,
         'Devices': devicesData,
       };
@@ -387,12 +408,39 @@ class SqlDb {
 
       // setState(() {
       //   _status = 'Data exported successfully!';
-        /*preparingData = false;*/
+      /*preparingData = false;*/
       // });
     } catch (e) {
       // setState(() {
       //   _status = 'Error exporting data: $e';
       // });
     }
+  }
+
+  Future<void> deleteDeviceByMacAddress(String macAddress) async {
+    Database? myDb = await db;
+
+    // Delete the device where the MacAddress matches the provided macAddress
+    await myDb!.delete(
+      'Devices',
+      where: 'MacAddress = ?', // Condition to find the device by MacAddress
+      whereArgs: [macAddress], // The value for the MacAddress condition
+    );
+  }
+
+  Future<void> deleteAllRoomsAndDevices() async {
+    Database? myDb = await db;
+
+    final int count = await myDb!
+        .delete(
+          'Devices',
+        )
+        .then(
+          (value) => myDb.delete(
+            'Rooms',
+          ),
+        );
+
+    print('Number of rows deleted: $count');
   }
 }

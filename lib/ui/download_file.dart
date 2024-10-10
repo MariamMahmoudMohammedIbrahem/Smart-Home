@@ -27,7 +27,6 @@ class ScanPage extends StatefulWidget {
 class _ScanPageState extends State<ScanPage>
     with SingleTickerProviderStateMixin {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  String filePath = '';
   late AnimationController _controller;
   late Animation<double> _animation;
   double _progressValue = 0.0;
@@ -62,17 +61,20 @@ class _ScanPageState extends State<ScanPage>
         _startProgress();
         final dir = await getApplicationDocumentsDirectory();
         _startProgress();
-        final file = File('${dir.path}/$fileName');
+        final file = File('${dir.path}/$localFileName.json');
         _startProgress();
-        setState(() {
-          filePath = file.path;
-        });
-        _startProgress();
+        // setState(() {
+        //   filePath = file.path;
+        // });
         file.writeAsBytesSync(response.bodyBytes);
         _startProgress();
-        deleteSpecificFile(fileName)
-            .then((value) => {
-        _startProgress(),readJsonFromFile(fileName, context),});
+        deleteSpecificFile(fileName).then((value) => {
+              _startProgress(),
+              deleteOldFiles().then((value) => {
+                    _startProgress(),
+                    readJsonFromFile('$localFileName.json', context),
+                  })
+            });
         _startProgress();
         print("File downloaded to: ${file.path}");
       }
@@ -92,24 +94,27 @@ class _ScanPageState extends State<ScanPage>
       }
 
       final jsonData = await file.readAsString();
-      insertDataIntoDatabase(jsonDecode(jsonData), context);
+      //delete table first
+      sqlDb.deleteAllRoomsAndDevices().then(
+          (value) => insertDataIntoDatabase(jsonDecode(jsonData), context));
       // return jsonDecode(jsonData) as Map<String, dynamic>;
     } catch (e) {
       throw Exception("Error reading JSON file: $e");
     }
   }
 
-  Future<void> insertDataIntoDatabase(Map<String, dynamic> jsonData, context) async {
+  Future<void> insertDataIntoDatabase(
+      Map<String, dynamic> jsonData, context) async {
     final database = openDatabase(
       join(await getDatabasesPath(), 'GlowGrid.db'),
     );
 
     final db = await database;
     // Insert into the Users table
-    List<dynamic> departments = jsonData['Departments'];
-    for (var user in departments) {
+    List<dynamic> apartments = jsonData['Apartments'];
+    for (var user in apartments) {
       await db.insert(
-        'Departments',
+        'Apartments',
         user as Map<String, dynamic>,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
@@ -138,10 +143,8 @@ class _ScanPageState extends State<ScanPage>
       reformattingData = false;
       // allDone = true;
     });
-    final fileData = convertDataToJson(jsonData);
-    saveJsonToFile(fileData);
     sqlDb
-        .getRoomsByDepartmentID(context, departmentMap.first['DepartmentID'])
+        .getRoomsByApartmentID(context, apartmentMap.first['ApartmentID'])
         .then((value) {
       setState(() {
         Provider.of<AuthProvider>(context, listen: false)
@@ -178,26 +181,26 @@ class _ScanPageState extends State<ScanPage>
 
   void _startProgress() {
     // _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      setState(() {
-        _timeElapsed++;
-        _progressValue += 1/9; // Increase progress
+    setState(() {
+      _timeElapsed++;
+      _progressValue += 1 / 9; // Increase progress
 
-        // Update message based on the time passed
-        for (var entry in _messages) {
-          if (_timeElapsed >= entry["time"]) {
-            _displayMessage = entry["message"];
-          }
+      // Update message based on the time passed
+      for (var entry in _messages) {
+        if (_timeElapsed >= entry["time"]) {
+          _displayMessage = entry["message"];
         }
+      }
 
-        // Stop timer when progress reaches 1 (100%)
-        if (_progressValue >= 1.0) {
-          _progressValue = 1.0;
-          _timer?.cancel();
-        }
-        // else{
-        //   _displayMessage = 'an error has occurred';
-        // }
-      });
+      // Stop timer when progress reaches 1 (100%)
+      if (_progressValue >= 1.0) {
+        _progressValue = 1.0;
+        _timer?.cancel();
+      }
+      // else{
+      //   _displayMessage = 'an error has occurred';
+      // }
+    });
     // });
   }
 
@@ -221,6 +224,7 @@ class _ScanPageState extends State<ScanPage>
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
         appBar: AppBar(
           surfaceTintColor: const Color(0xFF70AD61),
@@ -257,7 +261,8 @@ class _ScanPageState extends State<ScanPage>
                           child: QrImageView(
                             data: '',
                             version: QrVersions.auto,
-                            size: 200.0, // Keep QR code size fixed
+                            size: 200.0, // Kee
+                            foregroundColor: isDarkMode?Colors.grey.shade400:Colors.black,
                           ),
                         ),
 
@@ -277,7 +282,14 @@ class _ScanPageState extends State<ScanPage>
                     SizedBox(
                       width: width * .5,
                       child: ElevatedButton(
-                        onPressed: (){scanQR(context);},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF047424),
+                          foregroundColor:
+                              isDarkMode ? Colors.grey[900] : Colors.white,
+                        ),
+                        onPressed: () {
+                          scanQR(context);
+                        },
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
@@ -292,24 +304,31 @@ class _ScanPageState extends State<ScanPage>
                   ],
                 )
               : Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(
                       value: _progressValue,
                       strokeWidth: 8.0,
-                        color: const Color(0xFF047424),
+                      color: const Color(0xFF047424),
                     ),
                     const SizedBox(height: 20),
                     // Display the current message
                     Text(
                       _displayMessage,
-                      style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Color(0xFF047424),),
+                      style: const TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF047424),
+                      ),
                     ),
                     const SizedBox(height: 10),
                     // Show percentage progress
                     Text(
                       '${(_progressValue * 100).toInt()}%',
-                      style: const TextStyle(fontSize: 18.0, color: Color(0xFF047424),),
+                      style: const TextStyle(
+                        fontSize: 18.0,
+                        color: Color(0xFF047424),
+                      ),
                     ),
                   ],
                 ),

@@ -838,7 +838,7 @@ class _AddingDeviceState extends State<AddingDevice> {
 /*ElevatedButton(
             onPressed: () {
               sqlDb.insertRoom('Living Room', 2).then((value) {
-                sqlDb.getRoomsByDepartmentID(2).then((value) {
+                sqlDb.getRoomsByApartmentID(2).then((value) {
                   setState(() {
                     loading = false;
                   });
@@ -853,7 +853,7 @@ class _AddingDeviceState extends State<AddingDevice> {
           ElevatedButton(
             onPressed: () {
               sqlDb.insertRoom('Baby Bedroom', 2).then((value) {
-                sqlDb.getRoomsByDepartmentID(2).then((value) {
+                sqlDb.getRoomsByApartmentID(2).then((value) {
                   setState(() {
                     loading = false;
                   });
@@ -869,7 +869,7 @@ class _AddingDeviceState extends State<AddingDevice> {
           // ElevatedButton(
           //   onPressed: () {
           //     sqlDb.insertRoom('Parent Bedroom', 2).then((value) {
-          //       sqlDb.getRoomsByDepartmentID(2).then((value) {
+          //       sqlDb.getRoomsByApartmentID(2).then((value) {
           //         // setState(() {
           //           // loading = false;
           //         // });
@@ -884,7 +884,7 @@ class _AddingDeviceState extends State<AddingDevice> {
           // ElevatedButton(
           //   onPressed: () {
           //     sqlDb.insertRoom('Kitchen', 2).then((value) {
-          //       sqlDb.getRoomsByDepartmentID(2);
+          //       sqlDb.getRoomsByApartmentID(2);
           //     }).then((value) {
           //       // setState(() {
           //       //   loading = false;
@@ -900,7 +900,7 @@ class _AddingDeviceState extends State<AddingDevice> {
 /*ElevatedButton(
             onPressed: () {
               sqlDb.insertRoom('Bathroom', 2).then((value) {
-                sqlDb.getRoomsByDepartmentID(2);
+                sqlDb.getRoomsByApartmentID(2);
               }).then((value) {
                 setState(() {
                   loading = false;
@@ -915,7 +915,7 @@ class _AddingDeviceState extends State<AddingDevice> {
 /*ElevatedButton(
             onPressed: () {
               sqlDb.insertRoom('Dining Room', 2).then((value) {
-                sqlDb.getRoomsByDepartmentID(2).then((value) {
+                sqlDb.getRoomsByApartmentID(2).then((value) {
                   setState(() {
                     loading = true;
                   });
@@ -930,7 +930,7 @@ class _AddingDeviceState extends State<AddingDevice> {
           ElevatedButton(
             onPressed: () {
               sqlDb.insertRoom('Garage', 2).then((value) {
-                sqlDb.getRoomsByDepartmentID(context, 2).then((value) {
+                sqlDb.getRoomsByApartmentID(context, 2).then((value) {
                   // setState(() {
                     Provider.of<AuthProvider>(context, listen: false).loadingToggling(false);
                     // loading = false;
@@ -947,7 +947,7 @@ class _AddingDeviceState extends State<AddingDevice> {
             onPressed: () {
               setState(() {
                 sqlDb.insertRoom('Desk', 2).then((value) {
-                  sqlDb.getRoomsByDepartmentID(context, 2).then((value) {
+                  sqlDb.getRoomsByApartmentID(context, 2).then((value) {
                   // setState(() {
                   //   Provider.of<AuthProvider>(context, listen: false).loadingToggling(false);
                   // });
@@ -963,7 +963,7 @@ class _AddingDeviceState extends State<AddingDevice> {
           ElevatedButton(
             onPressed: () {
               sqlDb.insertRoom('Laundry Room', 2).then((value) {
-                sqlDb.getRoomsByDepartmentID(context, 2).then((value) {
+                sqlDb.getRoomsByApartmentID(context, 2).then((value) {
                   // setState(() {
                   //   Provider.of<AuthProvider>(context, listen: false).loadingToggling(false);
                   // });
@@ -978,7 +978,7 @@ class _AddingDeviceState extends State<AddingDevice> {
           ElevatedButton(
             onPressed: () {
               sqlDb.insertRoom('Outdoor', 2).then((value) {
-                sqlDb.getRoomsByDepartmentID(context, 2).then((value) {
+                sqlDb.getRoomsByApartmentID(context, 2).then((value) {
                   // setState(() {
                   //   Provider.of<AuthProvider>(context, listen: false).loadingToggling(false);
                   // });
@@ -997,21 +997,21 @@ class _AddingDeviceState extends State<AddingDevice> {
   }
 }
 
-int departmentID = 0;
+int apartmentID = 0;
 int roomID = 0;
-bool deviceSuccess = false;
+bool AviceSuccess = false;
 var tableList = [];
 int count = 0;
 
 class HelpDataBase extends StatefulWidget {
   const HelpDataBase({super.key});
 
-  @override
+  @overriA
   State<HelpDataBase> createState() => _HelpDataBaseState();
 }
 
 class _HelpDataBaseState extends State<HelpDataBase> {
-  @override
+  @overriA
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView(
@@ -1019,24 +1019,24 @@ class _HelpDataBaseState extends State<HelpDataBase> {
           */
 /*ElevatedButton(
             onPressed: () async {
-              // Insert a department
-              bool exist = await sqlDb.searchDepartmentByName("IT Department");
+              // Insert a apartment
+              bool exist = await sqlDb.searchApartmentByName("IT Apartment");
               if(exist){
-                print('this department name is taken');
+                print('this apartment name is taken');
               }
               else{
-                departmentID = await sqlDb.insertDepartment("IT Department");
+                apartmentID = await sqlDb.insertApartment("IT Apartment");
               }
             },
             child: const Text(
-              'insert into department',
+              'insert into apartment',
             ),
           ),
           ElevatedButton(
             onPressed: () async {
-              // Insert a room in the department
-              if(departmentID != 0) {
-                roomID = await sqlDb.insertRoom("Server Room", departmentID);
+              // Insert a room in the apartment
+              if(apartmentID != 0) {
+                roomID = await sqlDb.insertRoom("Server Room", apartmentID);
               }
             },
             child: const Text(
@@ -1061,7 +1061,7 @@ class _HelpDataBaseState extends State<HelpDataBase> {
           ),
           Align(
             alignment: Alignment.center,
-            child: Text('department Id : $departmentID'),
+            child: Text('apartment Id : $apartmentID'),
           ),
           Align(
             alignment: Alignment.center,
@@ -1073,25 +1073,25 @@ class _HelpDataBaseState extends State<HelpDataBase> {
           ),
           ElevatedButton(
             onPressed: () async {
-              tableList = await sqlDb.getDepartmentsAndRooms();
+              tableList = await sqlDb.getApartmentsAndRooms();
             },
-            child: const Text('retrieve departments and rooms'),
+            child: const Text('retrieve apartments and rooms'),
           ),
           Align(
             alignment: Alignment.center,
             child: Text('$tableList'),
           ),
-          ElevatedButton(onPressed: () async {await sqlDb.getAllDepartments();}, child: Text('print departments'),),
+          ElevatedButton(onPressed: () async {await sqlDb.getAllApartments();}, child: Text('print apartments'),),
           ElevatedButton(onPressed: () async {var listlst = await sqlDb.getAllRooms();print(listlst);}, child: Text('print rooms'),),
           ElevatedButton(onPressed: () async {var listlst = await sqlDb.getAllDevices();print(listlst);}, child: Text('print devices'),),*/
 /*ElevatedButton(
             onPressed: () async {
-              int internalCount = await sqlDb.getDepartmentCount();
+              int internalCount = await sqlDb.getApartmentCount();
               setState(() {
                 count = internalCount;
               });
             },
-            child: const Text('retrieve departments count'),
+            child: const Text('retrieve apartments count'),
           ),
           Align(
             alignment: Alignment.center,
@@ -1099,10 +1099,10 @@ class _HelpDataBaseState extends State<HelpDataBase> {
           ),
           ElevatedButton(
             onPressed: () async {
-              var internalCount = await sqlDb.getAllDepartments();
-              print('internal Count all departments $internalCount');
+              var internalCount = await sqlDb.getAllApartments();
+              print('internal Count all apartments $internalCount');
             },
-            child: const Text('retrieve all departments'),
+            child: const Text('retrieve all apartments'),
           ),
           ElevatedButton(
             onPressed: () async {

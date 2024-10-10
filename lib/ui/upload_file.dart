@@ -37,6 +37,7 @@ class _UploadDatabaseState extends State<UploadDatabase> {
     uploadDatabaseToFirebase();
     super.initState();
   }
+
   /*Future<String> getDatabasePath(String dbName) async {
     // Get the directory where databases are stored
     String databasePath = await getDatabasesPath();
@@ -67,8 +68,9 @@ class _UploadDatabaseState extends State<UploadDatabase> {
       return null;
     }
   }
+
   ///without handling the possible errors
- /*Future<void> uploadDatabaseToFirebase() async {
+  /*Future<void> uploadDatabaseToFirebase() async {
     File? dbFile = await _getLocalDatabaseFile();
     if (dbFile == null) {
       setState(() {
@@ -160,7 +162,7 @@ class _UploadDatabaseState extends State<UploadDatabase> {
       timeoutTimer?.cancel();  // Cancel the timer after everything is done
     }
   }*/
-///with handling the possible errors
+  ///with handling the possible errors
 
   Future<void> uploadDatabaseToFirebase() async {
     // Check if the device has an active internet connection
@@ -168,6 +170,7 @@ class _UploadDatabaseState extends State<UploadDatabase> {
 
     if (!isConnected) {
       setState(() {
+        uploadFailed = true;
         _uploadStatus = "No internet connection.";
       });
       return;
@@ -176,6 +179,7 @@ class _UploadDatabaseState extends State<UploadDatabase> {
     File? dbFile = await _getLocalDatabaseFile();
     if (dbFile == null) {
       setState(() {
+        uploadFailed = true;
         _uploadStatus = "Failed to find the database file.";
       });
       return;
@@ -185,7 +189,7 @@ class _UploadDatabaseState extends State<UploadDatabase> {
 
     // Function to handle message change after timeout
     void startTimeoutTimer() {
-      timeoutTimer?.cancel();  // Reset any existing timer
+      timeoutTimer?.cancel(); // Reset any existing timer
       timeoutTimer = Timer(const Duration(seconds: 5), () {
         setState(() {
           _uploadStatus = 'Check your internet connection.';
@@ -198,11 +202,13 @@ class _UploadDatabaseState extends State<UploadDatabase> {
         _uploadStatus = 'Preparing to upload...';
         _uploadProgress = 0.0; // Reset progress
         _uploadSteps = 0; // Reset steps
+        uploadFailed = false;
       });
       startTimeoutTimer();
 
       String fileName = 'databases/$localFileName.json';
-      Reference firebaseStorageRef = FirebaseStorage.instance.ref().child(fileName);
+      Reference firebaseStorageRef =
+          FirebaseStorage.instance.ref().child(fileName);
 
       setState(() {
         _uploadStatus = 'Setting up file data...';
@@ -224,12 +230,14 @@ class _UploadDatabaseState extends State<UploadDatabase> {
 
       // Track the upload status
       uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-        startTimeoutTimer();  // Reset the timer on every snapshot
+        startTimeoutTimer(); // Reset the timer on every snapshot
 
         // Calculate the progress based on steps
-        if (snapshot.bytesTransferred > (_uploadSteps * (snapshot.totalBytes / 10))) {
+        if (snapshot.bytesTransferred >
+            (_uploadSteps * (snapshot.totalBytes / 10))) {
           _uploadSteps++; // Increment the step count
-          _uploadProgress = (_uploadSteps * 0.1).clamp(0.0, 1.0); // Update progress by 0.1
+          _uploadProgress =
+              (_uploadSteps * 0.1).clamp(0.0, 1.0); // Update progress by 0.1
         }
 
         setState(() {
@@ -249,14 +257,15 @@ class _UploadDatabaseState extends State<UploadDatabase> {
       downloadURL = await firebaseStorageRef.getDownloadURL();
 
       setState(() {
-        _uploadStatus = 'Upload complete! \n scan to get the data on your mobile';
+        _uploadStatus =
+            'Upload complete! \n scan to get the data on your mobile';
         _uploadProgress = 1.0; // Set progress to 100% on completion
       });
       print("Database uploaded at: $downloadURL");
-
     } on FirebaseException catch (e) {
       print("Firebase error: ${e.message}");
       setState(() {
+        uploadFailed = true;
         _uploadStatus = 'Upload failed: Firebase error';
         _uploadProgress = 0.0; // Reset progress on failure
       });
@@ -278,13 +287,15 @@ class _UploadDatabaseState extends State<UploadDatabase> {
     } on SocketException catch (e) {
       print("Network error: $e");
       setState(() {
-        _uploadStatus = 'Upload failed: Network error. Please check your internet connection.';
+        _uploadStatus =
+            'Upload failed: Network error. Please check your internet connection.';
         _uploadProgress = 0.0; // Reset progress on failure
       });
     } on TimeoutException catch (e) {
       print("Timeout error: $e");
       setState(() {
-        _uploadStatus = 'Upload failed: Connection timed out. Please try again.';
+        _uploadStatus =
+            'Upload failed: Connection timed out. Please try again.';
         _uploadProgress = 0.0; // Reset progress on failure
       });
     } catch (e) {
@@ -294,10 +305,9 @@ class _UploadDatabaseState extends State<UploadDatabase> {
         _uploadProgress = 0.0; // Reset progress on failure
       });
     } finally {
-      timeoutTimer?.cancel();  // Cancel the timer after everything is done
+      timeoutTimer?.cancel(); // Cancel the timer after everything is done
     }
   }
-
 
   // Upload the local database file to Firebase Storage
   /*Future<void> uploadDatabaseToFirebase() async {
@@ -343,7 +353,7 @@ class _UploadDatabaseState extends State<UploadDatabase> {
       });
     }
   }*/
- //delete file more than 1 hour
+  //delete file more than 1 hour
   /*Future<void> deleteOldFiles() async {
     try {
       final Reference storageRef =
@@ -388,13 +398,13 @@ class _UploadDatabaseState extends State<UploadDatabase> {
   /*
 
       // Read data from multiple tables
-      final departmentsData = await sqlDb.getDataFromTable('Departments');
+      final apartmentsData = await sqlDb.getDataFromTable('Apartments');
       final roomsData = await sqlDb.getDataFromTable('Rooms');
       final devicesData = await sqlDb.getDataFromTable('Devices');
 
       // Combine data from multiple tables
       final Map<String, dynamic> allData = {
-        'Departments': departmentsData,
+        'Apartments': apartmentsData,
         'Rooms': roomsData,
         'Devices': devicesData,
       };
@@ -408,7 +418,7 @@ class _UploadDatabaseState extends State<UploadDatabase> {
       setState(() {
         _status = 'Data exported successfully!';
         */
-  /*preparingData = false;*//*
+  /*preparingData = false;*/ /*
       });
     } catch (e) {
       setState(() {
@@ -416,7 +426,6 @@ class _UploadDatabaseState extends State<UploadDatabase> {
       });
     }
   }*/
-
 
   /*String convertDataToJson(Map<String, dynamic> data) {
     return jsonEncode(data);
@@ -458,6 +467,7 @@ class _UploadDatabaseState extends State<UploadDatabase> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: const Color(0xFF70AD61),
@@ -485,15 +495,24 @@ class _UploadDatabaseState extends State<UploadDatabase> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              _uploadProgress== 0.0 || downloadURL.isEmpty ? const CircularProgressIndicator():QrImageView(
-                data: downloadURL,
-                version: QrVersions.auto,
-                size: 200.0,
-              ),
+              _uploadProgress == 0.0 || downloadURL.isEmpty
+                  ? uploadFailed
+                      ? const SizedBox()
+                      : const CircularProgressIndicator(
+                          color: Color(0xFF047424))
+                  : QrImageView(
+                      data: downloadURL,
+                      version: QrVersions.auto,
+                      size: 200.0,
+                foregroundColor: isDarkMode?Colors.grey.shade400:Colors.grey.shade800,
+                    ),
               const SizedBox(height: 20),
               Text(
-                _uploadStatus == null ? '' :'$_uploadStatus',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF047424)),
+                _uploadStatus == null ? '' : '$_uploadStatus',
+                style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF047424)),
                 textAlign: TextAlign.center,
               ),
               /*if (downloadURL.isEmpty)

@@ -58,12 +58,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: lightTheme,  // Apply the custom light theme
+      darkTheme: darkTheme,  // Apply the custom dark theme
+      themeMode: Provider.of<AuthProvider>(context).isDarkMode ?? false ? ThemeMode.dark : ThemeMode.light,
       title: 'GlowGrid',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: currentColor),
-        useMaterial3: true,
-      ),
+      // theme: ThemeData(
+      //   colorScheme: ColorScheme.fromSeed(seedColor: currentColor),
+      //   useMaterial3: true,
+      // ),
       home: const HomeScreen(),
     );
   }

@@ -17,6 +17,7 @@ class Setting extends StatefulWidget {
 class _SettingState extends State<Setting> {
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: const Color(0xFF70AD61),
@@ -40,6 +41,26 @@ class _SettingState extends State<Setting> {
       ),
       body: ListView(
         children: [
+          ListTile(
+            title: const Text('Dark Theme'),
+            trailing: Switch(
+                activeColor: const Color(0xFF609e51),
+                activeTrackColor:
+                const Color(0xFF047424),
+                inactiveThumbColor:
+                Colors.grey.shade300,
+                inactiveTrackColor:
+                Colors.grey.shade800,
+                value: isDarkMode ?? false,
+                onChanged: (value) {
+                  // setState(() {
+                    /*Provider.of<AuthProvider>(context, listen: false)
+                        .toggling('darkMode', value);*/
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .setTheme(value);
+                  // });
+                }),
+          ),
           ListTile(
             title: const Text('Add New Device'),
             trailing: const Icon(Icons.arrow_right),
@@ -78,7 +99,7 @@ class _SettingState extends State<Setting> {
                   ));
             },
           ),
-          ListTile(
+          /*ListTile(
             title: const Text('Manage Devices'),
             trailing: const Icon(Icons.arrow_right),
             onTap: () {},
@@ -87,28 +108,7 @@ class _SettingState extends State<Setting> {
             title: const Text('Help and Support'),
             trailing: const Icon(Icons.arrow_right),
             onTap: () {},
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Dark Theme'),
-              Switch(value: false, onChanged: (value) {})
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Connection Led'),
-              Switch(
-                  value: connectionLed,
-                  onChanged: (value) {
-                    setState(() {
-                      sendFrame({"commands":"SWITCH_WRITE", "mac_address":"84:F3:EB:20:8C:7A", "led":value}, '255.255.255.255', 8888);
-                      connectionLed = value;
-                    });
-                  }),
-            ],
-          ),
+          ),*/
         ],
       ),
     );

@@ -29,7 +29,7 @@ class Rooms extends StatefulWidget {
 }
 
 class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  // final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Animation<double>? _animation;
   AnimationController? _animationController;
@@ -57,7 +57,7 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
       SocketManager().startListen(context);
     });
     sqlDb
-        .getRoomsByDepartmentID(context, departmentMap.first['DepartmentID'])
+        .getRoomsByApartmentID(context, apartmentMap.first['ApartmentID'])
         .then((value) {
       setState(() {
         Provider.of<AuthProvider>(context, listen: false)
@@ -91,11 +91,18 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
   Widget build(context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      key: _scaffoldKey,
+      // key: _scaffoldKey,
       appBar: AppBar(
+        // backgroundColor: Colors.black,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20),
+          ),
+        ),
         title: Text(
-          departmentMap.isNotEmpty ? departmentMap.first['DepartmentName'] : '',
+          apartmentMap.isNotEmpty ? apartmentMap.first['ApartmentName'] : '',
         ),
         titleTextStyle: const TextStyle(
           fontSize: 26,
@@ -105,7 +112,9 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context)=> const Setting()));
+              sqlDb.getAllMacAddresses().then((value) =>
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const Setting())));
             },
             icon: const Icon(
               Icons.settings_rounded,
@@ -251,13 +260,13 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
             },
           ),
           Bubble(
-            title: "Add Department",
+            title: "Add Apartment",
             iconColor: Colors.white,
             bubbleColor: const Color(0xFF047424),
             icon: Icons.home,
             titleStyle: const TextStyle(fontSize: 16, color: Colors.white),
             onPress: () {
-              _showDialog(context, 'addDepartment', 0);
+              _showDialog(context, 'addApartment', 0);
             },
           ),
         ],
@@ -299,17 +308,108 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
               /*ElevatedButton(
                 onPressed: () {
                   sqlDb
-                      .insertRoom('Desk', departmentMap.first['DepartmentID'])
+                      .insertRoom('Desk', apartmentMap.first['ApartmentID'])
                       .then((value) {
-                    sqlDb.getRoomsByDepartmentID(
-                        context, departmentMap.first['DepartmentID']);
+                    sqlDb.getRoomsByApartmentID(
+                        context, apartmentMap.first['ApartmentID']);
                     sqlDb.insertDevice(
-                      '60:01:94:21:4B:06',
+                      '84:F3:EB:20:8C:7A',
                       'Hardware_room',
                       '01019407823EOIP',
                       'switch',
-                      value,
-                    ).then((value) => sqlDb.exportData().then(
+                      value,).then((value) => sqlDb.exportData().then(
+                            (value) => Provider.of<AuthProvider>(
+                            context,
+                            listen: false)
+                            .toggling('adding', false)));
+                  });
+                },
+                child: const Text(
+                  'insert rooms and devices',
+                ),
+              ),*/
+              /*ElevatedButton(
+                onPressed: () {
+                  sqlDb
+                      .insertRoom('Parent Bedroom', apartmentMap.first['ApartmentID'])
+                      .then((value) {
+                    sqlDb.getRoomsByApartmentID(
+                        context, apartmentMap.first['ApartmentID']);
+                    sqlDb.insertDevice(
+                      '84:F3:EB:20:8C:7A',
+                      'Hardware_room',
+                      '01019407823EOIP',
+                      'switch',
+                      value,).then((value) => sqlDb.exportData().then(
+                            (value) => Provider.of<AuthProvider>(
+                            context,
+                            listen: false)
+                            .toggling('adding', false)));
+                  });
+                },
+                child: const Text(
+                  'insert rooms and devices',
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  sqlDb
+                      .insertRoom('Baby Bedroom', apartmentMap.first['ApartmentID'])
+                      .then((value) {
+                    sqlDb.getRoomsByApartmentID(
+                        context, apartmentMap.first['ApartmentID']);
+                    sqlDb.insertDevice(
+                      '1A:2B:3C:4D:5E',
+                      'Hardware_room',
+                      '01019407823EOIP',
+                      'switch',
+                      value,).then((value) => sqlDb.exportData().then(
+                            (value) => Provider.of<AuthProvider>(
+                            context,
+                            listen: false)
+                            .toggling('adding', false)));
+                  });
+                },
+                child: const Text(
+                  'insert rooms and devices',
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  sqlDb
+                      .insertRoom('Kitchen', apartmentMap.first['ApartmentID'])
+                      .then((value) {
+                    sqlDb.getRoomsByApartmentID(
+                        context, apartmentMap.first['ApartmentID']);
+                    sqlDb.insertDevice(
+                      '08:3A:8D:D0:AA:20',
+                      'Hardware_room',
+                      '01019407823EOIP',
+                      'switch',
+                      value,).then((value) => sqlDb.exportData().then(
+                            (value) => Provider.of<AuthProvider>(
+                            context,
+                            listen: false)
+                            .toggling('adding', false)));
+                  });
+                },
+                child: const Text(
+                  'insert rooms and devices',
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  sqlDb
+                      .insertRoom('Bathroom', apartmentMap.first['ApartmentID'])
+                      .then((value) {
+                    sqlDb.getRoomsByApartmentID(
+                        context, apartmentMap.first['ApartmentID']);
+                    sqlDb.insertDevice(
+                      '2A:3B:4C:5D:6E',
+                      'Hardware_room',
+                      '01019407823EOIP',
+                      'switch',
+                      value,).then((value) => sqlDb.exportData().then(
                             (value) => Provider.of<AuthProvider>(
                             context,
                             listen: false)
@@ -382,9 +482,12 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                                       return GestureDetector(
                                         child: Container(
                                           decoration: BoxDecoration(
+                                            color: isDarkMode ? Colors.transparent : Theme.of(context).primaryColor, // No background in dark, green in light
+                                            border: isDarkMode
+                                                ? Border.all(color: Theme.of(context).primaryColor, width: 2) // Border in dark mode
+                                                : null, // No border in light mode
                                             borderRadius:
                                                 BorderRadius.circular(25.0),
-                                            color: const Color(0xFF047424),
                                           ),
                                           child: Column(
                                             mainAxisAlignment:
@@ -396,8 +499,8 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                                                         horizontal: 20.0),
                                                 child: AutoSizeText(
                                                   roomNames[index],
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
+                                                  style: TextStyle(
+                                                    color: isDarkMode ? const Color(0xFF047424):Colors.white,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                                   textAlign: TextAlign.center,
@@ -408,7 +511,7 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                                               ),
                                               Icon(
                                                 getIconName(roomNames[index]),
-                                                color: Colors.white,
+                                                color: isDarkMode ?const Color(0xFF047424):Colors.white,
                                                 size: width * .25,
                                               ),
                                             ],
@@ -448,9 +551,12 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                                           child: Container(
                                             height: 50.0,
                                             decoration: BoxDecoration(
+                                              color: isDarkMode ? Colors.transparent : Theme.of(context).primaryColor, // No background in dark, green in light
+                                              border: isDarkMode
+                                                  ? Border.all(color: Theme.of(context).primaryColor, width: 2) // Border in dark mode
+                                                  : null, // No border in light mode
                                               borderRadius:
                                                   BorderRadius.circular(25.0),
-                                              color: const Color(0xFF047424),
                                             ),
                                             padding:
                                                 const EdgeInsets.only(left: 15),
@@ -458,7 +564,7 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                                               children: [
                                                 Icon(
                                                   getIconName(roomNames[index]),
-                                                  color: Colors.white,
+                                                  color: isDarkMode ?const Color(0xFF047424):Colors.white,
                                                   size: 30,
                                                 ),
                                                 const SizedBox(
@@ -469,9 +575,9 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                                                       Alignment.centerLeft,
                                                   child: AutoSizeText(
                                                     roomNames[index],
-                                                    style: const TextStyle(
+                                                    style: TextStyle(
                                                       fontSize: 18.0,
-                                                      color: Colors.white,
+                                                      color: isDarkMode ?const Color(0xFF047424):Colors.white,
                                                       fontWeight:
                                                           FontWeight.bold,
                                                     ),
@@ -523,9 +629,9 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
       context: context,
       builder: (context) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: Provider.of<AuthProvider>(context).isDarkMode ?Colors.grey[900]:Colors.white,
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20.0),
               topRight: Radius.circular(20.0),
             ),
@@ -561,11 +667,12 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                   ),
                 ),
                 onTap: () {
-                  sqlDb.deleteRoomsAndDevices(roomIDs[index]).then((value) => {
+                  sqlDb.deleteRoomAndDevices(roomIDs[index]).then((value) => {
                         sqlDb
-                            .getRoomsByDepartmentID(
-                                context, departmentMap.first['DepartmentID'])
+                            .getRoomsByApartmentID(
+                                context, apartmentMap.first['ApartmentID'])
                             .then((value) => {
+                                  sqlDb.exportData(),
                                   setState(() {
                                     Provider.of<AuthProvider>(context,
                                             listen: false)
@@ -591,10 +698,10 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
         builder: (context) {
           IconData? selectedIconInDialog = getIconName(roomNames[index]);
           String? hintMessage;
-          return type == 'addDepartment'
+          return type == 'addApartment'
               ? AlertDialog(
                   title: const Text(
-                    'Add New Department',
+                    'Add New Apartment',
                     style: TextStyle(color: Color(0xFF047424)),
                   ),
                   content: TextFormField(),
@@ -617,9 +724,9 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: const Text(
+                      child: Text(
                         'Submit',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Provider.of<AuthProvider>(context).isDarkMode ?Colors.grey[900]:Colors.white,),
                       ),
                     ),
                   ],
@@ -720,13 +827,17 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                             if (hintMessage == null) {
                               sqlDb
                                   .updateRoomName(
-                                      departmentMap.first['DepartmentID'],
+                                      apartmentMap.first['ApartmentID'],
                                       roomName,
                                       roomNames[index])
                                   .then(
-                                    (value) => sqlDb.getRoomsByDepartmentID(
-                                        context,
-                                        departmentMap.first['DepartmentID']),
+                                    (value) => sqlDb.exportData().then(
+                                          (value) =>
+                                              sqlDb.getRoomsByApartmentID(
+                                                  context,
+                                                  apartmentMap
+                                                      .first['ApartmentID']),
+                                        ),
                                   )
                                   .then((value) {
                                 setState(() {
@@ -737,10 +848,11 @@ class _RoomsState extends State<Rooms> with SingleTickerProviderStateMixin {
                                 Navigator.pop(context);
                               });
                             }
+                            else{        }
                           },
-                          child: const Text(
+                          child: Text(
                             'Submit',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(color: Provider.of<AuthProvider>(context).isDarkMode ?Colors.grey[900]:Colors.white,),
                           ),
                         ),
                       ],
