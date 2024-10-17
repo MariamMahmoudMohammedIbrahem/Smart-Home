@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../constants/constants.dart';
 import '../utils/functions.dart';
+import 'package:wifi_iot/wifi_iot.dart';
 
 class DeviceConfigurationScreen extends StatefulWidget {
   const DeviceConfigurationScreen({super.key});
@@ -13,6 +16,10 @@ class DeviceConfigurationScreen extends StatefulWidget {
 }
 
 class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
+
+  bool _isSsidFieldVisible = false;
+  bool _isPasswordFieldVisible = false;
+
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -59,6 +66,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                         child: ElevatedButton(
                           onPressed: () {
                             Provider.of<AuthProvider>(context, listen: false).configured = false;
+                            snackBarCount = 0;
                             controls.onStepCancel!();
                           },
                           style: ElevatedButton.styleFrom(
@@ -89,11 +97,14 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                               onPressed: () {
                                 if (currentStep == 0) {
                                   if (booleanProvider.readOnly) {
+                                    pressCount = 0;
                                     if (macMap
                                         .contains(booleanProvider.macAddress)) {
                                       showSnack(context,
-                                          'you already have this device configured');
+                                          'you already have this device configured', 'Please Make sure you are connected to the device you want to configure');
                                     } else {
+                                      snackBarCount = 0;
+                                      pressCount = 0;
                                       controls.onStepContinue!();
                                     }
                                   } else {
@@ -102,12 +113,18 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                       '255.255.255.255',
                                       8888,
                                     );
+                                    pressCount++;
+                                    if(pressCount==2){
+                                      showHint(context, 'Please Make sure you are connected to the device you want to configure');
+                                    }
                                   }
-                                } else if (currentStep == 2) {
+                                }
+                                else if (currentStep == 2) {
                                   if (booleanProvider.connectionFailed) {
-                                    showSnack(context, 'Connection Failed');
+                                    showSnack(context, 'Connection Failed', 'Please Make Sure Your Wi-Fi network data are correct');
                                   } else if (booleanProvider.connectionSuccess &&
                                       !booleanProvider.connectionFailed) {
+                                    snackBarCount = 0;
                                     controls.onStepContinue!();
                                   } else {
                                     sendFrame(
@@ -118,13 +135,14 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                       '255.255.255.255',
                                       8888,
                                     );
-                                    showSnack(context, 'Wait A Second');
+                                    showSnack(context, 'Wait A Second', 'Please Make sure you are connected to your Wi-Fi Network');
                                   }
                                 } else if (currentStep == 1) {
                                   if (booleanProvider.configured) {
+                                    snackBarCount = 0;
                                     controls.onStepContinue!();
                                   } else {
-                                    if (formKey.currentState!.validate()) {
+                                    if (formKey.currentState!.validate() && name.isNotEmpty) {
                                       sendFrame(
                                         {
                                           "commands": "WIFI_CONFIG",
@@ -136,7 +154,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                         8888,
                                       );
                                     } else {
-                                      showSnack(context, 'Fields are Empty');
+                                      showSnack(context, 'Fields are Empty', 'You must Fill the field to continue the steps');
                                     }
                                   }
                                 } else {
@@ -215,6 +233,20 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
     );
   }
 
+
+  void _connectToNetwork(String ssid, String password) async {
+    bool isConnected = await WiFiForIoTPlugin.connect(ssid, password: password);
+    if (isConnected) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Connected to $ssid"),
+      ));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Failed to connect to $ssid"),
+      ));
+    }
+  }
+
   List<Step> getSteps() {
     return [
       Step(
@@ -286,7 +318,150 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    TextFormField(
+                    SingleChildScrollView(
+                      child: DropdownButton<String>(
+                        hint: const Text('Select Wi-Fi Network'),
+                        value: name.isNotEmpty && (name == 'Other' || wifiNetworks.any((network) => network?.ssid == name)) ? name : null,
+                        menuMaxHeight: 200,
+                        icon: const Icon(Icons.arrow_downward),
+                        iconSize: 24,
+                        elevation: 16,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            name = newValue ?? '';
+                            _isPasswordFieldVisible = true;
+
+                            // Show SSID text field if "Other" is selected
+                            if (name == 'Other') {
+                              _isSsidFieldVisible = true;
+                            } else {
+                              _isSsidFieldVisible = false;
+                            }
+                          });
+                        },
+                        items: [
+                          ...wifiNetworks
+                              .where((network) => network?.ssid != null && (network!.ssid?.isNotEmpty ?? false))
+                              .map<DropdownMenuItem<String>>((WifiNetwork? network) {
+                            return DropdownMenuItem<String>(
+                              value: network?.ssid,
+                              child: Text(network?.ssid ?? ''),
+                            );
+                          }).toList(),
+                          // Add "Other" option for manual SSID entry
+                          const DropdownMenuItem<String>(
+                            value: 'Other',
+                            child: Text('Other (Enter manually)'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_isSsidFieldVisible) ...[
+                      TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Enter Wi-Fi name',
+                        ),
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter the SSID';
+                          }
+                          return null;
+                        },
+                        onChanged: (value) {
+                          name = nameController.text.trim();
+                        },
+                      ),
+                    ],
+                    if (_isPasswordFieldVisible || _isSsidFieldVisible) ...[
+                      TextFormField(
+                        controller: passwordController,
+                        decoration: InputDecoration(
+                          labelText: 'Wifi Network Password',
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                eye = !eye;
+                              });
+                            },
+                            icon: Icon(
+                              eye ? Icons.remove_red_eye_outlined : Icons.visibility_off_outlined,
+                            ),
+                          ),
+                        ),
+                        obscureText: eye,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter your Wifi Network\'s password';
+                          }
+                          return null;
+                        },
+                        onChanged: (value) {
+                          password = passwordController.text;
+                        },
+                      ),
+                    ],
+
+                    /*SingleChildScrollView(
+                      child: DropdownButton<String>(
+                        hint: const Text('Select Wi-Fi Network'),
+                        value: wifiNetworks.isNotEmpty && wifiNetworks.any((network) => network?.ssid == name) ? name : null, // Ensure the value exists
+                        menuMaxHeight: 200,
+                        icon: const Icon(Icons.arrow_downward),
+                        iconSize: 24,
+                        elevation: 16,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            name = newValue ?? ''; // Assign empty string if null
+                            _isPasswordFieldVisible = true;
+                          });
+                        },
+                        items: wifiNetworks
+                            .where((network) => network?.ssid != null && (network!.ssid?.isNotEmpty ?? false)) // Ensure ssid is not null and not empty
+                            .map<DropdownMenuItem<String>>((WifiNetwork? network) {
+                          return DropdownMenuItem<String>(
+                            value: network?.ssid,
+                            child: Text(network?.ssid ?? ''),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    if (_isPasswordFieldVisible) ...[
+                      TextFormField(
+                        controller: passwordController,
+                        decoration: InputDecoration(
+                          labelText: 'Wifi Network Password',
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                eye = !eye;
+                              });
+                            },
+                            icon: Icon(
+                              eye
+                                  ? Icons.remove_red_eye_outlined
+                                  : Icons.visibility_off_outlined,
+                            ),
+                          ),
+                        ),
+                        obscureText: eye,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter your Wifi Network\'s password';
+                          }
+                          return null;
+                        },
+                        onChanged: (value) {
+                          password = passwordController.text;
+                          setState(() {
+                            Provider.of<AuthProvider>(context, listen: false)
+                                .configured = false;
+                          });
+                        },
+                      ),
+                    ],*/
+
+                    /*TextFormField(
                       controller: nameController,
                       decoration:
                       const InputDecoration(labelText: 'Wifi Network Name'),
@@ -297,7 +472,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                         return null;
                       },
                       onChanged: (value) {
-                        name = nameController.text;
+                        name = nameController.text.trim().trimLeft();
                         setState(() {
                           Provider.of<AuthProvider>(context, listen: false)
                               .configured = false;
@@ -335,7 +510,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                               .configured = false;
                         });
                       },
-                    ),
+                    ),*/
                   ],
                 ),
               ),
@@ -460,6 +635,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
     nameController.clear();
     passwordController.clear();
     currentStep = 0;
+    pressCount = 0;
     super.dispose();
   }
 }

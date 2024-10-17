@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mega/screens/export_data_screen.dart';
+import 'package:mega/screens/firmware_updating_screen.dart';
+import 'package:mega/screens/support_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:wifi_iot/wifi_iot.dart';
 
+import '../constants/constants.dart';
 import '../utils/functions.dart';
 import 'device_configuration_screen.dart';
 import 'import_data_screen.dart';
@@ -88,8 +92,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),);
             },
           ),
+          ListTile(
+            title: const Text('Firmware Updating'),
+            trailing: const Icon(Icons.arrow_right,),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const FirmwareScreen(),));
+            },
+          ),
+          ListTile(
+            title: const Text('Help and Support'),
+            trailing: const Icon(Icons.arrow_right,),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const SupportScreen(),));
+            },
+          ),
         ],
       ),
     );
+  }
+
+  @override
+  void initState(){
+    getWifiNetworks();
+    super.initState();
+  }
+
+  Future<void> getWifiNetworks() async {
+    List<WifiNetwork?> networks = await WiFiForIoTPlugin.loadWifiList();
+    setState(() {
+      wifiNetworks = networks;
+    });
+    print(networks);
   }
 }

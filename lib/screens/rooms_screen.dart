@@ -13,8 +13,8 @@ class RoomsScreen extends StatefulWidget {
   State<RoomsScreen> createState() => _RoomsScreenState();
 }
 
-class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStateMixin {
-
+class _RoomsScreenState extends State<RoomsScreen>
+    with SingleTickerProviderStateMixin {
   @override
   Widget build(context) {
     double width = MediaQuery.of(context).size.width;
@@ -40,12 +40,12 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
             onPressed: () {
               sqlDb.getAllMacAddresses().then(
                     (value) => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsScreen(),
-                  ),
-                ),
-              );
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
+                      ),
+                    ),
+                  );
             },
             icon: const Icon(
               Icons.settings_rounded,
@@ -59,6 +59,31 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
           padding: EdgeInsets.symmetric(horizontal: width * .05, vertical: 10),
           child: Column(
             children: [
+              /*ElevatedButton(onPressed: (){sqlDb
+                  .insertRoom('Kitchen',
+                  apartmentMap.first['ApartmentID'])
+                  .then((value) {
+                sqlDb.getRoomsByApartmentID(context,
+                    apartmentMap.first['ApartmentID']);
+                sqlDb
+                    .insertDevice(
+                  '84:F3:EB:20:8C:7A',
+                  'Hardware_room',
+                  '01019407823EOIP',
+                  'switch',
+                  value,
+                )
+                    .then((value) => {
+                  Provider.of<AuthProvider>(context,
+                      listen: false)
+                      .roomConfig = true,
+                  sqlDb.exportData().then((value) =>
+                      Provider.of<AuthProvider>(
+                          context,
+                          listen: false)
+                          .toggling('adding', false))
+                });
+              });}, child: Text('add device'),),*/
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -95,197 +120,197 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
                   return Flexible(
                     child: loadingProvider.isLoading
                         ? const CircularProgressIndicator(
-                      color: Color(0xFF047424),
-                    )
+                            color: Color(0xFF047424),
+                          )
                         : roomNames.isEmpty
-                        ? const SizedBox(
-                      child: Text(
-                        'There is no data to show',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22,
-                          color: Color(0xFF047424),
-                        ),
-                      ),
-                    )
-                        : Provider.of<AuthProvider>(context).toggle
-                        ? GridView.builder(
-                      gridDelegate:
-                      SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: width * 0.45,
-                        mainAxisSpacing: 15.0,
-                        crossAxisSpacing: 15.0,
-                        mainAxisExtent: height * .27,
-                      ),
-                      itemCount: roomNames.length,
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? Colors.transparent
-                                  : Theme.of(context)
-                                  .primaryColor,
-                              border: isDarkMode
-                                  ? Border.all(
-                                color: Theme.of(context)
-                                    .primaryColor,
-                                width: 2,
+                            ? const SizedBox(
+                                child: Text(
+                                  'There is no data to show',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 22,
+                                    color: Color(0xFF047424),
+                                  ),
+                                ),
                               )
-                                  : null,
-                              borderRadius:
-                              BorderRadius.circular(25.0),
-                            ),
-                            child: Column(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Padding(
-                                  padding:
-                                  const EdgeInsets.symmetric(
-                                      horizontal: 20.0),
-                                  child: AutoSizeText(
-                                    roomNames[index],
-                                    style: TextStyle(
-                                      color: isDarkMode
-                                          ? const Color(
-                                          0xFF047424)
-                                          : Colors.white,
-                                      fontWeight: FontWeight.bold,
+                            : Provider.of<AuthProvider>(context).toggle
+                                ? GridView.builder(
+                                    gridDelegate:
+                                        SliverGridDelegateWithMaxCrossAxisExtent(
+                                      maxCrossAxisExtent: width * 0.45,
+                                      mainAxisSpacing: 15.0,
+                                      crossAxisSpacing: 15.0,
+                                      mainAxisExtent: height * .27,
                                     ),
-                                    textAlign: TextAlign.center,
-                                    minFontSize: 23.0,
-                                    maxFontSize: 25.0,
-                                    maxLines: 2,
-                                  ),
-                                ),
-                                Icon(
-                                  getIconName(roomNames[index]),
-                                  color: isDarkMode
-                                      ? const Color(0xFF047424)
-                                      : Colors.white,
-                                  size: width * .25,
-                                ),
-                              ],
-                            ),
-                          ),
-                          onLongPress: () {
-                            _showOptions(context, index);
-                          },
-                          onTap: () {
-                            sqlDb
-                                .getDeviceDetailsByRoomID(
-                              roomIDs[index],
-                            )
-                                .then(
-                                  (value) => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      RoomDetailsScreen(
-                                        roomName:
-                                        roomNames[index],
-                                        roomID: roomIDs[index],
-                                      ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    )
-                        : ListView.builder(
-                      itemCount: roomNames.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 7.5, horizontal: 8.0),
-                          child: GestureDetector(
-                            child: Container(
-                              height: 50.0,
-                              decoration: BoxDecoration(
-                                color: isDarkMode
-                                    ? Colors.transparent
-                                    : Theme.of(context)
-                                    .primaryColor,
-                                border: isDarkMode
-                                    ? Border.all(
-                                  color: Theme.of(context)
-                                      .primaryColor,
-                                  width: 2,
-                                )
-                                    : null,
-                                borderRadius:
-                                BorderRadius.circular(25.0),
-                              ),
-                              padding: const EdgeInsets.only(
-                                left: 15,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    getIconName(
-                                      roomNames[index],
-                                    ),
-                                    color: isDarkMode
-                                        ? const Color(0xFF047424)
-                                        : Colors.white,
-                                    size: 30,
-                                  ),
-                                  const SizedBox(
-                                    width: 5.0,
-                                  ),
-                                  Align(
-                                    alignment:
-                                    Alignment.centerLeft,
-                                    child: AutoSizeText(
-                                      roomNames[index],
-                                      style: TextStyle(
-                                        fontSize: 18.0,
-                                        color: isDarkMode
-                                            ? const Color(
-                                            0xFF047424)
-                                            : Colors.white,
-                                        fontWeight:
-                                        FontWeight.bold,
-                                      ),
-                                      minFontSize: 16.0,
-                                      maxFontSize: 18.0,
-                                      maxLines: 2,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            onTap: () {
-                              sqlDb
-                                  .getDeviceDetailsByRoomID(
-                                roomIDs[index],
-                              )
-                                  .then(
-                                    (value) => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        RoomDetailsScreen(
-                                          roomName:
-                                          roomNames[index],
-                                          roomID: roomIDs[index],
+                                    itemCount: roomNames.length,
+                                    itemBuilder: (context, index) {
+                                      return GestureDetector(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: isDarkMode
+                                                ? Colors.transparent
+                                                : Theme.of(context)
+                                                    .primaryColor,
+                                            border: isDarkMode
+                                                ? Border.all(
+                                                    color: Theme.of(context)
+                                                        .primaryColor,
+                                                    width: 2,
+                                                  )
+                                                : null,
+                                            borderRadius:
+                                                BorderRadius.circular(25.0),
+                                          ),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 20.0),
+                                                child: AutoSizeText(
+                                                  roomNames[index],
+                                                  style: TextStyle(
+                                                    color: isDarkMode
+                                                        ? const Color(
+                                                            0xFF047424)
+                                                        : Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                  minFontSize: 23.0,
+                                                  maxFontSize: 25.0,
+                                                  maxLines: 2,
+                                                ),
+                                              ),
+                                              Icon(
+                                                getIconName(roomNames[index]),
+                                                color: isDarkMode
+                                                    ? const Color(0xFF047424)
+                                                    : Colors.white,
+                                                size: width * .25,
+                                              ),
+                                            ],
+                                          ),
                                         ),
+                                        onLongPress: () {
+                                          _showOptions(context, index);
+                                        },
+                                        onTap: () {
+                                          sqlDb
+                                              .getDeviceDetailsByRoomID(
+                                                roomIDs[index],
+                                              )
+                                              .then(
+                                                (value) => Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        RoomDetailsScreen(
+                                                      roomName:
+                                                          roomNames[index],
+                                                      roomID: roomIDs[index],
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                        },
+                                      );
+                                    },
+                                  )
+                                : ListView.builder(
+                                    itemCount: roomNames.length,
+                                    itemBuilder: (context, index) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 7.5, horizontal: 8.0),
+                                        child: GestureDetector(
+                                          child: Container(
+                                            height: 50.0,
+                                            decoration: BoxDecoration(
+                                              color: isDarkMode
+                                                  ? Colors.transparent
+                                                  : Theme.of(context)
+                                                      .primaryColor,
+                                              border: isDarkMode
+                                                  ? Border.all(
+                                                      color: Theme.of(context)
+                                                          .primaryColor,
+                                                      width: 2,
+                                                    )
+                                                  : null,
+                                              borderRadius:
+                                                  BorderRadius.circular(25.0),
+                                            ),
+                                            padding: const EdgeInsets.only(
+                                              left: 15,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  getIconName(
+                                                    roomNames[index],
+                                                  ),
+                                                  color: isDarkMode
+                                                      ? const Color(0xFF047424)
+                                                      : Colors.white,
+                                                  size: 30,
+                                                ),
+                                                const SizedBox(
+                                                  width: 5.0,
+                                                ),
+                                                Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: AutoSizeText(
+                                                    roomNames[index],
+                                                    style: TextStyle(
+                                                      fontSize: 18.0,
+                                                      color: isDarkMode
+                                                          ? const Color(
+                                                              0xFF047424)
+                                                          : Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                    minFontSize: 16.0,
+                                                    maxFontSize: 18.0,
+                                                    maxLines: 2,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          onTap: () {
+                                            sqlDb
+                                                .getDeviceDetailsByRoomID(
+                                                  roomIDs[index],
+                                                )
+                                                .then(
+                                                  (value) => Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          RoomDetailsScreen(
+                                                        roomName:
+                                                            roomNames[index],
+                                                        roomID: roomIDs[index],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                          },
+                                          onLongPress: () {
+                                            _showOptions(
+                                              context,
+                                              index,
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
                                   ),
-                                ),
-                              );
-                            },
-                            onLongPress: () {
-                              _showOptions(
-                                context,
-                                index,
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    ),
                   );
                 },
               ),
@@ -365,27 +390,27 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
                 onTap: () {
                   sqlDb
                       .deleteRoomAndDevices(
-                    roomIDs[index],
-                  )
+                        roomIDs[index],
+                      )
                       .then((value) => {
-                    sqlDb
-                        .getRoomsByApartmentID(
-                      context,
-                      apartmentMap.first['ApartmentID'],
-                    )
-                        .then((value) => {
-                      sqlDb.exportData(),
-                      setState(() {
-                        Provider.of<AuthProvider>(context,
-                            listen: false)
-                            .toggling(
-                          'loading',
-                          false,
-                        );
-                      }),
-                      Navigator.pop(context),
-                    }),
-                  });
+                            sqlDb
+                                .getRoomsByApartmentID(
+                                  context,
+                                  apartmentMap.first['ApartmentID'],
+                                )
+                                .then((value) => {
+                                      sqlDb.exportData(),
+                                      setState(() {
+                                        Provider.of<AuthProvider>(context,
+                                                listen: false)
+                                            .toggling(
+                                          'loading',
+                                          false,
+                                        );
+                                      }),
+                                      Navigator.pop(context),
+                                    }),
+                          });
                 },
               ),
             ],
@@ -443,38 +468,37 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
                             if (roomNames.contains(
                               selectedRoomName,
                             )) {
-                              hintMessage =
-                              'This room name is already in use!';
+                              hintMessage = 'This room name is already in use!';
                             } else {
                               hintMessage = null;
                             }
                           });
                         },
-                        items: iconsRooms.map<DropdownMenuItem<IconData>>(
-                                (IconData icon) {
-                              return DropdownMenuItem<IconData>(
-                                value: icon,
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      icon,
-                                      color: const Color(0xFF455D56),
-                                    ),
-                                    const SizedBox(
-                                      width: 10.0,
-                                    ),
-                                    Text(
-                                      getRoomName(icon),
-                                    ),
-                                  ],
+                        items: iconsRooms
+                            .map<DropdownMenuItem<IconData>>((IconData icon) {
+                          return DropdownMenuItem<IconData>(
+                            value: icon,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  icon,
+                                  color: const Color(0xFF455D56),
                                 ),
-                                onTap: () {
-                                  setStateDialog(() {
-                                    roomName = getRoomName(icon);
-                                  });
-                                },
-                              );
-                            }).toList(),
+                                const SizedBox(
+                                  width: 10.0,
+                                ),
+                                Text(
+                                  getRoomName(icon),
+                                ),
+                              ],
+                            ),
+                            onTap: () {
+                              setStateDialog(() {
+                                roomName = getRoomName(icon);
+                              });
+                            },
+                          );
+                        }).toList(),
                       ),
                       if (hintMessage != null)
                         Padding(
@@ -513,23 +537,19 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
                     onPressed: () {
                       if (hintMessage == null) {
                         sqlDb
-                            .updateRoomName(
-                            apartmentMap.first['ApartmentID'],
-                            roomName,
-                            roomNames[index])
+                            .updateRoomName(apartmentMap.first['ApartmentID'],
+                                roomName, roomNames[index])
                             .then(
                               (value) => sqlDb.exportData().then(
-                                (value) =>
-                                sqlDb.getRoomsByApartmentID(
-                                  context,
-                                  apartmentMap.first['ApartmentID'],
-                                ),
-                          ),
-                        )
+                                    (value) => sqlDb.getRoomsByApartmentID(
+                                      context,
+                                      apartmentMap.first['ApartmentID'],
+                                    ),
+                                  ),
+                            )
                             .then((value) {
                           setState(() {
-                            Provider.of<AuthProvider>(context,
-                                listen: false)
+                            Provider.of<AuthProvider>(context, listen: false)
                                 .toggling('loading', false);
                           });
                           Navigator.pop(context);
@@ -539,8 +559,7 @@ class _RoomsScreenState extends State<RoomsScreen> with SingleTickerProviderStat
                     child: Text(
                       'Submit',
                       style: TextStyle(
-                        color:
-                        Provider.of<AuthProvider>(context).isDarkMode
+                        color: Provider.of<AuthProvider>(context).isDarkMode
                             ? Colors.grey[900]
                             : Colors.white,
                       ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:wifi_iot/wifi_iot.dart';
 import '../data/sqldb.dart';
 
 ///*multiple usage**
@@ -41,6 +42,7 @@ final TextEditingController passwordController = TextEditingController();
 int snackBarCount = 0;
 const int maxSnackBarCount = 3;
 DateTime? lastSnackBarTime;
+int pressCount = 0;
 
 ///*functions.dart**
 var commandResponse = '';
@@ -146,3 +148,12 @@ String? uploadStatus;
 String downloadURL = '';
 int uploadSteps = 0;
 double uploadProgress = 0.0;
+
+///*firmware_updating_screen.dart**
+String? firmwareInfo;
+String? version;
+String? info;
+List<Map<String,dynamic>> macVersion = [];
+
+///*settings_screen.dart**
+List<WifiNetwork?> wifiNetworks = [];

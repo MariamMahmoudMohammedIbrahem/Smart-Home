@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -14,9 +15,10 @@ import '../constants/constants.dart';
 import 'package:http/http.dart' as http;
 
 
-void showSnack(BuildContext context, String message) {
+void showSnack(BuildContext context, String message, String msg) {
   final currentTime = DateTime.now();
 
+  print(snackBarCount);
   if (snackBarCount < maxSnackBarCount && (lastSnackBarTime == null || currentTime.difference(lastSnackBarTime!).inSeconds > 2)) {
     final snackBar = SnackBar(
       content: Text(message),
@@ -25,8 +27,36 @@ void showSnack(BuildContext context, String message) {
     lastSnackBarTime = currentTime;
     snackBarCount++;
   }
+  if(snackBarCount == maxSnackBarCount){
+    showHint(context, msg);
+  }
 }
 
+void showHint(BuildContext context, String msg){
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Hint'),
+        content: Text(msg),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () {
+              if(currentStep == 0){
+                Provider.of<AuthProvider>(context, listen: false).toggling('adding', false);
+              }
+              else if(currentStep == 2){
+                snackBarCount = 0;
+              }
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 class SocketManager {
   static final SocketManager _instance = SocketManager._internal();
   RawDatagramSocket? _socket;
@@ -56,6 +86,10 @@ class SocketManager {
               try {
                 Map<String, dynamic> jsonResponse = jsonDecode(response);
                 commandResponse = jsonResponse['commands'];
+                // if (kDebugMode) {
+                  print('response $response');
+                addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version']});
+                // }
                 if (commandResponse == 'UPDATE_OK' ||
                     commandResponse == 'SWITCH_WRITE_OK' ||
                     commandResponse == 'SWITCH_READ_OK') {
@@ -129,6 +163,23 @@ class SocketManager {
                   Provider.of<AuthProvider>(context, listen: false)
                       .addingDevice('DEVICE_CONFIG_WRITE_OK', jsonResponse);
                 } else if (commandResponse == 'READ_OK') {}
+                else if (commandResponse == 'CHECK_FOR_NEW_FIRMWARE_OK' ||
+                    commandResponse == 'CHECK_FOR_NEW_FIRMWARE_FAIL' ||
+                    commandResponse == 'CHECK_FOR_NEW_FIRMWARE_SAME' ||
+                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_SAME' ||
+                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_START' ||
+                    commandResponse
+                        .contains('DOWNLOAD_NEW_FIRMWARE_UPDATING') ||
+                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_OK' ||
+                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_FAIL') {
+                  /*macVersion.add({
+                    'MacAddress': jsonResponse['mac_address'],
+                    'FirmwareVersion': jsonResponse['firmware_version'],
+                  });
+                  print('macVersion is => $macVersion');*/
+                  Provider.of<AuthProvider>(context, listen: false)
+                      .firmwareUpdating(jsonResponse);
+                }
               } catch (e) {}
             }
           }
@@ -145,7 +196,7 @@ class SocketManager {
 
 void sendFrame(Map<String, dynamic> jsonFrame, String ipAddress, int port) {
   String frame = jsonEncode(jsonFrame);
-
+  print(jsonFrame);
   RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
       .then((RawDatagramSocket socket) {
     socket.broadcastEnabled = true;
@@ -173,6 +224,20 @@ class AuthProvider extends ChangeNotifier {
 
   bool get toggle => _toggle;
   bool get isDarkMode => _isDarkMode;
+
+  bool similarityCheck = false;
+  bool similarityDownload = false;
+  bool startedCheck = false;
+  bool startedDownload = false;
+  bool failedCheck = false;
+  bool failedDownload = false;
+  bool completedCheck = false;
+  bool completedDownload = false;
+  double downloadedBytesSize = 0;
+  double totalByteSize = 0;
+  int downloadPercentage = 0;
+  bool updating = false;
+  String macFirmware = '';
 
   void setSwitch(String macAddress, String dataKey, int state) {
     for (var device in deviceStatus) {
@@ -258,6 +323,65 @@ class AuthProvider extends ChangeNotifier {
         deviceType = jsonResponse["device_type"];
         wifiSsid = jsonResponse["wifi_ssid"];
         wifiPassword = jsonResponse["wifi_password"];
+        break;
+    }
+    notifyListeners();
+  }
+
+  void firmwareUpdating(Map<String, dynamic> jsonResponse) {
+    similarityDownload = false;
+    startedDownload = false;
+    failedDownload = false;
+    completedDownload = false;
+    downloadPercentage = 0;
+    macFirmware = jsonResponse['mac_address'];
+    String command = jsonResponse['commands'];
+    macVersion.add({
+      'MacAddress': macFirmware,
+      'FirmwareVersion': jsonResponse['firmware_version'],
+    });
+    switch (command) {
+      case 'CHECK_FOR_NEW_FIRMWARE_OK':
+        completedCheck = true;
+        break;
+      case 'CHECK_FOR_NEW_FIRMWARE_SAME':
+        similarityCheck = true;
+        // macVersion[jsonResponse['mac_address']] = true;
+        break;
+      case 'CHECK_FOR_NEW_FIRMWARE_FAIL':
+        failedCheck = true;
+        break;
+      case 'DOWNLOAD_NEW_FIRMWARE_SAME':
+        similarityDownload = true;
+        break;
+      case 'DOWNLOAD_NEW_FIRMWARE_START':
+        updating = true;
+        startedDownload = true;
+        break;
+      case 'DOWNLOAD_NEW_FIRMWARE_FAIL':
+        failedDownload = true;
+        break;
+      case 'DOWNLOAD_NEW_FIRMWARE_OK':
+        updating = false;
+        completedDownload = true;
+        break;
+      default:
+        RegExp regExp = RegExp(r'_(\d+)'); // Match all numbers preceded by an underscore
+        List<RegExpMatch> matches = regExp.allMatches(command).toList();
+        for (var match in matches) {
+          print('Match: ${match.group(1)}'); // Print each matched number
+        }
+        downloadedBytesSize = double.parse(matches[0].group(1)!);
+        totalByteSize = double.parse(matches[1].group(1)!);
+        double testingValue = downloadedBytesSize / totalByteSize * 100;
+        downloadPercentage = testingValue.toInt();
+        if(downloadPercentage == 100){
+          completedDownload = true;
+          updating = false;
+        }
+        if (kDebugMode) {
+          print('downloaded $downloadPercentage');
+        }
         break;
     }
     notifyListeners();
@@ -421,3 +545,21 @@ final List<Map<String, dynamic>> messages = [
   {"time": 8, "message": "Almost there..."},
   {"time": 10, "message": "Download complete!"}
 ];
+
+void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynamic> newDevice) {
+  String key = 'mac_address';
+  bool exists = false;
+
+  for (int i = 0; i < deviceList.length; i++) {
+    if (deviceList[i][key] == newDevice[key]) {
+      deviceList[i] = newDevice;
+      exists = true;
+      break;
+    }
+  }
+
+  if (!exists) {
+    deviceList.add(newDevice);
+    print('macVersion is => $macVersion');
+  }
+}
