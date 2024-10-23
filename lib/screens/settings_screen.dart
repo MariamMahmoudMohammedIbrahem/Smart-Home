@@ -18,7 +18,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -55,11 +54,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 }),
           ),
           ListTile(
-            title: const Text('Add New Device',),
-            trailing: const Icon(Icons.arrow_right,),
+            title: const Text(
+              'Add New Device',
+            ),
+            // trailing: const Icon(Icons.arrow_right,),
             onTap: () {
-              Provider.of<AuthProvider>(context, listen: false)
-                  .toggling('adding', false,);
+              Provider.of<AuthProvider>(context, listen: false).toggling(
+                'adding',
+                false,
+              );
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -69,41 +72,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           ListTile(
-            title: const Text('Export Data',),
-            trailing: const Icon(Icons.arrow_right,),
+            title: const Text(
+              'Export Data',
+            ),
+            // trailing: const Icon(Icons.arrow_right,),
             onTap: () {
               Provider.of<AuthProvider>(context, listen: false)
                   .checkFirstTime()
-                  .then((value) => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ExportDataScreen(),
-                ),),);
+                  .then(
+                    (value) => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ExportDataScreen(),
+                      ),
+                    ),
+                  );
             },
           ),
           ListTile(
-            title: const Text('Import Data',),
-            trailing: const Icon(Icons.arrow_right,),
+            title: const Text(
+              'Import Data',
+            ),
+            // trailing: const Icon(Icons.arrow_right,),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ImportDataScreen(),
-                ),);
+                ),
+              );
             },
           ),
           ListTile(
             title: const Text('Firmware Updating'),
-            trailing: const Icon(Icons.arrow_right,),
+            trailing: Provider.of<AuthProvider>(context, listen: false)
+                    .notificationMark
+                ? const CircleAvatar(
+                    radius: 5,
+                    backgroundColor:
+                        Colors.red,
+                  )
+                : null,
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const FirmwareScreen(),));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FirmwareScreen(),
+                  ));
             },
           ),
           ListTile(
             title: const Text('Help and Support'),
-            trailing: const Icon(Icons.arrow_right,),
+            // trailing: const Icon(Icons.arrow_right,),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const SupportScreen(),));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SupportScreen(),
+                  ));
             },
           ),
         ],
@@ -112,7 +138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   @override
-  void initState(){
+  void initState() {
     getWifiNetworks();
     super.initState();
   }

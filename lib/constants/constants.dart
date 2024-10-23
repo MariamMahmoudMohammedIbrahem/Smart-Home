@@ -150,10 +150,12 @@ int uploadSteps = 0;
 double uploadProgress = 0.0;
 
 ///*firmware_updating_screen.dart**
-String? firmwareInfo;
-String? version;
-String? info;
+// String? firmwareInfo;
+// String? version;
+// String? info;
 List<Map<String,dynamic>> macVersion = [];
+bool failed = false;
+Timer? timerPeriodic;
 
 ///*settings_screen.dart**
 List<WifiNetwork?> wifiNetworks = [];

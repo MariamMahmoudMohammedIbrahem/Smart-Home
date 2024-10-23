@@ -20,71 +20,76 @@ class ExportDataScreenState extends State<ExportDataScreen> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      appBar: AppBar(
-        surfaceTintColor: const Color(0xFF70AD61),
-        shadowColor: const Color(0xFF609e51),
-        backgroundColor: const Color(0xFF047424),
-        foregroundColor: Colors.white,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
+    return WillPopScope(
+      onWillPop: () async {
+        return await _showExitConfirmationDialog(context);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          surfaceTintColor: const Color(0xFF70AD61),
+          shadowColor: const Color(0xFF609e51),
+          backgroundColor: const Color(0xFF047424),
+          foregroundColor: Colors.white,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(20),
+            ),
           ),
+          title: const Text(
+            'Export Data',
+          ),
+          titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+          ),
+          centerTitle: true,
         ),
-        title: const Text(
-          'Export Data',
-        ),
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 26,
-          fontWeight: FontWeight.bold,
-        ),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: width * .1),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              uploadProgress == 0.0 || downloadURL.isEmpty
-                  ? uploadFailed
-                  ? const SizedBox()
-                  : const CircularProgressIndicator(
-                color: Color(0xFF047424),
-              )
-                  : QrImageView(
-                data: downloadURL,
-                version: QrVersions.auto,
-                size: 200.0,
-                eyeStyle: QrEyeStyle(
-                  eyeShape:
-                  QrEyeShape.square,
-                  color: isDarkMode
-                      ? Colors.grey.shade400
-                      : Colors.black,
-                ),
-                dataModuleStyle: QrDataModuleStyle(
-                  dataModuleShape: QrDataModuleShape
-                      .square,
-                  color: isDarkMode
-                      ? Colors.grey.shade400
-                      : Colors.black,
-                ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Text(
-                uploadStatus == null ? '' : '$uploadStatus',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: width * .1),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                uploadProgress == 0.0 || downloadURL.isEmpty
+                    ? uploadFailed
+                    ? const SizedBox()
+                    : const CircularProgressIndicator(
                   color: Color(0xFF047424),
+                )
+                    : QrImageView(
+                  data: downloadURL,
+                  version: QrVersions.auto,
+                  size: 200.0,
+                  eyeStyle: QrEyeStyle(
+                    eyeShape:
+                    QrEyeShape.square,
+                    color: isDarkMode
+                        ? Colors.grey.shade400
+                        : Colors.black,
+                  ),
+                  dataModuleStyle: QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape
+                        .square,
+                    color: isDarkMode
+                        ? Colors.grey.shade400
+                        : Colors.black,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+                const SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  uploadStatus == null ? '' : '$uploadStatus',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF047424),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -226,6 +231,32 @@ class ExportDataScreenState extends State<ExportDataScreen> {
     } finally {
       timeoutTimer?.cancel();
     }
+  }
+
+  Future<bool> _showExitConfirmationDialog(BuildContext context) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Alert'),
+          content: const Text('if the data isn\'t successfully transferred yet, Please don\'t close the screen'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(false); // Do not exit
+              },
+            ),
+            TextButton(
+              child: const Text('Exit'),
+              onPressed: () {
+                Navigator.of(context).pop(true); // Exit
+              },
+            ),
+          ],
+        );
+      },
+    ).then((value) => value ?? false); // Handle null case
   }
 
   @override

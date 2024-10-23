@@ -197,6 +197,7 @@ class SqlDb {
       where: 'RoomID = ?',
       whereArgs: [roomID],
     );
+    print('deviceDetails $deviceDetails');
     macAddress = deviceDetails.first['MacAddress'];
     for (var device in deviceDetails) {
       bool exists =

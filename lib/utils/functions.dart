@@ -86,13 +86,10 @@ class SocketManager {
               try {
                 Map<String, dynamic> jsonResponse = jsonDecode(response);
                 commandResponse = jsonResponse['commands'];
-                // if (kDebugMode) {
-                  print('response $response');
-                addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version']});
-                // }
-                if (commandResponse == 'UPDATE_OK' ||
-                    commandResponse == 'SWITCH_WRITE_OK' ||
-                    commandResponse == 'SWITCH_READ_OK') {
+                print(response);
+                print('commandResponse => $commandResponse');
+                addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': ''}, context);
+                if (commandResponse == 'UPDATE_OK' || commandResponse == 'SWITCH_WRITE_OK' || commandResponse == 'SWITCH_READ_OK') {
                   if (deviceStatus.firstWhere(
                         (device) =>
                     device['MacAddress'] == jsonResponse['mac_address'],
@@ -135,52 +132,66 @@ class SocketManager {
                   }
                   Provider.of<AuthProvider>(context, listen: false)
                       .addingDevice(commandResponse, jsonResponse);
-                } else if (commandResponse == 'RGB_READ_OK' ||
-                    commandResponse == 'RGB_WRITE_OK') {
-                } else if (commandResponse == 'MAC_ADDRESS_READ_OK') {
+                }
+                else if (commandResponse == 'RGB_READ_OK' || commandResponse == 'RGB_WRITE_OK') {
+                }
+                else if (commandResponse == 'MAC_ADDRESS_READ_OK') {
                   Provider.of<AuthProvider>(context, listen: false)
                       .addingDevice('MAC_ADDRESS_READ_OK', jsonResponse);
-                } else if (commandResponse == 'WIFI_CONFIG_OK') {
-                } else if (commandResponse == 'WIFI_CONFIG_FAILED') {
+                }
+                else if (commandResponse == 'WIFI_CONFIG_OK') {
+                }
+                else if (commandResponse == 'WIFI_CONFIG_FAILED') {
                   Provider.of<AuthProvider>(context, listen: false)
                       .addingDevice('WIFI_CONFIG_FAILED', {});
-                } else if (commandResponse == 'WIFI_CONFIG_CONNECTING' ||
-                    commandResponse == 'WIFI_CONFIG_SAME') {
+                }
+                else if (commandResponse == 'WIFI_CONFIG_CONNECTING' || commandResponse == 'WIFI_CONFIG_SAME') {
                   Provider.of<AuthProvider>(context, listen: false)
                       .addingDevice('WIFI_CONFIG_CONNECTING', {});
                   if (commandResponse == 'WIFI_CONFIG_SAME') {
                     ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Same Wi-Fi network data")));
                   }
-                } else if (commandResponse == 'WIFI_CONFIG_MISSED_DATA') {
-                } else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
+                }
+                else if (commandResponse == 'WIFI_CONFIG_MISSED_DATA') {
+                }
+                else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
                   Provider.of<AuthProvider>(context, listen: false)
                       .addingDevice('WIFI_CONNECT_CHECK_OK', {});
                   const snackBar =
                   SnackBar(content: Text('Connected Successfully'));
                   ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                } else if (commandResponse == 'DEVICE_CONFIG_WRITE_OK') {
+                }
+                else if (commandResponse == 'DEVICE_CONFIG_WRITE_OK') {
                   Provider.of<AuthProvider>(context, listen: false)
                       .addingDevice('DEVICE_CONFIG_WRITE_OK', jsonResponse);
-                } else if (commandResponse == 'READ_OK') {}
+                }
+                else if (commandResponse == 'READ_OK') {}
                 else if (commandResponse == 'CHECK_FOR_NEW_FIRMWARE_OK' ||
                     commandResponse == 'CHECK_FOR_NEW_FIRMWARE_FAIL' ||
                     commandResponse == 'CHECK_FOR_NEW_FIRMWARE_SAME' ||
                     commandResponse == 'DOWNLOAD_NEW_FIRMWARE_SAME' ||
                     commandResponse == 'DOWNLOAD_NEW_FIRMWARE_START' ||
-                    commandResponse
-                        .contains('DOWNLOAD_NEW_FIRMWARE_UPDATING') ||
                     commandResponse == 'DOWNLOAD_NEW_FIRMWARE_OK' ||
-                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_FAIL') {
+                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_FAIL' ||
+                    commandResponse.contains('DOWNLOAD_NEW_FIRMWARE_UPDATING') ) {
+                  print('updating......$commandResponse');
                   /*macVersion.add({
                     'MacAddress': jsonResponse['mac_address'],
                     'FirmwareVersion': jsonResponse['firmware_version'],
                   });
                   print('macVersion is => $macVersion');*/
+                  // macVersion = [];
                   Provider.of<AuthProvider>(context, listen: false)
-                      .firmwareUpdating(jsonResponse);
+                      .firmwareUpdating(jsonResponse, context);
                 }
-              } catch (e) {}
+                else{
+                  print('else');
+                  Provider.of<AuthProvider>(context, listen: false)
+                    .firmwareUpdating(jsonResponse, context);}
+              } catch (e) {
+                print('error in catch $e');
+              }
             }
           }
         }
@@ -238,6 +249,12 @@ class AuthProvider extends ChangeNotifier {
   int downloadPercentage = 0;
   bool updating = false;
   String macFirmware = '';
+  bool _connecting = false;
+  bool get isConnected => _connecting;
+  bool _notification = false;
+  bool get notificationMark => _notification;
+  String? _firmwareVersion;
+  String? get firmwareInfo => _firmwareVersion;
 
   void setSwitch(String macAddress, String dataKey, int state) {
     for (var device in deviceStatus) {
@@ -291,6 +308,12 @@ class AuthProvider extends ChangeNotifier {
     if (dataType == 'loading') {
       _loading = newValue;
     }
+    if (dataType == 'connecting') {
+      _connecting = newValue;
+    }
+    if(dataType == 'notification') {
+      _notification = newValue;
+    }
     if (dataType == 'adding') {
       wifiPassword = '';
       wifiSsid = '';
@@ -303,6 +326,10 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateFirmwareVersion (String newVersion){
+    _firmwareVersion = newVersion;
+    notifyListeners();
+  }
   void addingDevice(String command, Map<String, dynamic> jsonResponse) {
     switch (command) {
       case 'MAC_ADDRESS_READ_OK':
@@ -328,7 +355,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void firmwareUpdating(Map<String, dynamic> jsonResponse) {
+  void firmwareUpdating(Map<String, dynamic> jsonResponse, BuildContext context) {
     similarityDownload = false;
     startedDownload = false;
     failedDownload = false;
@@ -336,10 +363,7 @@ class AuthProvider extends ChangeNotifier {
     downloadPercentage = 0;
     macFirmware = jsonResponse['mac_address'];
     String command = jsonResponse['commands'];
-    macVersion.add({
-      'MacAddress': macFirmware,
-      'FirmwareVersion': jsonResponse['firmware_version'],
-    });
+    print('command......$command');
     switch (command) {
       case 'CHECK_FOR_NEW_FIRMWARE_OK':
         completedCheck = true;
@@ -353,17 +377,21 @@ class AuthProvider extends ChangeNotifier {
         break;
       case 'DOWNLOAD_NEW_FIRMWARE_SAME':
         similarityDownload = true;
+        addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'DOWNLOAD_NEW_FIRMWARE_SAME'}, context);
         break;
       case 'DOWNLOAD_NEW_FIRMWARE_START':
         updating = true;
         startedDownload = true;
+        addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'DOWNLOAD_NEW_FIRMWARE_START'}, context);
         break;
       case 'DOWNLOAD_NEW_FIRMWARE_FAIL':
         failedDownload = true;
+        addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'DOWNLOAD_NEW_FIRMWARE_FAIL'}, context);
         break;
       case 'DOWNLOAD_NEW_FIRMWARE_OK':
         updating = false;
         completedDownload = true;
+        addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'DOWNLOAD_NEW_FIRMWARE_OK'}, context);
         break;
       default:
         RegExp regExp = RegExp(r'_(\d+)'); // Match all numbers preceded by an underscore
@@ -375,12 +403,11 @@ class AuthProvider extends ChangeNotifier {
         totalByteSize = double.parse(matches[1].group(1)!);
         double testingValue = downloadedBytesSize / totalByteSize * 100;
         downloadPercentage = testingValue.toInt();
+        print('testing value $testingValue, download percentage $downloadPercentage');
+        addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'updating_$downloadPercentage'}, context);
         if(downloadPercentage == 100){
           completedDownload = true;
           updating = false;
-        }
-        if (kDebugMode) {
-          print('downloaded $downloadPercentage');
         }
         break;
     }
@@ -546,20 +573,91 @@ final List<Map<String, dynamic>> messages = [
   {"time": 10, "message": "Download complete!"}
 ];
 
-void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynamic> newDevice) {
+void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynamic> newDevice, BuildContext context) {
+  print('NEWDEVICE $newDevice');
   String key = 'mac_address';
   bool exists = false;
 
+  // device is already stored in the list
+  // edit only when changed and status is not empty
   for (int i = 0; i < deviceList.length; i++) {
+    // print('deviceList[i] ${deviceList[i]}, newDevice[key] ${newDevice}');
+    if(deviceList[i]['status'] != '' && deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_START'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_OK'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_FAIL' && !deviceList[i]['status'].toString().startsWith('updating')){
+      // print("deviceList[i]['status'] => ${deviceList[i]['status']}");
+      deviceList[i]['status'] = 'updating_${double.parse('${deviceList[i]['status']}').toInt()}';
+
+    }
     if (deviceList[i][key] == newDevice[key]) {
-      deviceList[i] = newDevice;
+
+       if(deviceList[i]['status'] != newDevice['status'] && newDevice['status'] != ''){
+        print('status changing $newDevice');
+        deviceList[i] = newDevice;
+        if(deviceList[i]['status'] == 'DOWNLOAD_NEW_FIRMWARE_OK'){
+          deviceList[i]['status'] = '';
+        }
+      }
+      else if(deviceList[i]['firmware_version'] != newDevice['firmware_version'] && newDevice['status'] == ''){
+        print('version changing');
+        deviceList[i] = newDevice;
+      }
       exists = true;
-      break;
+      continue;
     }
   }
 
   if (!exists) {
     deviceList.add(newDevice);
-    print('macVersion is => $macVersion');
+    checkFirmwareUpdates(macVersion, Provider.of<AuthProvider>(context, listen: false).firmwareInfo!, context);
+    print('newDevice is $newDevice');
   }
+  print('macVersion is => $macVersion');
+}
+
+///*check firmware version in firebase storage**
+Future<String?> checkFirmwareVersion(
+    String folderPath, String fileName, BuildContext context) async {
+   bool isConnected = await isConnectedToInternet();
+  if (!isConnected) {
+    Provider.of<AuthProvider>(context, listen: false).toggling('connection', false);
+    print('Provider of connection value ${Provider.of<AuthProvider>(context, listen:false).isConnected}');
+    return '';
+  }
+  try {
+    // Reference to the file in Firebase Storage (nested folder structure)
+    Reference storageRef =
+    FirebaseStorage.instance.ref().child('$folderPath/$fileName');
+
+    // Download the file content as raw bytes (limit to 1 MB)
+    final fileData = await storageRef.getData(1024 * 1024);
+
+    if (fileData != null) {
+      // Convert file data from bytes to string
+      // setState(() {
+      Provider.of<AuthProvider>(context, listen: false).updateFirmwareVersion(utf8.decode(fileData));
+        // firmwareInfo = utf8.decode(fileData);
+      // });
+      if (kDebugMode) {
+        print("File content: ${Provider.of<AuthProvider>(context, listen: false).firmwareInfo}");
+      }
+      return utf8.decode(fileData);
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print("Error reading file from Firebase: $e");
+    }
+  }
+  return null;
+}
+
+///*compare last version in devices with the version in the storage**
+void checkFirmwareUpdates(List<Map<String, dynamic>> devices, String firmwareInfo, BuildContext context) {
+  bool shouldToggleNotification = false;
+  for (var device in devices) {
+    if (device['firmware_version'] != firmwareInfo) {
+      shouldToggleNotification = true;
+      break;
+    }
+  }
+  print('shouldToggleNotification $shouldToggleNotification');
+  Provider.of<AuthProvider>(context, listen: false).toggling('notification', shouldToggleNotification);
 }

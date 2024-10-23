@@ -31,6 +31,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('inside main function');
+    checkFirmwareVersion('firmware-update/switch', 'firmware_version.txt', context);
     return MaterialApp(
       theme: lightTheme,
       darkTheme: darkTheme,
