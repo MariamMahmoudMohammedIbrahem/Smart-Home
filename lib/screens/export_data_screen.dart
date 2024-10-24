@@ -244,19 +244,19 @@ class ExportDataScreenState extends State<ExportDataScreen> {
             TextButton(
               child: const Text('Cancel'),
               onPressed: () {
-                Navigator.of(context).pop(false); // Do not exit
+                Navigator.of(context).pop(false);
               },
             ),
             TextButton(
               child: const Text('Exit'),
               onPressed: () {
-                Navigator.of(context).pop(true); // Exit
+                Navigator.of(context).pop(true);
               },
             ),
           ],
         );
       },
-    ).then((value) => value ?? false); // Handle null case
+    ).then((value) => value ?? false);
   }
 
   @override

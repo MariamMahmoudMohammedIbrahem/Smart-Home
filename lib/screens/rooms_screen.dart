@@ -5,7 +5,6 @@ import 'package:mega/screens/settings_screen.dart';
 import 'package:provider/provider.dart';
 import '../constants/constants.dart';
 import '../utils/functions.dart';
-// import 'package:badges/badges.dart';
 
 class RoomsScreen extends StatefulWidget {
   const RoomsScreen({super.key});
@@ -55,7 +54,7 @@ class _RoomsScreenState extends State<RoomsScreen>
                         label: null,
                         backgroundColor: Colors.red,
                         child: Icon(Icons.settings_rounded,
-                            color: Color(0xFF047424)), // Color of the indicator
+                            color: Color(0xFF047424)),
                       )
                     : const Icon(Icons.settings_rounded,
                         color: Color(0xFF047424)),
@@ -69,31 +68,6 @@ class _RoomsScreenState extends State<RoomsScreen>
           padding: EdgeInsets.symmetric(horizontal: width * .05, vertical: 10),
           child: Column(
             children: [
-              /*ElevatedButton(onPressed: (){sqlDb
-                  .insertRoom('Kitchen',
-                  apartmentMap.first['ApartmentID'])
-                  .then((value) {
-                sqlDb.getRoomsByApartmentID(context,
-                    apartmentMap.first['ApartmentID']);
-                sqlDb
-                    .insertDevice(
-                  '84:F3:EB:20:8C:7A',
-                  'Hardware_room',
-                  '01019407823EOIP',
-                  'switch',
-                  value,
-                )
-                    .then((value) => {
-                  Provider.of<AuthProvider>(context,
-                      listen: false)
-                      .roomConfig = true,
-                  sqlDb.exportData().then((value) =>
-                      Provider.of<AuthProvider>(
-                          context,
-                          listen: false)
-                          .toggling('adding', false))
-                });
-              });}, child: Text('add device'),),*/
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

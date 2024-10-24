@@ -197,7 +197,6 @@ class SqlDb {
       where: 'RoomID = ?',
       whereArgs: [roomID],
     );
-    print('deviceDetails $deviceDetails');
     macAddress = deviceDetails.first['MacAddress'];
     for (var device in deviceDetails) {
       bool exists =
@@ -229,8 +228,6 @@ class SqlDb {
       where: whereClause,
       whereArgs: roomIDs,
     );
-
-    print('devices is : $devices');
     return devices;
   }
   ///retrieve all Apartments
@@ -299,7 +296,6 @@ class SqlDb {
       final apartmentsData = await sqlDb.getDataFromTable('Apartments');
       final roomsData = await sqlDb.getDataFromTable('Rooms');
       final devicesData = await sqlDb.getDataFromTable('Devices');
-      print('devicesData => $devicesData');
 
       final Map<String, dynamic> allData = {
         'Apartments': apartmentsData,

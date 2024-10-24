@@ -1,8 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -112,214 +108,10 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                           ],
                         ),
                       ),
-                      /*Expanded(
-                        child: ListView.builder(
-                          itemCount: roomNames.length,
-                          itemBuilder: (context, index) {
-                            sqlDb.getDevices(roomIDs);
-                            return Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: width * 0.07, vertical: 10),
-                              child: ExpansionTile(
-                                title: Row(
-                                  children: [
-                                    Icon(
-                                      getIconName(roomNames[index]),
-                                      color: const Color(0xFF047424),
-                                    ),
-                                    const SizedBox(
-                                      width: 10,
-                                    ),
-                                    Text(
-                                      roomNames[index],
-                                    ),
-                                  ],
-                                ),
-                                children: [
-                                  FutureBuilder<List<Map<String, dynamic>>>(
-                                    future: sqlDb.getDevices(roomIDs),
-                                    builder: (context, snapshot) {
-                                      print('snapshot $snapshot');
-                                      if (snapshot.hasError) {
-                                        return Text("Error: ${snapshot.error}");
-                                      } else if (!snapshot.hasData ||
-                                          snapshot.data!.isEmpty) {
-                                        return const Text("No devices found.");
-                                      } else {
-                                        return ListView.builder(
-                                          shrinkWrap: true,
-                                          physics:
-                                              const AlwaysScrollableScrollPhysics(),
-                                          itemCount: snapshot.data!.length,
-                                          itemBuilder: (content, innerIndex) {
-                                            print('innerIndex is $innerIndex');
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                bottom: 8.0,
-                                                left: 8.0,
-                                                right: 8.0,
-                                              ),
-                                              child: Consumer<AuthProvider>(
-                                                builder: (context,
-                                                    firmwareUpdating, child) {
-                                                    final deviceMacAddress =
-                                                        snapshot.data![
-                                                                innerIndex]
-                                                            ['MacAddress'];
-                                                    final matchedDevice =
-                                                        macVersion.firstWhere(
-                                                      (device) =>
-                                                          device[
-                                                              'mac_address'] ==
-                                                          deviceMacAddress,
-                                                      orElse: () =>
-                                                          {}, // Provide a default value
-                                                    );
-                                                    print(
-                                                        'cause is?${deviceDetails[innerIndex]}, $innerIndex, $deviceDetails');
-                                                    final firmwareVersion =
-                                                        matchedDevice.isNotEmpty
-                                                            ? matchedDevice[
-                                                                    'firmware_version'] ??
-                                                                'disconnected'
-                                                            : 'Device not connected';
-
-                                                    final deviceStatus =
-                                                        matchedDevice.isNotEmpty
-                                                            ? matchedDevice[
-                                                                    'status'] ??
-                                                                ''
-                                                            : '';
-                                                    return Column(
-                                                      children: [
-                                                        ListTile(
-                                                          leading: const Icon(
-                                                            Icons
-                                                                .lightbulb_circle_outlined,
-                                                            color: Color(
-                                                                0xFF047424),
-                                                          ),
-                                                          title: Text(snapshot
-                                                                          .data![
-                                                                      innerIndex]
-                                                                  [
-                                                                  'deviceName'] ??
-                                                              'Switch'),
-                                                          subtitle: Text(
-                                                            firmwareVersion,
-                                                            style: TextStyle(
-                                                              fontSize: 14,
-                                                              color: matchedDevice
-                                                                      .isNotEmpty
-                                                                  ? Colors.grey
-                                                                  : Colors.red,
-                                                            ),
-                                                          ),
-                                                          trailing: matchedDevice
-                                                                  .isNotEmpty
-                                                              ? (firmwareVersion ==
-                                                                      Provider.of<AuthProvider>(context,
-                                                                              listen:
-                                                                                  false)
-                                                                          .firmwareInfo
-                                                                  ? const Text(
-                                                                      'up to date',
-                                                                      style:
-                                                                          TextStyle(
-                                                                        fontSize:
-                                                                            16,
-                                                                        fontWeight:
-                                                                            FontWeight.bold,
-                                                                        color: Color(
-                                                                            0xFF047424),
-                                                                      ),
-                                                                    )
-                                                                  : deviceStatus.toString().startsWith(
-                                                                              'updating') ||
-                                                                          deviceStatus
-                                                                              is double ||
-                                                                          deviceStatus.toString() ==
-                                                                              'DOWNLOAD_NEW_FIRMWARE_START' ||
-                                                                          deviceStatus.toString() ==
-                                                                              'DOWNLOAD_NEW_FIRMWARE_FAIL' ||
-                                                                          deviceStatus.toString() ==
-                                                                              'DOWNLOAD_NEW_FIRMWARE_OK'
-                                                                      ? _buildWidgetBasedOnState(
-                                                                          matchedDevice)
-                                                                      : (macVersion.isEmpty ||
-                                                                              !macVersion.any((element) => element['mac_address'] == deviceDetails[innerIndex]['MacAddress']))
-                                                                          ? ElevatedButton(
-                                                                              onPressed: () {
-                                                                                sendFrame(
-                                                                                  {
-                                                                                    'commands': 'CHECK_FOR_NEW_FIRMWARE',
-                                                                                    'mac_address': deviceMacAddress,
-                                                                                  },
-                                                                                  '255.255.255.255',
-                                                                                  8888,
-                                                                                );
-                                                                              },
-                                                                              child: const Text('check'),
-                                                                            )
-                                                                          : deviceStatus.toString() == 'OK'
-                                                                              ? const Text(
-                                                                                  'Waiting...',
-                                                                                  style: TextStyle(
-                                                                                    color: Color(0xFF047424),
-                                                                                  ),
-                                                                                )
-                                                                              : ElevatedButton(
-                                                                                  onPressed: () {
-                                                                                    Fluttertoast.showToast(
-                                                                                      msg: 'wait a second',
-                                                                                      backgroundColor: const Color(0xFF047424),
-                                                                                      textColor: Colors.white,
-                                                                                    );
-                                                                                    sendFrame(
-                                                                                      {
-                                                                                        "commands": 'DOWNLOAD_NEW_FIRMWARE',
-                                                                                        "mac_address": deviceMacAddress,
-                                                                                      },
-                                                                                      '255.255.255.255',
-                                                                                      8888,
-                                                                                    );
-                                                                                  },
-                                                                                  child: const Text('Update'),
-                                                                                ))
-                                                              : const SizedBox(),
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        20),
-                                                            side: BorderSide(
-                                                                color: Colors
-                                                                    .green
-                                                                    .shade100),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    );
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      }
-                                    },
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),*/
           Expanded(
             child: ListView.builder(
               itemCount: roomNames.length,
               itemBuilder: (context, index) {
-                // Fetch the devices for the specific room by passing its RoomID
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: width * 0.07, vertical: 10),
                   child: ExpansionTile(
@@ -335,9 +127,8 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                     ),
                     children: [
                       FutureBuilder<List<Map<String, dynamic>>>(
-                        future: sqlDb.getDevices([roomIDs[index]]), // Fetch devices for the current roomID
+                        future: sqlDb.getDevices([roomIDs[index]]),
                         builder: (context, snapshot) {
-                          print('snapshot $snapshot');
                           if (snapshot.hasError) {
                             return Text("Error: ${snapshot.error}");
                           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -348,7 +139,6 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: snapshot.data!.length,
                               itemBuilder: (context, innerIndex) {
-                                print('innerIndex is $innerIndex');
                                 final deviceMacAddress = snapshot.data![innerIndex]['MacAddress'];
                                 final matchedDevice = macVersion.firstWhere(
                                       (device) => device['mac_address'] == deviceMacAddress,
@@ -483,55 +273,6 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
     );
   }
 
-  /*@override
-  void initState() {
-    super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   SocketManager().startListen(context);
-    // });
-    checkFirmwareVersion(
-            'firmware-update/switch', 'firmware_version.txt', context)
-        .then(
-      (value) => {
-        print('inside initState'),
-        */ /*setState(() {
-          firmwareInfo = firmwareInfo;
-        }),*/ /*
-        */ /*Provider.of<AuthProvider>(context).updateFirmwareVersion(value!),*/ /*
-      },
-    );
-    // .then((value) {
-    // if (firmwareInfo ==
-    //     Provider.of<AuthProvider>(context, listen: false).firmwareVersion) {
-    //   Provider.of<AuthProvider>(context, listen: false)
-    //       .firmwareUpdating("CHECK_FOR_NEW_FIRMWARE_SAME");
-    // } else {
-    //   sendFrame({
-    //     "commands": "DOWNLOAD_NEW_FIRMWARE",
-    //     "mac_address": "08:3A:8D:D0:AA:20"
-    //   }, "255.255.255.255", 8888);
-    //   print('not similar');
-    // }
-    // });
-  }*/
-
-  AuthProvider? _authProvider;
-  @override
-  void didChangeDependencies() {
-    _authProvider = Provider.of<AuthProvider>(context, listen: false);
-    super.didChangeDependencies();
-  }
-
-  @override
-  void dispose() {
-    _authProvider?.similarityDownload = false;
-    _authProvider?.startedDownload = false;
-    _authProvider?.failedDownload = false;
-    _authProvider?.completedDownload = false;
-    _authProvider?.downloadPercentage = 0;
-    super.dispose();
-  }
-
   Widget _buildWidgetBasedOnState(Map<String, dynamic> deviceStatus) {
     ///change firmware updating to the map
     int state = 0;
@@ -542,29 +283,22 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
     } else if (deviceStatus['status'] == 'CHECK_FOR_NEW_FIRMWARE_FAIL') {
       ///TODO: add case failed check
     } else if (deviceStatus['status'] == 'OK'){
-      state = 6;
-    } else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_START') {
       state = 2;
-    } else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_FAIL') {
+    } else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_START') {
       state = 3;
+    } else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_FAIL') {
+      state = 4;
     } else if ('${deviceStatus['status']}'.startsWith('updating')) {
       RegExp regExp =
-          RegExp(r'_(\d+)'); // Match all numbers preceded by an underscore
+          RegExp(r'_(\d+)');
       List<RegExpMatch> matches =
           regExp.allMatches(deviceStatus['status']).toList();
-      for (var match in matches) {
-        print('Match: ${match.group(1)}'); // Print each matched number
-      }
       deviceStatus['status'] = double.parse(matches[0].group(1)!);
-      print('is it double or not ${deviceStatus['status']}');
-      state = 4;
-    } else if (deviceStatus['status'] is double) {
-      state = 4;
-    } else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_OK') {
       state = 5;
-    }
-    if (kDebugMode) {
-      print('state $state');
+    } else if (deviceStatus['status'] is double) {
+      state = 5;
+    } else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_OK') {
+      state = 6;
     }
     switch (state) {
       case 1:
@@ -576,9 +310,12 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
         );
 
       case 2:
-        return const CircularProgressIndicator();
+        return const Text('Waiting...', style: TextStyle(color: Color(0xFF047424),),);
 
       case 3:
+        return const CircularProgressIndicator();
+
+      case 4:
         return CircleAvatar(
           radius: 50,
           backgroundColor: const Color(0xFF047424),
@@ -612,7 +349,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
               ])),
         );
 
-      case 4:
+      case 5:
         double downloadProgress = deviceStatus['status'] / 100;
         return Stack(
           alignment: Alignment.center,
@@ -621,8 +358,8 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
               width: 40,
               height: 40,
               child: CircularProgressIndicator(
-                value: downloadProgress, // Progress from 0.0 to 1.0
-                strokeWidth: 8, // Thickness of the circle
+                value: downloadProgress,
+                strokeWidth: 8,
                 backgroundColor: Colors.grey.shade200,
                 valueColor: const AlwaysStoppedAnimation<Color>(
                   Color(0xFF047424),
@@ -640,7 +377,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
           ],
         );
 
-      case 5:
+      case 6:
         return const CircleAvatar(
           radius: 50,
           backgroundColor: Color(0xFF047424),
@@ -650,8 +387,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
             size: 50,
           ),
         );
-      case 6:
-        return const Text('Waiting...', style: TextStyle(color: Color(0xFF047424),),);
+
       default:
         return const SizedBox();
     }

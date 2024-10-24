@@ -243,7 +243,6 @@ class ImportDataScreenState extends State<ImportDataScreen>
     sqlDb
         .getRoomsByApartmentID(context, apartmentMap.first['ApartmentID'])
         .then((value) {
-      ///maybe the problem start progress
       setState(() {
         Provider.of<AuthProvider>(context, listen: false)
             .toggling('loading', false);
@@ -273,7 +272,6 @@ class ImportDataScreenState extends State<ImportDataScreen>
 
   @override
   void dispose() {
-    // progressValue = 0.0;
     controller.dispose();
     super.dispose();
   }

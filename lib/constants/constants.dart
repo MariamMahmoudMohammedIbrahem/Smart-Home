@@ -77,23 +77,22 @@ ThemeData lightTheme = ThemeData(
     bodySmall: TextStyle(color: Colors.grey[800]),
   ),
   textSelectionTheme: const TextSelectionThemeData(
-    cursorColor: Color(0xFF047424), // Set your desired cursor color here
-    // selectionColor: Colors.blue, // Highlight color for selected text
-    selectionHandleColor: Colors.green, // Color of the selection handle
+    cursorColor: Color(0xFF047424),
+    selectionHandleColor: Colors.green,
   ),
   switchTheme: SwitchThemeData(
     splashRadius: 50.0,
     thumbColor: MaterialStateProperty.resolveWith((states) {
       if (states.contains(MaterialState.selected)) {
-        return const Color(0xFF609e51); // activeThumbColor
+        return const Color(0xFF609e51);
       }
-      return Colors.grey.shade300; // inactiveThumbColor
+      return Colors.grey.shade300;
     }),
     trackColor: MaterialStateProperty.resolveWith((states) {
       if (states.contains(MaterialState.selected)) {
-        return const Color(0xFF047424); // activeTrackColor
+        return const Color(0xFF047424);
       }
-      return Colors.grey.shade800; // inactiveTrackColor
+      return Colors.grey.shade800;
     }),
   ),
 );
@@ -117,23 +116,22 @@ ThemeData darkTheme = ThemeData(
     bodySmall: TextStyle(color: Colors.grey[300]),
   ),
   textSelectionTheme: const TextSelectionThemeData(
-    cursorColor: Color(0xFF047424), // Set your desired cursor color here
-    // selectionColor: Colors.blue, // Highlight color for selected text
-    selectionHandleColor: Colors.green, // Color of the selection handle
+    cursorColor: Color(0xFF047424),
+    selectionHandleColor: Colors.green,
   ),
   switchTheme: SwitchThemeData(
     splashRadius: 50.0,
     thumbColor: MaterialStateProperty.resolveWith((states) {
       if (states.contains(MaterialState.selected)) {
-        return const Color(0xFF609e51); // activeThumbColor
+        return const Color(0xFF609e51);
       }
-      return Colors.grey.shade300; // inactiveThumbColor
+      return Colors.grey.shade300;
     }),
     trackColor: MaterialStateProperty.resolveWith((states) {
       if (states.contains(MaterialState.selected)) {
-        return const Color(0xFF047424); // activeTrackColor
+        return const Color(0xFF047424);
       }
-      return Colors.grey.shade800; // inactiveTrackColor
+      return Colors.grey.shade800;
     }),
   ),
 );
@@ -150,9 +148,6 @@ int uploadSteps = 0;
 double uploadProgress = 0.0;
 
 ///*firmware_updating_screen.dart**
-// String? firmwareInfo;
-// String? version;
-// String? info;
 List<Map<String,dynamic>> macVersion = [];
 bool failed = false;
 Timer? timerPeriodic;

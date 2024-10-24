@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../constants/constants.dart';
@@ -234,19 +232,6 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
   }
 
 
-  void _connectToNetwork(String ssid, String password) async {
-    bool isConnected = await WiFiForIoTPlugin.connect(ssid, password: password);
-    if (isConnected) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Connected to $ssid"),
-      ));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Failed to connect to $ssid"),
-      ));
-    }
-  }
-
   List<Step> getSteps() {
     return [
       Step(
@@ -331,7 +316,6 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                             name = newValue ?? '';
                             _isPasswordFieldVisible = true;
 
-                            // Show SSID text field if "Other" is selected
                             if (name == 'Other') {
                               _isSsidFieldVisible = true;
                             } else {
@@ -348,7 +332,6 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                               child: Text(network?.ssid ?? ''),
                             );
                           }).toList(),
-                          // Add "Other" option for manual SSID entry
                           const DropdownMenuItem<String>(
                             value: 'Other',
                             child: Text('Other (Enter manually)'),
@@ -401,116 +384,6 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                         },
                       ),
                     ],
-
-                    /*SingleChildScrollView(
-                      child: DropdownButton<String>(
-                        hint: const Text('Select Wi-Fi Network'),
-                        value: wifiNetworks.isNotEmpty && wifiNetworks.any((network) => network?.ssid == name) ? name : null, // Ensure the value exists
-                        menuMaxHeight: 200,
-                        icon: const Icon(Icons.arrow_downward),
-                        iconSize: 24,
-                        elevation: 16,
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            name = newValue ?? ''; // Assign empty string if null
-                            _isPasswordFieldVisible = true;
-                          });
-                        },
-                        items: wifiNetworks
-                            .where((network) => network?.ssid != null && (network!.ssid?.isNotEmpty ?? false)) // Ensure ssid is not null and not empty
-                            .map<DropdownMenuItem<String>>((WifiNetwork? network) {
-                          return DropdownMenuItem<String>(
-                            value: network?.ssid,
-                            child: Text(network?.ssid ?? ''),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    if (_isPasswordFieldVisible) ...[
-                      TextFormField(
-                        controller: passwordController,
-                        decoration: InputDecoration(
-                          labelText: 'Wifi Network Password',
-                          suffixIcon: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                eye = !eye;
-                              });
-                            },
-                            icon: Icon(
-                              eye
-                                  ? Icons.remove_red_eye_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                          ),
-                        ),
-                        obscureText: eye,
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'Please enter your Wifi Network\'s password';
-                          }
-                          return null;
-                        },
-                        onChanged: (value) {
-                          password = passwordController.text;
-                          setState(() {
-                            Provider.of<AuthProvider>(context, listen: false)
-                                .configured = false;
-                          });
-                        },
-                      ),
-                    ],*/
-
-                    /*TextFormField(
-                      controller: nameController,
-                      decoration:
-                      const InputDecoration(labelText: 'Wifi Network Name'),
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please enter your Wifi Network\'s name';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        name = nameController.text.trim().trimLeft();
-                        setState(() {
-                          Provider.of<AuthProvider>(context, listen: false)
-                              .configured = false;
-                        });
-                      },
-                    ),
-                    TextFormField(
-                      controller: passwordController,
-                      decoration: InputDecoration(
-                        labelText: 'Wifi Network Password',
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              eye = !eye;
-                            });
-                          },
-                          icon: Icon(
-                            eye
-                                ? Icons.remove_red_eye_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                        ),
-                      ),
-                      obscureText: eye,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please enter your Wifi Network\'s password';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        password = passwordController.text;
-                        setState(() {
-                          Provider.of<AuthProvider>(context, listen: false)
-                              .configured = false;
-                        });
-                      },
-                    ),*/
                   ],
                 ),
               ),

@@ -13,9 +13,9 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // Create AuthProvider and ensure theme is set before runApp
+
   final authProvider = AuthProvider();
-  await authProvider.checkTheme(); // Ensure theme is loaded
+  await authProvider.checkTheme();
 
 
   runApp(
@@ -31,7 +31,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('inside main function');
     checkFirmwareVersion('firmware-update/switch', 'firmware_version.txt', context);
     return MaterialApp(
       theme: lightTheme,

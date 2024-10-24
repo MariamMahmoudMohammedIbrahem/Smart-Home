@@ -57,7 +57,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text(
               'Add New Device',
             ),
-            // trailing: const Icon(Icons.arrow_right,),
             onTap: () {
               Provider.of<AuthProvider>(context, listen: false).toggling(
                 'adding',
@@ -75,7 +74,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text(
               'Export Data',
             ),
-            // trailing: const Icon(Icons.arrow_right,),
             onTap: () {
               Provider.of<AuthProvider>(context, listen: false)
                   .checkFirstTime()
@@ -93,7 +91,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text(
               'Import Data',
             ),
-            // trailing: const Icon(Icons.arrow_right,),
             onTap: () {
               Navigator.push(
                 context,
@@ -125,7 +122,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ListTile(
             title: const Text('Help and Support'),
-            // trailing: const Icon(Icons.arrow_right,),
             onTap: () {
               Navigator.push(
                   context,
@@ -150,6 +146,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       wifiNetworks = networks;
     });
-    print(networks);
   }
 }

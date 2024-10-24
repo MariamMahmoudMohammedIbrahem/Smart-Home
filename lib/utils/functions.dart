@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +17,6 @@ import 'package:http/http.dart' as http;
 void showSnack(BuildContext context, String message, String msg) {
   final currentTime = DateTime.now();
 
-  print(snackBarCount);
   if (snackBarCount < maxSnackBarCount && (lastSnackBarTime == null || currentTime.difference(lastSnackBarTime!).inSeconds > 2)) {
     final snackBar = SnackBar(
       content: Text(message),
@@ -86,8 +84,6 @@ class SocketManager {
               try {
                 Map<String, dynamic> jsonResponse = jsonDecode(response);
                 commandResponse = jsonResponse['commands'];
-                print(response);
-                print('commandResponse => $commandResponse');
                 addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': ''}, context);
                 if (commandResponse == 'UPDATE_OK' || commandResponse == 'SWITCH_WRITE_OK' || commandResponse == 'SWITCH_READ_OK') {
                   if (deviceStatus.firstWhere(
@@ -175,12 +171,10 @@ class SocketManager {
                     commandResponse == 'DOWNLOAD_NEW_FIRMWARE_OK' ||
                     commandResponse == 'DOWNLOAD_NEW_FIRMWARE_FAIL' ||
                     commandResponse.contains('DOWNLOAD_NEW_FIRMWARE_UPDATING') ) {
-                  print('updating......$commandResponse');
                   Provider.of<AuthProvider>(context, listen: false)
                       .firmwareUpdating(jsonResponse, context);
                 }
               } catch (e) {
-                print('error in catch $e');
               }
             }
           }
@@ -197,7 +191,6 @@ class SocketManager {
 
 void sendFrame(Map<String, dynamic> jsonFrame, String ipAddress, int port) {
   String frame = jsonEncode(jsonFrame);
-  print(jsonFrame);
   RawDatagramSocket.bind(InternetAddress.anyIPv4, 0)
       .then((RawDatagramSocket socket) {
     socket.broadcastEnabled = true;
@@ -226,19 +219,19 @@ class AuthProvider extends ChangeNotifier {
   bool get toggle => _toggle;
   bool get isDarkMode => _isDarkMode;
 
-  bool similarityCheck = false;
-  bool similarityDownload = false;
-  bool startedCheck = false;
-  bool startedDownload = false;
-  bool failedCheck = false;
-  bool failedDownload = false;
-  bool completedCheck = false;
-  bool completedDownload = false;
+  // bool similarityCheck = false;
+  // bool similarityDownload = false;
+  // bool startedCheck = false;
+  // bool startedDownload = false;
+  // bool failedCheck = false;
+  // bool failedDownload = false;
+  // bool completedCheck = false;
+  // bool completedDownload = false;
   double downloadedBytesSize = 0;
   double totalByteSize = 0;
   int downloadPercentage = 0;
-  bool updating = false;
-  String macFirmware = '';
+  // bool updating = false;
+  // String macFirmware = '';
   bool _connecting = false;
   bool get isConnected => _connecting;
   bool _notification = false;
@@ -300,7 +293,6 @@ class AuthProvider extends ChangeNotifier {
     }
     if (dataType == 'connecting') {
       _connecting = newValue;
-      print('connecting $_connecting');
     }
     if(dataType == 'notification') {
       _notification = newValue;
@@ -347,60 +339,18 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void firmwareUpdating(Map<String, dynamic> jsonResponse, BuildContext context) {
-    similarityDownload = false;
-    startedDownload = false;
-    failedDownload = false;
-    completedDownload = false;
-    downloadPercentage = 0;
-    macFirmware = jsonResponse['mac_address'];
     String command = jsonResponse['commands'];
-    print('command......$command');
-    switch (command) {
-      case 'CHECK_FOR_NEW_FIRMWARE_OK':
-        completedCheck = true;
-        break;
-      case 'CHECK_FOR_NEW_FIRMWARE_SAME':
-        similarityCheck = true;
-        // macVersion[jsonResponse['mac_address']] = true;
-        break;
-      case 'CHECK_FOR_NEW_FIRMWARE_FAIL':
-        failedCheck = true;
-        break;
-      case 'DOWNLOAD_NEW_FIRMWARE_SAME':
-        similarityDownload = true;
-        addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'DOWNLOAD_NEW_FIRMWARE_SAME'}, context);
-        break;
-      case 'DOWNLOAD_NEW_FIRMWARE_START':
-        updating = true;
-        startedDownload = true;
-        addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'DOWNLOAD_NEW_FIRMWARE_START'}, context);
-        break;
-      case 'DOWNLOAD_NEW_FIRMWARE_FAIL':
-        failedDownload = true;
-        addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'DOWNLOAD_NEW_FIRMWARE_FAIL'}, context);
-        break;
-      case 'DOWNLOAD_NEW_FIRMWARE_OK':
-        updating = false;
-        completedDownload = true;
-        addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'DOWNLOAD_NEW_FIRMWARE_OK'}, context);
-        break;
-      default:
-        RegExp regExp = RegExp(r'_(\d+)'); // Match all numbers preceded by an underscore
-        List<RegExpMatch> matches = regExp.allMatches(command).toList();
-        for (var match in matches) {
-          print('Match: ${match.group(1)}'); // Print each matched number
-        }
-        downloadedBytesSize = double.parse(matches[0].group(1)!);
-        totalByteSize = double.parse(matches[1].group(1)!);
-        double testingValue = downloadedBytesSize / totalByteSize * 100;
-        downloadPercentage = testingValue.toInt();
-        print('testing value $testingValue, download percentage $downloadPercentage');
-        addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'updating_$downloadPercentage'}, context);
-        if(downloadPercentage == 100){
-          completedDownload = true;
-          updating = false;
-        }
-        break;
+    if(command.startsWith('DOWNLOAD_NEW_FIRMWARE_UPDATING')){
+      RegExp regExp = RegExp(r'_(\d+)');
+      List<RegExpMatch> matches = regExp.allMatches(command).toList();
+      downloadedBytesSize = double.parse(matches[0].group(1)!);
+      totalByteSize = double.parse(matches[1].group(1)!);
+      double testingValue = downloadedBytesSize / totalByteSize * 100;
+      downloadPercentage = testingValue.toInt();
+      addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'updating_$downloadPercentage'}, context);
+    }
+    else{
+      addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': command}, context);
     }
     notifyListeners();
   }
@@ -565,29 +515,24 @@ final List<Map<String, dynamic>> messages = [
 ];
 
 void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynamic> newDevice, BuildContext context) {
-  print('NEWDEVICE $newDevice');
   String key = 'mac_address';
   bool exists = false;
 
   // device is already stored in the list
   // edit only when changed and status is not empty
   for (int i = 0; i < deviceList.length; i++) {
-    print('deviceList[i] ${deviceList[i]}, newDevice[key] ${newDevice}');
     if(deviceList[i]['status'] != '' && deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_START'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_OK'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_FAIL' && !deviceList[i]['status'].toString().startsWith('updating') && deviceList[i]['status'].toString() != 'OK'){
-      print("deviceList[i]['status'] => ${deviceList[i]['status']}");
       deviceList[i]['status'] = 'updating_${double.parse('${deviceList[i]['status']}').toInt()}';
     }
     if (deviceList[i][key] == newDevice[key]) {
 
        if(deviceList[i]['status'] != newDevice['status'] && newDevice['status'] != ''){
-        print('status changing $newDevice');
         deviceList[i] = newDevice;
         if(deviceList[i]['status'] == 'DOWNLOAD_NEW_FIRMWARE_OK'){
           deviceList[i]['status'] = '';
         }
       }
       else if(deviceList[i]['firmware_version'] != newDevice['firmware_version'] && newDevice['status'] == ''){
-        print('version changing');
         deviceList[i] = newDevice;
         checkFirmwareUpdates(macVersion, Provider.of<AuthProvider>(context, listen: false).firmwareInfo!, context);
       }
@@ -599,9 +544,7 @@ void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynami
   if (!exists) {
     deviceList.add(newDevice);
     checkFirmwareUpdates(macVersion, Provider.of<AuthProvider>(context, listen: false).firmwareInfo!, context);
-    print('newDevice is $newDevice');
   }
-  print('macVersion is => $macVersion');
 }
 
 ///*check firmware version in firebase storage**
@@ -609,36 +552,28 @@ Future<String?> checkFirmwareVersion(
     String folderPath, String fileName, BuildContext context) async {
    bool isConnected = await isConnectedToInternet();
    if(Provider.of<AuthProvider>(context, listen: false).isConnected != isConnected){
-     print('it is not the same');
      Provider.of<AuthProvider>(context, listen: false).toggling('connecting', isConnected);
      if (!isConnected) {
        return '';
      }
    }
-  print('Provider of connecting ${Provider.of<AuthProvider>(context, listen: false).isConnected}');
   try {
-    print('inside try, catch1');
     // Reference to the file in Firebase Storage (nested folder structure)
     Reference storageRef =
     FirebaseStorage.instance.ref().child('$folderPath/$fileName');
-    print('inside try, catch2 $storageRef');
     // Download the file content as raw bytes (limit to 1 MB)
 
     final fileData = await storageRef.getData(1024 * 1024);
-    print('inside try, catch3 $fileData, ${fileData != null}');
     if (fileData != null) {
       // Convert file data from bytes to string
       final fileContent = utf8.decode(fileData);
       if(Provider.of<AuthProvider>(context, listen: false).firmwareInfo != fileContent) {
         Provider.of<AuthProvider>(context, listen: false).updateFirmwareVersion(
             utf8.decode(fileData));
-        print('utf8 ${utf8.decode(fileData)}');
-        print("File content: ${Provider.of<AuthProvider>(context, listen: false).firmwareInfo}");
         return utf8.decode(fileData);
       }
     }
   } catch (e) {
-    print("Error reading file from Firebase: $e");
   }
   return null;
 }
@@ -652,6 +587,5 @@ void checkFirmwareUpdates(List<Map<String, dynamic>> devices, String firmwareInf
       break;
     }
   }
-  print('shouldToggleNotification $shouldToggleNotification');
   Provider.of<AuthProvider>(context, listen: false).toggling('notification', shouldToggleNotification);
 }
