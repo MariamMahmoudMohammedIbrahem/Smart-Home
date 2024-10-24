@@ -176,19 +176,9 @@ class SocketManager {
                     commandResponse == 'DOWNLOAD_NEW_FIRMWARE_FAIL' ||
                     commandResponse.contains('DOWNLOAD_NEW_FIRMWARE_UPDATING') ) {
                   print('updating......$commandResponse');
-                  /*macVersion.add({
-                    'MacAddress': jsonResponse['mac_address'],
-                    'FirmwareVersion': jsonResponse['firmware_version'],
-                  });
-                  print('macVersion is => $macVersion');*/
-                  // macVersion = [];
                   Provider.of<AuthProvider>(context, listen: false)
                       .firmwareUpdating(jsonResponse, context);
                 }
-                else{
-                  print('else');
-                  Provider.of<AuthProvider>(context, listen: false)
-                    .firmwareUpdating(jsonResponse, context);}
               } catch (e) {
                 print('error in catch $e');
               }
@@ -310,6 +300,7 @@ class AuthProvider extends ChangeNotifier {
     }
     if (dataType == 'connecting') {
       _connecting = newValue;
+      print('connecting $_connecting');
     }
     if(dataType == 'notification') {
       _notification = newValue;
@@ -581,11 +572,10 @@ void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynami
   // device is already stored in the list
   // edit only when changed and status is not empty
   for (int i = 0; i < deviceList.length; i++) {
-    // print('deviceList[i] ${deviceList[i]}, newDevice[key] ${newDevice}');
-    if(deviceList[i]['status'] != '' && deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_START'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_OK'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_FAIL' && !deviceList[i]['status'].toString().startsWith('updating')){
-      // print("deviceList[i]['status'] => ${deviceList[i]['status']}");
+    print('deviceList[i] ${deviceList[i]}, newDevice[key] ${newDevice}');
+    if(deviceList[i]['status'] != '' && deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_START'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_OK'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_FAIL' && !deviceList[i]['status'].toString().startsWith('updating') && deviceList[i]['status'].toString() != 'OK'){
+      print("deviceList[i]['status'] => ${deviceList[i]['status']}");
       deviceList[i]['status'] = 'updating_${double.parse('${deviceList[i]['status']}').toInt()}';
-
     }
     if (deviceList[i][key] == newDevice[key]) {
 
@@ -599,6 +589,7 @@ void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynami
       else if(deviceList[i]['firmware_version'] != newDevice['firmware_version'] && newDevice['status'] == ''){
         print('version changing');
         deviceList[i] = newDevice;
+        checkFirmwareUpdates(macVersion, Provider.of<AuthProvider>(context, listen: false).firmwareInfo!, context);
       }
       exists = true;
       continue;
@@ -617,34 +608,37 @@ void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynami
 Future<String?> checkFirmwareVersion(
     String folderPath, String fileName, BuildContext context) async {
    bool isConnected = await isConnectedToInternet();
-  if (!isConnected) {
-    Provider.of<AuthProvider>(context, listen: false).toggling('connection', false);
-    print('Provider of connection value ${Provider.of<AuthProvider>(context, listen:false).isConnected}');
-    return '';
-  }
+   if(Provider.of<AuthProvider>(context, listen: false).isConnected != isConnected){
+     print('it is not the same');
+     Provider.of<AuthProvider>(context, listen: false).toggling('connecting', isConnected);
+     if (!isConnected) {
+       return '';
+     }
+   }
+  print('Provider of connecting ${Provider.of<AuthProvider>(context, listen: false).isConnected}');
   try {
+    print('inside try, catch1');
     // Reference to the file in Firebase Storage (nested folder structure)
     Reference storageRef =
     FirebaseStorage.instance.ref().child('$folderPath/$fileName');
-
+    print('inside try, catch2 $storageRef');
     // Download the file content as raw bytes (limit to 1 MB)
-    final fileData = await storageRef.getData(1024 * 1024);
 
+    final fileData = await storageRef.getData(1024 * 1024);
+    print('inside try, catch3 $fileData, ${fileData != null}');
     if (fileData != null) {
       // Convert file data from bytes to string
-      // setState(() {
-      Provider.of<AuthProvider>(context, listen: false).updateFirmwareVersion(utf8.decode(fileData));
-        // firmwareInfo = utf8.decode(fileData);
-      // });
-      if (kDebugMode) {
+      final fileContent = utf8.decode(fileData);
+      if(Provider.of<AuthProvider>(context, listen: false).firmwareInfo != fileContent) {
+        Provider.of<AuthProvider>(context, listen: false).updateFirmwareVersion(
+            utf8.decode(fileData));
+        print('utf8 ${utf8.decode(fileData)}');
         print("File content: ${Provider.of<AuthProvider>(context, listen: false).firmwareInfo}");
+        return utf8.decode(fileData);
       }
-      return utf8.decode(fileData);
     }
   } catch (e) {
-    if (kDebugMode) {
-      print("Error reading file from Firebase: $e");
-    }
+    print("Error reading file from Firebase: $e");
   }
   return null;
 }

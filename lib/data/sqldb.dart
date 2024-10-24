@@ -217,6 +217,22 @@ class SqlDb {
     return deviceDetails;
   }
 
+  Future<List<Map<String, dynamic>>> getDevices(
+      List<int> roomIDs) async {
+    Database? myDb = await db;
+
+    String whereClause = 'RoomID IN (${List.filled(roomIDs.length, '?').join(', ')})';
+
+    List<Map<String, dynamic>> devices = await myDb!.query(
+      'Devices',
+      columns: ['MacAddress', 'RoomID'],
+      where: whereClause,
+      whereArgs: roomIDs,
+    );
+
+    print('devices is : $devices');
+    return devices;
+  }
   ///retrieve all Apartments
   Future<void> getAllApartments() async {
     Database? myDb = await db;
@@ -283,6 +299,7 @@ class SqlDb {
       final apartmentsData = await sqlDb.getDataFromTable('Apartments');
       final roomsData = await sqlDb.getDataFromTable('Rooms');
       final devicesData = await sqlDb.getDataFromTable('Devices');
+      print('devicesData => $devicesData');
 
       final Map<String, dynamic> allData = {
         'Apartments': apartmentsData,

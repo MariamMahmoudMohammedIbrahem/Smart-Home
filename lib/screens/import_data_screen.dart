@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart'
-as qr_scan;
+    as qr_scan;
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sqflite/sqflite.dart';
@@ -25,7 +25,6 @@ class ImportDataScreen extends StatefulWidget {
 
 class ImportDataScreenState extends State<ImportDataScreen>
     with SingleTickerProviderStateMixin {
-
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -54,96 +53,94 @@ class ImportDataScreenState extends State<ImportDataScreen>
         body: Center(
           child: progressValue == 0.0
               ? Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(50.0),
-                    child: QrImageView(
-                      data: '',
-                      version: QrVersions.auto,
-                      size: 200.0,
-                      eyeStyle: QrEyeStyle(
-                        eyeShape: QrEyeShape
-                            .square,
-                        color: isDarkMode
-                            ? Colors.grey.shade400
-                            : Colors.black,
-                      ),
-                      dataModuleStyle: QrDataModuleStyle(
-                        dataModuleShape: QrDataModuleShape
-                            .square,
-                        color: isDarkMode
-                            ? Colors.grey.shade400
-                            : Colors.black,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(50.0),
+                          child: QrImageView(
+                            data: '',
+                            version: QrVersions.auto,
+                            size: 200.0,
+                            eyeStyle: QrEyeStyle(
+                              eyeShape: QrEyeShape.square,
+                              color: isDarkMode
+                                  ? Colors.grey.shade400
+                                  : Colors.black,
+                            ),
+                            dataModuleStyle: QrDataModuleStyle(
+                              dataModuleShape: QrDataModuleShape.square,
+                              color: isDarkMode
+                                  ? Colors.grey.shade400
+                                  : Colors.black,
+                            ),
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: AnimatedBuilder(
+                            animation: animation,
+                            builder: (context, child) {
+                              return CustomPaint(
+                                painter: CornerZoomPainter(animation.value),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      width: width * .5,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF047424),
+                          foregroundColor:
+                              isDarkMode ? Colors.grey[900] : Colors.white,
+                        ),
+                        onPressed: () {
+                          scanQR(context);
+                        },
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Icon(Icons.qr_code_scanner_rounded),
+                            Text(
+                              'scan QR code',
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned.fill(
-                    child: AnimatedBuilder(
-                      animation: animation,
-                      builder: (context, child) {
-                        return CustomPaint(
-                          painter: CornerZoomPainter(animation.value),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                width: width * .5,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF047424),
-                    foregroundColor:
-                    isDarkMode ? Colors.grey[900] : Colors.white,
-                  ),
-                  onPressed: () {
-                    scanQR();
-                  },
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Icon(Icons.qr_code_scanner_rounded),
-                      Text(
-                        'scan QR code',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          )
+                  ],
+                )
               : Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                value: progressValue,
-                strokeWidth: 8.0,
-                color: const Color(0xFF047424),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                displayMessage,
-                style: const TextStyle(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF047424),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: progressValue,
+                      strokeWidth: 8.0,
+                      color: const Color(0xFF047424),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      displayMessage,
+                      style: const TextStyle(
+                        fontSize: 20.0,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF047424),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      '${(progressValue * 100).toInt()}%',
+                      style: const TextStyle(
+                        fontSize: 18.0,
+                        color: Color(0xFF047424),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                '${(progressValue * 100).toInt()}%',
-                style: const TextStyle(
-                  fontSize: 18.0,
-                  color: Color(0xFF047424),
-                ),
-              ),
-            ],
-          ),
         ));
   }
 
@@ -158,7 +155,7 @@ class ImportDataScreenState extends State<ImportDataScreen>
     animation = Tween<double>(begin: 0.0, end: 20.0).animate(controller);
   }
 
-  Future<void> scanQR() async {
+  Future<void> scanQR(BuildContext context) async {
     try {
       barcodeScanRes = await qr_scan.FlutterBarcodeScanner.scanBarcode(
           '#ff6666', 'Cancel', true, qr_scan.ScanMode.QR);
@@ -177,9 +174,9 @@ class ImportDataScreenState extends State<ImportDataScreen>
         file.writeAsBytesSync(response.bodyBytes);
         _startProgress();
         deleteOldFiles().then((value) => {
-          _startProgress(),
-          readJsonFromFile('$localFileName.json'),
-        });
+              _startProgress(),
+              readJsonFromFile('$localFileName.json', context),
+            });
         _startProgress();
       }
     } on PlatformException {
@@ -188,7 +185,7 @@ class ImportDataScreenState extends State<ImportDataScreen>
     if (!mounted) return;
   }
 
-  Future readJsonFromFile(String fileName) async {
+  Future readJsonFromFile(String fileName, BuildContext context) async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/$fileName');
@@ -198,15 +195,17 @@ class ImportDataScreenState extends State<ImportDataScreen>
       }
 
       final jsonData = await file.readAsString();
-      sqlDb.deleteAllRoomsAndDevices().then(
-              (value) => insertDataIntoDatabase(jsonDecode(jsonData), context));
+      sqlDb.deleteAllRoomsAndDevices().then((value) => {
+            _startProgress(),
+            insertDataIntoDatabase(jsonDecode(jsonData), context),
+          });
     } catch (e) {
       throw Exception("Error reading JSON file: $e");
     }
   }
 
   Future<void> insertDataIntoDatabase(
-      Map<String, dynamic> jsonData, context) async {
+      Map<String, dynamic> jsonData, BuildContext context) async {
     final database = openDatabase(
       join(await getDatabasesPath(), 'GlowGrid.db'),
     );
@@ -244,10 +243,12 @@ class ImportDataScreenState extends State<ImportDataScreen>
     sqlDb
         .getRoomsByApartmentID(context, apartmentMap.first['ApartmentID'])
         .then((value) {
+      ///maybe the problem start progress
       setState(() {
         Provider.of<AuthProvider>(context, listen: false)
             .toggling('loading', false);
       });
+      _startProgress();
       Navigator.pop(context);
     });
   }
@@ -255,7 +256,7 @@ class ImportDataScreenState extends State<ImportDataScreen>
   void _startProgress() {
     setState(() {
       timeElapsed++;
-      progressValue += 1 / 8;
+      progressValue += 1 / 10;
 
       for (var entry in messages) {
         if (timeElapsed >= entry["time"]) {
@@ -272,6 +273,7 @@ class ImportDataScreenState extends State<ImportDataScreen>
 
   @override
   void dispose() {
+    // progressValue = 0.0;
     controller.dispose();
     super.dispose();
   }

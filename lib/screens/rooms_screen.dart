@@ -7,7 +7,6 @@ import '../constants/constants.dart';
 import '../utils/functions.dart';
 // import 'package:badges/badges.dart';
 
-
 class RoomsScreen extends StatefulWidget {
   const RoomsScreen({super.key});
 
@@ -44,24 +43,22 @@ class _RoomsScreenState extends State<RoomsScreen>
                 onPressed: () {
                   sqlDb.getAllMacAddresses().then(
                         (value) => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SettingsScreen(),
-                      ),
-                    ),
-                  );
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsScreen(),
+                          ),
+                        ),
+                      );
                 },
-                icon: toggleProvider.notificationMark?const Badge(
-                  label: null,
-                  backgroundColor: Colors.red,
-                  child: Icon(
-                      Icons.settings_rounded,
-                      color: Color(0xFF047424)
-                  ), // Color of the indicator
-                ):const Icon(
-                    Icons.settings_rounded,
-                    color: Color(0xFF047424)
-                ),
+                icon: toggleProvider.notificationMark
+                    ? const Badge(
+                        label: null,
+                        backgroundColor: Colors.red,
+                        child: Icon(Icons.settings_rounded,
+                            color: Color(0xFF047424)), // Color of the indicator
+                      )
+                    : const Icon(Icons.settings_rounded,
+                        color: Color(0xFF047424)),
               );
             },
           ),

@@ -103,22 +103,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
-          ListTile(
-            title: const Text('Firmware Updating'),
-            trailing: Provider.of<AuthProvider>(context, listen: false)
-                    .notificationMark
-                ? const CircleAvatar(
-                    radius: 5,
-                    backgroundColor:
-                        Colors.red,
-                  )
-                : null,
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const FirmwareScreen(),
-                  ));
+          Consumer<AuthProvider>(
+            builder: (context, firmwareUpdating, child) {
+              return ListTile(
+                title: const Text('Firmware Updating'),
+                trailing: firmwareUpdating.notificationMark
+                    ? const CircleAvatar(
+                        radius: 5,
+                        backgroundColor: Colors.red,
+                      )
+                    : null,
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FirmwareScreen(),
+                      ));
+                },
+              );
             },
           ),
           ListTile(

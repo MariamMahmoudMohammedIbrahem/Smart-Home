@@ -156,6 +156,7 @@ double uploadProgress = 0.0;
 List<Map<String,dynamic>> macVersion = [];
 bool failed = false;
 Timer? timerPeriodic;
+bool waiting = false;
 
 ///*settings_screen.dart**
 List<WifiNetwork?> wifiNetworks = [];

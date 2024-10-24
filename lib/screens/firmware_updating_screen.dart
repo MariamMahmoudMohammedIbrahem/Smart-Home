@@ -47,10 +47,8 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
         child: SizedBox(
           height: height * .88,
           child: Center(
-            child: Provider.of<AuthProvider>(context, listen: false)
-                        .firmwareInfo ==
-                    null
-                ? Provider.of<AuthProvider>(context, listen: false).isConnected
+            child: Provider.of<AuthProvider>(context).firmwareInfo == null
+                ? Provider.of<AuthProvider>(context).isConnected
                     ? const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -83,7 +81,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                         padding: EdgeInsets.all(width * .03),
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
-                            color: Color(0xFF047424)),
+                            color: const Color(0xFF047424)),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -114,11 +112,11 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                           ],
                         ),
                       ),
-                      Expanded(
+                      /*Expanded(
                         child: ListView.builder(
                           itemCount: roomNames.length,
                           itemBuilder: (context, index) {
-                            sqlDb.getDeviceDetailsByRoomID(roomIDs[index]);
+                            sqlDb.getDevices(roomIDs);
                             return Padding(
                               padding: EdgeInsets.symmetric(
                                   horizontal: width * 0.07, vertical: 10),
@@ -138,47 +136,23 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                   ],
                                 ),
                                 children: [
-                                  /*FutureBuilder<List<Map<String, dynamic>>>(
-                                    future: sqlDb.getDeviceDetailsByRoomID(
-                                        roomIDs[index]),
+                                  FutureBuilder<List<Map<String, dynamic>>>(
+                                    future: sqlDb.getDevices(roomIDs),
                                     builder: (context, snapshot) {
                                       print('snapshot $snapshot');
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return const CircularProgressIndicator(); // Show loading indicator
-                                      } else if (snapshot.hasError) {
+                                      if (snapshot.hasError) {
                                         return Text("Error: ${snapshot.error}");
                                       } else if (!snapshot.hasData ||
                                           snapshot.data!.isEmpty) {
                                         return const Text("No devices found.");
                                       } else {
-                                        var deviceDetails = snapshot.data!;
-                                        print(deviceDetails);
                                         return ListView.builder(
                                           shrinkWrap: true,
                                           physics:
                                               const AlwaysScrollableScrollPhysics(),
-                                          itemCount: deviceDetails.length,
+                                          itemCount: snapshot.data!.length,
                                           itemBuilder: (content, innerIndex) {
-                                            final currentDevice =
-                                                deviceDetails[innerIndex];
-                                            final macAddress =
-                                                currentDevice['MacAddress'];
-// macVersion.any((device) => device['mac_address'] == deviceDetails[innerIndex]['MacAddress'] ,)? macVersion.firstWhere((device) =>device['mac_address'] == macAddress) : null;
-                                            bool deviceInMacVersion =
-                                                macVersion.any(
-                                              (device) =>
-                                                  device['mac_address'] ==
-                                                  macAddress,
-                                            );
-                                            final macVersionItem =
-                                                deviceInMacVersion
-                                                    ? macVersion.firstWhere(
-                                                        (device) =>
-                                                            device[
-                                                                'mac_address'] ==
-                                                            macAddress)
-                                                    : null;
+                                            print('innerIndex is $innerIndex');
                                             return Padding(
                                               padding: const EdgeInsets.only(
                                                 bottom: 8.0,
@@ -188,209 +162,145 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                               child: Consumer<AuthProvider>(
                                                 builder: (context,
                                                     firmwareUpdating, child) {
-                                                  return Column(
-                                                    children: [
-                                                      ListTile(
-                                                        leading: const Icon(
-                                                          Icons
-                                                              .lightbulb_circle_outlined,
-                                                          color:
-                                                              Color(0xFF047424),
-                                                        ),
-                                                        title: Text(currentDevice[
-                                                                'deviceName'] ??
-                                                            'Switch'),
+                                                    final deviceMacAddress =
+                                                        snapshot.data![
+                                                                innerIndex]
+                                                            ['MacAddress'];
+                                                    final matchedDevice =
+                                                        macVersion.firstWhere(
+                                                      (device) =>
+                                                          device[
+                                                              'mac_address'] ==
+                                                          deviceMacAddress,
+                                                      orElse: () =>
+                                                          {}, // Provide a default value
+                                                    );
+                                                    print(
+                                                        'cause is?${deviceDetails[innerIndex]}, $innerIndex, $deviceDetails');
+                                                    final firmwareVersion =
+                                                        matchedDevice.isNotEmpty
+                                                            ? matchedDevice[
+                                                                    'firmware_version'] ??
+                                                                'disconnected'
+                                                            : 'Device not connected';
 
-                                                        // Subtitle logic based on whether the device exists in macVersion
-                                                        subtitle:
-                                                            deviceInMacVersion
-                                                                ? Text(
-                                                                    '${macVersionItem!['firmware_version'] ?? 'disconnected'}',
-                                                                    style:
-                                                                        const TextStyle(
-                                                                      fontSize:
-                                                                          14,
-                                                                      color: Colors
-                                                                          .grey,
-                                                                    ),
-                                                                  )
-                                                                : const Text(
-                                                                    'Device not connected',
-                                                                    style: TextStyle(
+                                                    final deviceStatus =
+                                                        matchedDevice.isNotEmpty
+                                                            ? matchedDevice[
+                                                                    'status'] ??
+                                                                ''
+                                                            : '';
+                                                    return Column(
+                                                      children: [
+                                                        ListTile(
+                                                          leading: const Icon(
+                                                            Icons
+                                                                .lightbulb_circle_outlined,
+                                                            color: Color(
+                                                                0xFF047424),
+                                                          ),
+                                                          title: Text(snapshot
+                                                                          .data![
+                                                                      innerIndex]
+                                                                  [
+                                                                  'deviceName'] ??
+                                                              'Switch'),
+                                                          subtitle: Text(
+                                                            firmwareVersion,
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              color: matchedDevice
+                                                                      .isNotEmpty
+                                                                  ? Colors.grey
+                                                                  : Colors.red,
+                                                            ),
+                                                          ),
+                                                          trailing: matchedDevice
+                                                                  .isNotEmpty
+                                                              ? (firmwareVersion ==
+                                                                      Provider.of<AuthProvider>(context,
+                                                                              listen:
+                                                                                  false)
+                                                                          .firmwareInfo
+                                                                  ? const Text(
+                                                                      'up to date',
+                                                                      style:
+                                                                          TextStyle(
                                                                         fontSize:
-                                                                            14,
-                                                                        color: Colors
-                                                                            .red),
-                                                                  ),
-
-                                                        // Trailing button logic based on macVersion status
-                                                        trailing:
-                                                            deviceInMacVersion
-                                                                ? (macVersionItem?[
-                                                                            'firmware_version'] ==
-                                                                        Provider.of<AuthProvider>(context, listen: false)
-                                                                            .firmwareInfo
-                                                                    ? const Text(
-                                                                        'up to date',
-                                                                        style:
-                                                                            TextStyle(
-                                                                          fontSize:
-                                                                              16,
-                                                                          fontWeight:
-                                                                              FontWeight.bold,
-                                                                          color:
-                                                                              Color(0xFF047424),
-                                                                        ),
-                                                                      )
-                                                                    : macVersion.firstWhere((device) => device['mac_address'] == deviceDetails[innerIndex]['MacAddress'],)['status'] == 'DOWNLOAD_NEW_FIRMWARE_START'
-                                                                || macVersion.firstWhere((device) => device['mac_address'] == deviceDetails[innerIndex]['MacAddress'],)['status'] == 'DOWNLOAD_NEW_FIRMWARE_FAIL'
-                                                                || macVersion.firstWhere((device) => device['mac_address'] == deviceDetails[innerIndex]['MacAddress'],)['status'] == 'DOWNLOAD_NEW_FIRMWARE_OK'
-                                                                || '${macVersion.firstWhere((device) => device['mac_address'] == deviceDetails[innerIndex]['MacAddress'],)['status']}'.startsWith('updating')
-                                                                        ? _buildWidgetBasedOnState(
-                                                                            macVersionItem!)
-                                                                        : ElevatedButton(
-                                                                            onPressed:
-                                                                                () {
-                                                                              sendFrame({
-                                                                                'commands': 'DOWNLOAD_NEW_FIRMWARE',
-                                                                                'mac_address': macAddress,
-                                                                              }, '255.255.255.255', 8888);
-                                                                            },
-                                                                            child:
-                                                                                const Text('Update'),
-                                                                          ))
-                                                                : const SizedBox(), // Hide trailing with an empty SizedBox
-
-                                                        shape:
-                                                            RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(20),
-                                                          side: BorderSide(
-                                                              color: Colors
-                                                                  .green
-                                                                  .shade100),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      }
-                                    },
-                                  ),*/
-                                  FutureBuilder<List<Map<String, dynamic>>>(
-                                    future: sqlDb.getDeviceDetailsByRoomID(roomIDs[index]),
-                                    builder: (context, snapshot) {
-                                      print('snapshot $snapshot');
-                                      if (snapshot.connectionState == ConnectionState.waiting) {
-                                        return const CircularProgressIndicator(); // Show loading indicator
-                                      } else if (snapshot.hasError) {
-                                        return Text("Error: ${snapshot.error}");
-                                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                        return const Text("No devices found.");
-                                      } else {
-                                        return ListView.builder(
-                                          shrinkWrap: true,
-                                          physics: const AlwaysScrollableScrollPhysics(),
-                                          itemCount: snapshot.data!.length,
-                                          itemBuilder: (content, innerIndex) {
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                bottom: 8.0,
-                                                left: 8.0,
-                                                right: 8.0,
-                                              ),
-                                              child: Consumer<AuthProvider>(
-                                                builder: (context, firmwareUpdating, child) {
-                                                  final deviceMacAddress = snapshot.data![innerIndex]['MacAddress'];
-                                                  final matchedDevice = macVersion.firstWhere(
-                                                        (device) => device['mac_address'] == deviceMacAddress,
-                                                    orElse: () => {}, // Provide a default value
-                                                  );
-
-                                                  final firmwareVersion = matchedDevice.isNotEmpty
-                                                      ? matchedDevice['firmware_version'] ?? 'disconnected'
-                                                      : 'Device not connected';
-
-                                                  final deviceStatus = matchedDevice.isNotEmpty
-                                                      ? matchedDevice['status'] ?? ''
-                                                      : '';
-                                                  print('total: $deviceMacAddress.\n '
-                                                  '$macVersion.\n'
-                                                      'updating: ${deviceStatus.toString().startsWith('updating')}${matchedDevice['status'] is double}');
-                                                  return Column(
-                                                    children: [
-                                                      ListTile(
-                                                        leading: const Icon(
-                                                          Icons.lightbulb_circle_outlined,
-                                                          color: Color(0xFF047424),
-                                                        ),
-                                                        title: Text(snapshot.data![innerIndex]['deviceName'] ?? 'Switch'),
-                                                        subtitle: Text(
-                                                          firmwareVersion,
-                                                          style: TextStyle(
-                                                            fontSize: 14,
-                                                            color: matchedDevice.isNotEmpty ? Colors.grey : Colors.red,
+                                                                            16,
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                        color: Color(
+                                                                            0xFF047424),
+                                                                      ),
+                                                                    )
+                                                                  : deviceStatus.toString().startsWith(
+                                                                              'updating') ||
+                                                                          deviceStatus
+                                                                              is double ||
+                                                                          deviceStatus.toString() ==
+                                                                              'DOWNLOAD_NEW_FIRMWARE_START' ||
+                                                                          deviceStatus.toString() ==
+                                                                              'DOWNLOAD_NEW_FIRMWARE_FAIL' ||
+                                                                          deviceStatus.toString() ==
+                                                                              'DOWNLOAD_NEW_FIRMWARE_OK'
+                                                                      ? _buildWidgetBasedOnState(
+                                                                          matchedDevice)
+                                                                      : (macVersion.isEmpty ||
+                                                                              !macVersion.any((element) => element['mac_address'] == deviceDetails[innerIndex]['MacAddress']))
+                                                                          ? ElevatedButton(
+                                                                              onPressed: () {
+                                                                                sendFrame(
+                                                                                  {
+                                                                                    'commands': 'CHECK_FOR_NEW_FIRMWARE',
+                                                                                    'mac_address': deviceMacAddress,
+                                                                                  },
+                                                                                  '255.255.255.255',
+                                                                                  8888,
+                                                                                );
+                                                                              },
+                                                                              child: const Text('check'),
+                                                                            )
+                                                                          : deviceStatus.toString() == 'OK'
+                                                                              ? const Text(
+                                                                                  'Waiting...',
+                                                                                  style: TextStyle(
+                                                                                    color: Color(0xFF047424),
+                                                                                  ),
+                                                                                )
+                                                                              : ElevatedButton(
+                                                                                  onPressed: () {
+                                                                                    Fluttertoast.showToast(
+                                                                                      msg: 'wait a second',
+                                                                                      backgroundColor: const Color(0xFF047424),
+                                                                                      textColor: Colors.white,
+                                                                                    );
+                                                                                    sendFrame(
+                                                                                      {
+                                                                                        "commands": 'DOWNLOAD_NEW_FIRMWARE',
+                                                                                        "mac_address": deviceMacAddress,
+                                                                                      },
+                                                                                      '255.255.255.255',
+                                                                                      8888,
+                                                                                    );
+                                                                                  },
+                                                                                  child: const Text('Update'),
+                                                                                ))
+                                                              : const SizedBox(),
+                                                          shape:
+                                                              RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20),
+                                                            side: BorderSide(
+                                                                color: Colors
+                                                                    .green
+                                                                    .shade100),
                                                           ),
                                                         ),
-                                                        trailing: matchedDevice.isNotEmpty
-                                                            ? (firmwareVersion == Provider.of<AuthProvider>(context, listen: false).firmwareInfo
-                                                            ? const Text(
-                                                          'up to date',
-                                                          style: TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight: FontWeight.bold,
-                                                            color: Color(0xFF047424),
-                                                          ),
-                                                        )
-                                                            : deviceStatus.toString().startsWith('updating') ||
-                                                             deviceStatus is double ||
-                                                            deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_START' ||
-                                                            deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_FAIL' ||
-                                                            deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_OK'
-                                                            ? _buildWidgetBasedOnState(matchedDevice)
-                                                            : ElevatedButton(
-                                                          onPressed: () {
-                                                            Fluttertoast.showToast(
-                                                              msg: 'wait a second',
-                                                              backgroundColor: const Color(0xFF047424),
-                                                              textColor: Colors.white,
-                                                            );
-                                                            sendFrame(
-                                                              {
-                                                                "commands": 'DOWNLOAD_NEW_FIRMWARE',
-                                                                "mac_address": deviceMacAddress,
-                                                              },
-                                                              '255.255.255.255',
-                                                              8888,
-                                                            );
-                                                          },
-                                                          child: const Text('Update'),
-                                                        ))
-                                                            : ElevatedButton(
-                                                          onPressed: () {
-                                                            sendFrame(
-                                                              {
-                                                                'commands': 'CHECK_FOR_NEW_FIRMWARE',
-                                                                'mac_address': deviceMacAddress,
-                                                              },
-                                                              '255.255.255.255',
-                                                              8888,
-                                                            );
-                                                          },
-                                                          child: const Text('check'),
-                                                        ),
-                                                        shape: RoundedRectangleBorder(
-                                                          borderRadius: BorderRadius.circular(20),
-                                                          side: BorderSide(color: Colors.green.shade100),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
+                                                      ],
+                                                    );
                                                 },
                                               ),
                                             );
@@ -399,14 +309,173 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                       }
                                     },
                                   ),
-
                                 ],
                               ),
                             );
                           },
                         ),
+                      ),*/
+          Expanded(
+            child: ListView.builder(
+              itemCount: roomNames.length,
+              itemBuilder: (context, index) {
+                // Fetch the devices for the specific room by passing its RoomID
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: width * 0.07, vertical: 10),
+                  child: ExpansionTile(
+                    title: Row(
+                      children: [
+                        Icon(
+                          getIconName(roomNames[index]),
+                          color: const Color(0xFF047424),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(roomNames[index]),
+                      ],
+                    ),
+                    children: [
+                      FutureBuilder<List<Map<String, dynamic>>>(
+                        future: sqlDb.getDevices([roomIDs[index]]), // Fetch devices for the current roomID
+                        builder: (context, snapshot) {
+                          print('snapshot $snapshot');
+                          if (snapshot.hasError) {
+                            return Text("Error: ${snapshot.error}");
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Text("No devices found.");
+                          } else {
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, innerIndex) {
+                                print('innerIndex is $innerIndex');
+                                final deviceMacAddress = snapshot.data![innerIndex]['MacAddress'];
+                                final matchedDevice = macVersion.firstWhere(
+                                      (device) => device['mac_address'] == deviceMacAddress,
+                                  orElse: () => {},
+                                );
+                                final firmwareVersion = matchedDevice.isNotEmpty
+                                    ? matchedDevice['firmware_version'] ?? 'disconnected'
+                                    : 'Device not connected';
+
+                                final deviceStatus = matchedDevice.isNotEmpty
+                                    ? matchedDevice['status'] ?? ''
+                                    : '';
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
+                                  child: Consumer<AuthProvider>(
+                                    builder: (context, firmwareUpdating, child) {
+                                      return Column(
+                                        children: [
+                                          ListTile(
+                                            leading: const Icon(
+                                              Icons.lightbulb_circle_outlined,
+                                              color: Color(0xFF047424),
+                                            ),
+                                            title: Text(
+                                              snapshot.data![innerIndex]['deviceName'] ?? 'Switch',
+                                            ),
+                                            subtitle: Text(
+                                              firmwareVersion,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: matchedDevice.isNotEmpty
+                                                    ? Colors.grey
+                                                    : Colors.red,
+                                              ),
+                                            ),
+                                            trailing: matchedDevice.isNotEmpty
+                                                ? (firmwareVersion ==
+                                                Provider.of<AuthProvider>(context, listen: false)
+                                                    .firmwareInfo
+                                                ? const Text(
+                                              'up to date',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF047424),
+                                              ),
+                                            )
+                                                : deviceStatus.toString() == 'OK' ||
+                                                deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_START' ||
+                                                deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_FAIL' ||
+                                                deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_OK' ||
+                                                deviceStatus.toString().startsWith('updating') ||
+                                                deviceStatus is double
+                                                ? _buildWidgetBasedOnState(matchedDevice)
+                                                : (macVersion.isEmpty ||
+                                                !macVersion.any((element) =>
+                                                element['mac_address'] ==
+                                                    snapshot.data![innerIndex]['MacAddress']))
+                                                ? ElevatedButton(
+                                              onPressed: () {
+                                                sendFrame(
+                                                  {
+                                                    'commands': 'CHECK_FOR_NEW_FIRMWARE',
+                                                    'mac_address': deviceMacAddress,
+                                                  },
+                                                  '255.255.255.255',
+                                                  8888,
+                                                );
+                                              },
+                                              child: const Text('check'),
+                                            )
+                                                : ElevatedButton(
+                                              onPressed: () {
+                                                Fluttertoast.showToast(
+                                                  msg: 'wait a second',
+                                                  backgroundColor: const Color(0xFF047424),
+                                                  textColor: Colors.white,
+                                                );
+                                                sendFrame(
+                                                  {
+                                                    "commands": 'DOWNLOAD_NEW_FIRMWARE',
+                                                    "mac_address": deviceMacAddress,
+                                                  },
+                                                  '255.255.255.255',
+                                                  8888,
+                                                );
+                                                setState(() {
+                                                  addOrUpdateDevice(macVersion,{'mac_address': deviceMacAddress, 'firmware_version': firmwareVersion, 'status': 'OK'}, context);
+                                                  Future.delayed(const Duration(seconds: 5), () {
+                                                    if(deviceStatus.toString() == 'OK') {
+                                                      addOrUpdateDevice(
+                                                          macVersion, {
+                                                        'mac_address': deviceMacAddress,
+                                                        'firmware_version': firmwareVersion,
+                                                        'status': ''
+                                                      }, context);
+                                                    }
+                                                  });
+                                                });
+                                              },
+                                              child: const Text('Update'),
+                                            ))
+                                                : const SizedBox(),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(20),
+                                              side: BorderSide(color: Colors.green.shade100),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            );
+                          }
+                        },
                       ),
                     ],
+                  ),
+                );
+              },
+            ),
+          ),
+
+          ],
                   ),
           ),
         ),
@@ -414,7 +483,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
     );
   }
 
-  @override
+  /*@override
   void initState() {
     super.initState();
     // WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -425,10 +494,10 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
         .then(
       (value) => {
         print('inside initState'),
-        /*setState(() {
+        */ /*setState(() {
           firmwareInfo = firmwareInfo;
-        }),*/
-        /*Provider.of<AuthProvider>(context).updateFirmwareVersion(value!),*/
+        }),*/ /*
+        */ /*Provider.of<AuthProvider>(context).updateFirmwareVersion(value!),*/ /*
       },
     );
     // .then((value) {
@@ -444,7 +513,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
     //   print('not similar');
     // }
     // });
-  }
+  }*/
 
   AuthProvider? _authProvider;
   @override
@@ -472,6 +541,8 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
       ///TODO: add case complete check
     } else if (deviceStatus['status'] == 'CHECK_FOR_NEW_FIRMWARE_FAIL') {
       ///TODO: add case failed check
+    } else if (deviceStatus['status'] == 'OK'){
+      state = 6;
     } else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_START') {
       state = 2;
     } else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_FAIL') {
@@ -487,10 +558,9 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
       deviceStatus['status'] = double.parse(matches[0].group(1)!);
       print('is it double or not ${deviceStatus['status']}');
       state = 4;
-    } else if(deviceStatus['status'] is double) {
+    } else if (deviceStatus['status'] is double) {
       state = 4;
-    }
-    else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_OK') {
+    } else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_OK') {
       state = 5;
     }
     if (kDebugMode) {
@@ -518,6 +588,19 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                   "commands": 'DOWNLOAD_NEW_FIRMWARE',
                   "mac_address": deviceStatus['mac_address']
                 }, '255.255.255.255', 8888);
+                setState(() {
+                  addOrUpdateDevice(macVersion,{'mac_address': deviceStatus['mac_address'], 'firmware_version': deviceStatus['firmware_version'], 'status': 'OK'}, context);
+                  Future.delayed(const Duration(seconds: 5), () {
+                    if(deviceStatus.toString() == 'OK') {
+                      addOrUpdateDevice(
+                          macVersion, {
+                        'mac_address': deviceStatus['mac_address'],
+                        'firmware_version': deviceStatus['firmware_version'],
+                        'status': ''
+                      }, context);
+                    }
+                  });
+                });
               },
               child: const Row(children: [
                 Icon(
@@ -567,7 +650,8 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
             size: 50,
           ),
         );
-
+      case 6:
+        return const Text('Waiting...', style: TextStyle(color: Color(0xFF047424),),);
       default:
         return const SizedBox();
     }

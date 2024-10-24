@@ -126,6 +126,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                                   .getDeviceDetailsByRoomID(
                                                   widget.roomID)
                                                   .then((value) => {
+                                                    sqlDb.exportData(),
                                                 Provider.of<AuthProvider>(
                                                     context,
                                                     listen:
