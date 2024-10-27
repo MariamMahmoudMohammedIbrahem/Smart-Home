@@ -151,7 +151,6 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                 final deviceStatus = matchedDevice.isNotEmpty
                                     ? matchedDevice['status'] ?? ''
                                     : '';
-
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
                                   child: Consumer<AuthProvider>(
@@ -191,8 +190,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                                 deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_START' ||
                                                 deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_FAIL' ||
                                                 deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_OK' ||
-                                                deviceStatus.toString().startsWith('updating') ||
-                                                deviceStatus is double
+                                                double.tryParse(deviceStatus) != null
                                                 ? _buildWidgetBasedOnState(matchedDevice)
                                                 : (macVersion.isEmpty ||
                                                 !macVersion.any((element) =>
@@ -288,14 +286,14 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
       state = 3;
     } else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_FAIL') {
       state = 4;
-    } else if ('${deviceStatus['status']}'.startsWith('updating')) {
+    } /*else if ('${deviceStatus['status']}'.startsWith('updating')) {
       RegExp regExp =
           RegExp(r'_(\d+)');
       List<RegExpMatch> matches =
           regExp.allMatches(deviceStatus['status']).toList();
       deviceStatus['status'] = double.parse(matches[0].group(1)!);
       state = 5;
-    } else if (deviceStatus['status'] is double) {
+    }*/ else if (double.tryParse(deviceStatus['status']) != null) {
       state = 5;
     } else if (deviceStatus['status'] == 'DOWNLOAD_NEW_FIRMWARE_OK') {
       state = 6;
@@ -350,7 +348,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
         );
 
       case 5:
-        double downloadProgress = deviceStatus['status'] / 100;
+        double downloadProgress = double.parse(deviceStatus['status']) / 100;
         return Stack(
           alignment: Alignment.center,
           children: [

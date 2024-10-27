@@ -83,6 +83,7 @@ class SocketManager {
             } else {
               try {
                 Map<String, dynamic> jsonResponse = jsonDecode(response);
+                print('jsonResponse $jsonResponse');
                 commandResponse = jsonResponse['commands'];
                 addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': ''}, context);
                 if (commandResponse == 'UPDATE_OK' || commandResponse == 'SWITCH_WRITE_OK' || commandResponse == 'SWITCH_READ_OK') {
@@ -347,7 +348,7 @@ class AuthProvider extends ChangeNotifier {
       totalByteSize = double.parse(matches[1].group(1)!);
       double testingValue = downloadedBytesSize / totalByteSize * 100;
       downloadPercentage = testingValue.toInt();
-      addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': 'updating_$downloadPercentage'}, context);
+      addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': '${downloadPercentage.toDouble()}'}, context);
     }
     else{
       addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': command}, context);
@@ -521,9 +522,10 @@ void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynami
   // device is already stored in the list
   // edit only when changed and status is not empty
   for (int i = 0; i < deviceList.length; i++) {
-    if(deviceList[i]['status'] != '' && deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_START'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_OK'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_FAIL' && !deviceList[i]['status'].toString().startsWith('updating') && deviceList[i]['status'].toString() != 'OK'){
-      deviceList[i]['status'] = 'updating_${double.parse('${deviceList[i]['status']}').toInt()}';
-    }
+    // if(deviceList[i]['status'] != '' && deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_START'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_OK'&& deviceList[i]['status'] != 'DOWNLOAD_NEW_FIRMWARE_FAIL' && !deviceList[i]['status'].toString().startsWith('updating') && deviceList[i]['status'].toString() != 'OK'){
+    //   deviceList[i]['status'] = 'updating_${double.parse('${deviceList[i]['status']}').toInt()}';
+    // }
+    print('${deviceList[i]}, $newDevice');
     if (deviceList[i][key] == newDevice[key]) {
 
        if(deviceList[i]['status'] != newDevice['status'] && newDevice['status'] != ''){
