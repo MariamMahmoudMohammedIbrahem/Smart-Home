@@ -26,7 +26,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             Flexible(
               child: Image.asset(
-                'images/light-control-light.gif',
+                'assets/images/light-control-light.gif',
               ),
             ),
             const Column(

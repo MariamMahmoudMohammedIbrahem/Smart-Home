@@ -87,7 +87,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                   radius: 30,
                                   backgroundColor: Colors.grey.shade100,
                                   backgroundImage:
-                                      const AssetImage('images/appIcon.png'),
+                                      const AssetImage('assets/images/appIcon.png'),
                                 ),
                                 const SizedBox(
                                   width: 20,

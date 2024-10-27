@@ -21,7 +21,7 @@ class LoadingScreenState extends State<LoadingScreen> {
       backgroundColor: const Color(0xFF047424),
       body: Center(
         child: Image.asset(
-          'images/loading-animate.gif',
+          'assets/images/loading-animate.gif',
         ),
       ),
     );

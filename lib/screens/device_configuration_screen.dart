@@ -265,8 +265,8 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
 
                   Image.asset(
                     Provider.of<AuthProvider>(context, listen: false).isDarkMode
-                        ? 'images/light-control-dark.gif'
-                        : 'images/light-control-light.gif',
+                        ? 'assets/images/light-control-dark.gif'
+                        : 'assets/images/light-control-light.gif',
                   ),
                 ],
               ),
@@ -422,8 +422,8 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
 
                   Image.asset(
                     Provider.of<AuthProvider>(context, listen: false).isDarkMode
-                        ? 'images/light-control-dark.gif'
-                        : 'images/light-control-light.gif',
+                        ? 'assets/images/light-control-dark.gif'
+                        : 'assets/images/light-control-light.gif',
                   ),
                 ],
               ),
