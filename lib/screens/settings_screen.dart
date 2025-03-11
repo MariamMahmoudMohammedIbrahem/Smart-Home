@@ -1,14 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:mega/screens/export_data_screen.dart';
-import 'package:mega/screens/firmware_updating_screen.dart';
-import 'package:mega/screens/support_screen.dart';
-import 'package:provider/provider.dart';
-import 'package:wifi_iot/wifi_iot.dart';
-
-import '../constants/constants.dart';
-import '../utils/functions.dart';
-import 'device_configuration_screen.dart';
-import 'import_data_screen.dart';
+import '../commons.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -23,9 +13,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: const Color(0xFF70AD61),
-        shadowColor: const Color(0xFF609e51),
-        backgroundColor: const Color(0xFF047424),
+        surfaceTintColor: MyColors.greenLight1,
+        shadowColor: MyColors.greenLight2,
+        backgroundColor: MyColors.greenDark1,
         foregroundColor: Colors.white,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(

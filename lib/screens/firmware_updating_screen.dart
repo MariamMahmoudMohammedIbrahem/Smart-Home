@@ -1,10 +1,4 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-
-import '../constants/constants.dart';
-import '../utils/functions.dart';
+import '../commons.dart';
 
 class FirmwareScreen extends StatefulWidget {
   const FirmwareScreen({super.key});
@@ -20,9 +14,9 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: const Color(0xFF70AD61),
-        shadowColor: const Color(0xFF609e51),
-        backgroundColor: const Color(0xFF047424),
+        surfaceTintColor: MyColors.greenLight1,
+        shadowColor: MyColors.greenLight2,
+        backgroundColor: MyColors.greenDark1,
         foregroundColor: Colors.white,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -77,7 +71,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                         padding: EdgeInsets.all(width * .03),
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
-                            color: const Color(0xFF047424)),
+                            color: MyColors.greenDark1),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -89,9 +83,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                   backgroundImage:
                                       const AssetImage('assets/images/appIcon.png'),
                                 ),
-                                const SizedBox(
-                                  width: 20,
-                                ),
+                                width20,
                                 Consumer(builder:
                                     (context, firmwareUpdating, child) {
                                   return Text(
@@ -119,15 +111,15 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                       children: [
                         Icon(
                           getIconName(roomNames[index]),
-                          color: const Color(0xFF047424),
+                          color: MyColors.greenDark1,
                         ),
-                        const SizedBox(width: 10),
+                        width10,
                         Text(roomNames[index]),
                       ],
                     ),
                     children: [
                       FutureBuilder<List<Map<String, dynamic>>>(
-                        future: sqlDb.getDevices([roomIDs[index]]),
+                        future: getDevices([roomIDs[index]]),
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
                             return Text("Error: ${snapshot.error}");
@@ -160,7 +152,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                           ListTile(
                                             leading: const Icon(
                                               Icons.lightbulb_circle_outlined,
-                                              color: Color(0xFF047424),
+                                              color: MyColors.greenDark1,
                                             ),
                                             title: Text(
                                               snapshot.data![innerIndex]['deviceName'] ?? 'Switch',
@@ -183,7 +175,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                               style: TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
-                                                color: Color(0xFF047424),
+                                                color: MyColors.greenDark1,
                                               ),
                                             )
                                                 : deviceStatus.toString() == 'OK' ||
@@ -203,8 +195,8 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                                     'commands': 'CHECK_FOR_NEW_FIRMWARE',
                                                     'mac_address': deviceMacAddress,
                                                   },
-                                                  '255.255.255.255',
-                                                  8888,
+                                                  ip,
+                                                  port,
                                                 );
                                               },
                                               child: const Text('check'),
@@ -213,7 +205,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                               onPressed: () {
                                                 Fluttertoast.showToast(
                                                   msg: 'wait a second',
-                                                  backgroundColor: const Color(0xFF047424),
+                                                  backgroundColor: MyColors.greenDark1,
                                                   textColor: Colors.white,
                                                 );
                                                 sendFrame(
@@ -221,8 +213,8 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                                     "commands": 'DOWNLOAD_NEW_FIRMWARE',
                                                     "mac_address": deviceMacAddress,
                                                   },
-                                                  '255.255.255.255',
-                                                  8888,
+                                                  ip,
+                                                  port,
                                                 );
                                                 setState(() {
                                                   addOrUpdateDevice(macVersion,{'mac_address': deviceMacAddress, 'firmware_version': firmwareVersion, 'status': 'OK'}, context);
@@ -240,7 +232,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                                               },
                                               child: const Text('Update'),
                                             ))
-                                                : const SizedBox(),
+                                                : kEmptyWidget,
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(20),
                                               side: BorderSide(color: Colors.green.shade100),
@@ -308,7 +300,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
         );
 
       case 2:
-        return const Text('Waiting...', style: TextStyle(color: Color(0xFF047424),),);
+        return const Text('Waiting...', style: TextStyle(color: MyColors.greenDark1,),);
 
       case 3:
         return const CircularProgressIndicator();
@@ -316,13 +308,13 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
       case 4:
         return CircleAvatar(
           radius: 50,
-          backgroundColor: const Color(0xFF047424),
+          backgroundColor: MyColors.greenDark1,
           child: ElevatedButton(
               onPressed: () {
                 sendFrame({
                   "commands": 'DOWNLOAD_NEW_FIRMWARE',
                   "mac_address": deviceStatus['mac_address']
-                }, '255.255.255.255', 8888);
+                }, ip, port);
                 setState(() {
                   addOrUpdateDevice(macVersion,{'mac_address': deviceStatus['mac_address'], 'firmware_version': deviceStatus['firmware_version'], 'status': 'OK'}, context);
                   Future.delayed(const Duration(seconds: 5), () {
@@ -360,7 +352,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
                 strokeWidth: 8,
                 backgroundColor: Colors.grey.shade200,
                 valueColor: const AlwaysStoppedAnimation<Color>(
-                  Color(0xFF047424),
+                  MyColors.greenDark1,
                 ),
               ),
             ),
@@ -369,7 +361,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF047424),
+                color: MyColors.greenDark1,
               ),
             ),
           ],
@@ -378,7 +370,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
       case 6:
         return const CircleAvatar(
           radius: 50,
-          backgroundColor: Color(0xFF047424),
+          backgroundColor: MyColors.greenDark1,
           child: Icon(
             Icons.done,
             color: Colors.white,
@@ -387,7 +379,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
         );
 
       default:
-        return const SizedBox();
+        return kEmptyWidget;
     }
   }
 }

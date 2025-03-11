@@ -1,15 +1,11 @@
-import 'dart:async';
-
-import 'package:flutter/material.dart';
-import 'package:wifi_iot/wifi_iot.dart';
-import '../data/sqldb.dart';
+import '../commons.dart';
 
 ///*multiple usage**
 SqlDb sqlDb = SqlDb();
 List<Map<String, dynamic>> apartmentMap = [];
 var macMap = [];
 bool eye = true;
-Color currentColor = const Color(0xFF087424);
+Color currentColor = MyColors.greenDark2;
 Color tempColor = currentColor;
 List<String> roomNames = [];
 List<int>  roomIDs = [];
@@ -46,6 +42,12 @@ int pressCount = 0;
 
 ///*functions.dart**
 var commandResponse = '';
+final List<Map<String, dynamic>> messages = [
+  {"time": 2, "message": "Preparing files..."},
+  {"time": 5, "message": "Downloading..."},
+  {"time": 8, "message": "Almost there..."},
+  {"time": 10, "message": "Download complete!"}
+];
 
 ///*import_data_screen.dart**
 bool reformattingData = false;
@@ -58,83 +60,6 @@ late Animation<double> animation;
 double progressValue = 0.0;
 String displayMessage = "Starting download...";
 int timeElapsed = 0;
-
-///*main.dart**
-// Custom Light Theme
-ThemeData lightTheme = ThemeData(
-  brightness: Brightness.light,
-  primaryColor: const Color(0xFF047424),
-  colorScheme: const ColorScheme.light(
-    primary: Color(0xFF047424),
-    secondary: Color(0xFF047424),
-  ),
-  scaffoldBackgroundColor: Colors.white,
-  appBarTheme: const AppBarTheme(
-    titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
-  ),
-  textTheme: TextTheme(
-    bodyMedium: const TextStyle(color: Colors.black, fontSize: 16),
-    bodySmall: TextStyle(color: Colors.grey[800]),
-  ),
-  textSelectionTheme: const TextSelectionThemeData(
-    cursorColor: Color(0xFF047424),
-    selectionHandleColor: Colors.green,
-  ),
-  switchTheme: SwitchThemeData(
-    splashRadius: 50.0,
-    thumbColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
-        return const Color(0xFF609e51);
-      }
-      return Colors.grey.shade300;
-    }),
-    trackColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
-        return const Color(0xFF047424);
-      }
-      return Colors.grey.shade800;
-    }),
-  ),
-);
-
-// Custom Dark Theme
-ThemeData darkTheme = ThemeData(
-  brightness: Brightness.dark,
-  primaryColor: const Color(0xFF047424),
-  colorScheme: const ColorScheme.dark(
-    primary: Color(0xFF047424),
-    onPrimary: Colors.white,
-    secondary: Color(0xFF047424),
-  ),
-  scaffoldBackgroundColor: Colors.black,
-  appBarTheme: const AppBarTheme(
-    backgroundColor: Colors.black,
-    titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
-  ),
-  textTheme: TextTheme(
-    bodyMedium: const TextStyle(color: Colors.white, fontSize: 16),
-    bodySmall: TextStyle(color: Colors.grey[300]),
-  ),
-  textSelectionTheme: const TextSelectionThemeData(
-    cursorColor: Color(0xFF047424),
-    selectionHandleColor: Colors.green,
-  ),
-  switchTheme: SwitchThemeData(
-    splashRadius: 50.0,
-    thumbColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
-        return const Color(0xFF609e51);
-      }
-      return Colors.grey.shade300;
-    }),
-    trackColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
-        return const Color(0xFF047424);
-      }
-      return Colors.grey.shade800;
-    }),
-  ),
-);
 
 ///*room_details_screen.dart**
 List ledInfo = ['light lamp', 'light lamp', 'RGB led', 'connection led'];
@@ -155,3 +80,6 @@ bool waiting = false;
 
 ///*settings_screen.dart**
 List<WifiNetwork?> wifiNetworks = [];
+
+String ip = "255.255.255.255";
+int port = 8888;

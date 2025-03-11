@@ -1,11 +1,5 @@
-import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:mega/utils/functions.dart';
-import 'package:provider/provider.dart';
-
-import '../constants/constants.dart';
+import '../commons.dart';
 
 class RoomDetailsScreen extends StatefulWidget {
   final String roomName;
@@ -29,9 +23,9 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: const Color(0xFF70AD61),
-        shadowColor: const Color(0xFF609e51),
-        backgroundColor: const Color(0xFF047424),
+        surfaceTintColor: MyColors.greenLight1,
+        shadowColor: MyColors.greenLight2,
+        backgroundColor: MyColors.greenDark1,
         foregroundColor: Colors.white,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -43,9 +37,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
             Text(
               widget.roomName,
             ),
-            const SizedBox(
-              width: 5,
-            ),
+            width5,
             Icon(
               getIconName(
                 widget.roomName,
@@ -53,6 +45,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
             ),
           ],
         ),
+        centerTitle: true,
         titleTextStyle: const TextStyle(
           color: Colors.white,
           fontSize: 26,
@@ -101,17 +94,16 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                         ListTile(
                                           leading: const Icon(
                                             Icons.delete,
-                                            color: Color(0xFF047424),
+                                            color: MyColors.greenDark1,
                                           ),
                                           title: const Text(
                                             'Delete',
                                             style: TextStyle(
-                                              color: Color(0xFF047424),
+                                              color: MyColors.greenDark1,
                                             ),
                                           ),
                                           onTap: () {
-                                            sqlDb
-                                                .deleteDeviceByMacAddress(
+                                            deleteDeviceByMacAddress(
                                               macAddressDevice,
                                             )
                                                 .then((value) => {
@@ -122,11 +114,10 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                                 'delete',
                                                 true,
                                               ),
-                                              sqlDb
-                                                  .getDeviceDetailsByRoomID(
+                                              getDeviceDetailsByRoomID(
                                                   widget.roomID)
                                                   .then((value) => {
-                                                    sqlDb.exportData(),
+                                                    exportData(),
                                                 Provider.of<AuthProvider>(
                                                     context,
                                                     listen:
@@ -152,17 +143,17 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                             style: ElevatedButton.styleFrom(
                               side: BorderSide(
                                 color: macAddress == macAddressDevice
-                                    ? const Color(0xFF047424)
+                                    ? MyColors.greenDark1
                                     : Colors.grey,
                               ),
                               backgroundColor: macAddress == macAddressDevice
-                                  ? const Color(0xffcbe3c5)
+                                  ? MyColors.greyLight
                                   : Colors.white,
                             ),
                             child: Text(
                               device['DeviceType'] ?? "Switch",
                               style: const TextStyle(
-                                color: Color(0xFF047424),
+                                color: MyColors.greenDark1,
                               ),
                             ),
                           ),
@@ -171,9 +162,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 10.0,
-                ),
+                height10,
                 GridView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
@@ -294,8 +283,8 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                                         ? 1
                                                         : 0,
                                                   },
-                                                  '255.255.255.255',
-                                                  8888,
+                                                  ip,
+                                                  port,
                                                 );
                                               } else if (index == 2) {
                                                 sendFrame(
@@ -312,8 +301,8 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                                         ? 1
                                                         : 0,
                                                   },
-                                                  '255.255.255.255',
-                                                  8888,
+                                                  ip,
+                                                  port,
                                                 );
                                               } else if (index == 1) {
                                                 sendFrame(
@@ -330,8 +319,8 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                                         ? 1
                                                         : 0,
                                                   },
-                                                  '255.255.255.255',
-                                                  8888,
+                                                  ip,
+                                                  port,
                                                 );
                                               } else {
                                                 sendFrame(
@@ -348,8 +337,8 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                                         ? 1
                                                         : 0,
                                                   },
-                                                  '255.255.255.255',
-                                                  8888,
+                                                  ip,
+                                                  port,
                                                 );
                                               }
                                             },
@@ -416,8 +405,8 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                     "green": currentColor.green,
                                     "blue": currentColor.blue,
                                   },
-                                  '255.255.255.255',
-                                  8888,
+                                  ip,
+                                  port,
                                 );
                               });
                             },
@@ -427,7 +416,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                             colorPickerWidth: 250,
                           ),
                         )
-                            : const SizedBox();
+                            : kEmptyWidget;
                       }),
                 ),
               ],

@@ -1,11 +1,6 @@
-import 'dart:async';
-import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:mega/styles/colors.dart';
 
-import '../constants/constants.dart';
-import '../utils/functions.dart';
+import '../commons.dart';
 
 class ExportDataScreen extends StatefulWidget {
   const ExportDataScreen({super.key});
@@ -26,9 +21,9 @@ class ExportDataScreenState extends State<ExportDataScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          surfaceTintColor: const Color(0xFF70AD61),
-          shadowColor: const Color(0xFF609e51),
-          backgroundColor: const Color(0xFF047424),
+          surfaceTintColor: MyColors.greenLight1,
+          shadowColor: MyColors.greenLight2,
+          backgroundColor: MyColors.greenDark1,
           foregroundColor: Colors.white,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
@@ -53,9 +48,9 @@ class ExportDataScreenState extends State<ExportDataScreen> {
               children: <Widget>[
                 uploadProgress == 0.0 || downloadURL.isEmpty
                     ? uploadFailed
-                    ? const SizedBox()
+                    ? kEmptyWidget
                     : const CircularProgressIndicator(
-                  color: Color(0xFF047424),
+                  color: MyColors.greenDark1,
                 )
                     : QrImageView(
                   data: downloadURL,
@@ -76,15 +71,13 @@ class ExportDataScreenState extends State<ExportDataScreen> {
                         : Colors.black,
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
+                height20,
                 Text(
                   uploadStatus == null ? '' : '$uploadStatus',
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF047424),
+                    color: MyColors.greenDark1,
                   ),
                   textAlign: TextAlign.center,
                 ),

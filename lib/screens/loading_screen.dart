@@ -1,10 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:mega/constants/constants.dart';
-import 'package:mega/screens/rooms_screen.dart';
-import 'package:mega/screens/onboarding_screen.dart';
-import 'package:provider/provider.dart';
-
-import '../utils/functions.dart';
+import '../commons.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -18,7 +12,7 @@ class LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF047424),
+      backgroundColor: MyColors.greenDark1,
       body: Center(
         child: Image.asset(
           'assets/images/loading-animate.gif',
@@ -32,9 +26,9 @@ class LoadingScreenState extends State<LoadingScreen> {
     super.initState();
     Provider.of<AuthProvider>(context, listen: false)
         .checkTheme();
-    sqlDb.getAllApartments().then((value) => {
-
-      sqlDb.getAllMacAddresses().then(
+    startListeningForNetworkChanges();
+    getAllApartments().then((value) => {
+      getAllMacAddresses().then(
             (value) => WidgetsBinding.instance.addPostFrameCallback((_) {
           Provider.of<AuthProvider>(context, listen: false)
               .checkFirstTime()

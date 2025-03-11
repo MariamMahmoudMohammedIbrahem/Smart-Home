@@ -1,20 +1,6 @@
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
+import '../commons.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart' as qr_scan;
 import 'package:http/http.dart' as http;
-import 'dart:io';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart'
-    as qr_scan;
-import 'package:provider/provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:sqflite/sqflite.dart';
-
-import '../constants/constants.dart';
-import '../utils/functions.dart';
 
 class ImportDataScreen extends StatefulWidget {
   const ImportDataScreen({super.key});
@@ -31,9 +17,9 @@ class ImportDataScreenState extends State<ImportDataScreen>
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
         appBar: AppBar(
-          surfaceTintColor: const Color(0xFF70AD61),
-          shadowColor: const Color(0xFF609e51),
-          backgroundColor: const Color(0xFF047424),
+          surfaceTintColor: MyColors.greenLight1,
+          shadowColor: MyColors.greenLight2,
+          backgroundColor: MyColors.greenDark1,
           foregroundColor: Colors.white,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
@@ -94,7 +80,7 @@ class ImportDataScreenState extends State<ImportDataScreen>
                       width: width * .5,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF047424),
+                          backgroundColor: MyColors.greenDark1,
                           foregroundColor:
                               isDarkMode ? Colors.grey[900] : Colors.white,
                         ),
@@ -120,23 +106,23 @@ class ImportDataScreenState extends State<ImportDataScreen>
                     CircularProgressIndicator(
                       value: progressValue,
                       strokeWidth: 8.0,
-                      color: const Color(0xFF047424),
+                      color: MyColors.greenDark1,
                     ),
-                    const SizedBox(height: 20),
+                    height20,
                     Text(
                       displayMessage,
                       style: const TextStyle(
                         fontSize: 20.0,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF047424),
+                        color: MyColors.greenDark1,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    height10,
                     Text(
                       '${(progressValue * 100).toInt()}%',
                       style: const TextStyle(
                         fontSize: 18.0,
-                        color: Color(0xFF047424),
+                        color: MyColors.greenDark1,
                       ),
                     ),
                   ],
@@ -195,7 +181,7 @@ class ImportDataScreenState extends State<ImportDataScreen>
       }
 
       final jsonData = await file.readAsString();
-      sqlDb.deleteAllRoomsAndDevices().then((value) => {
+      deleteAllRoomsAndDevices().then((value) => {
             _startProgress(),
             insertDataIntoDatabase(jsonDecode(jsonData), context),
           });
@@ -240,8 +226,7 @@ class ImportDataScreenState extends State<ImportDataScreen>
     setState(() {
       reformattingData = false;
     });
-    sqlDb
-        .getRoomsByApartmentID(context, apartmentMap.first['ApartmentID'])
+    getRoomsByApartmentID(context, apartmentMap.first['ApartmentID'])
         .then((value) {
       setState(() {
         Provider.of<AuthProvider>(context, listen: false)
@@ -285,7 +270,7 @@ class CornerZoomPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF047424)
+      ..color = MyColors.greenDark1
       ..strokeWidth = 5.0
       ..style = PaintingStyle.stroke;
 

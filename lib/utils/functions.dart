@@ -1,18 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
-import 'dart:math';
-
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../constants/constants.dart';
-
 import 'package:http/http.dart' as http;
+import 'package:network_info_plus/network_info_plus.dart';
 
+import '../commons.dart';
 
 void showSnack(BuildContext context, String message, String msg) {
   final currentTime = DateTime.now();
@@ -81,101 +70,112 @@ class SocketManager {
             if (response == "OK") {
               commandResponse = response;
             } else {
-              try {
-                Map<String, dynamic> jsonResponse = jsonDecode(response);
-                print('jsonResponse $jsonResponse');
-                commandResponse = jsonResponse['commands'];
-                addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': ''}, context);
-                if (commandResponse == 'UPDATE_OK' || commandResponse == 'SWITCH_WRITE_OK' || commandResponse == 'SWITCH_READ_OK') {
-                  if (deviceStatus.firstWhere(
-                        (device) =>
-                    device['MacAddress'] == jsonResponse['mac_address'],
-                  )['sw1'] !=
-                      jsonResponse['sw0']) {
-                    Provider.of<AuthProvider>(context, listen: false).setSwitch(
-                        jsonResponse['mac_address'],
-                        'sw1',
-                        jsonResponse['sw0']);
+              if(deviceStatus.isNotEmpty) {
+                try {
+                  Map<String, dynamic> jsonResponse = jsonDecode(response);
+                  print('jsonResponse $jsonResponse');
+                  commandResponse = jsonResponse['commands'];
+                  addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': ''}, context);
+                  if (commandResponse == 'UPDATE_OK' ||
+                      commandResponse == 'SWITCH_WRITE_OK' ||
+                      commandResponse == 'SWITCH_READ_OK') {
+                    if (deviceStatus.firstWhere(
+                          (device) =>
+                      device['MacAddress'] == jsonResponse['mac_address'],
+                    )['sw1'] !=
+                        jsonResponse['sw0']) {
+                      print('step1');
+                      Provider.of<AuthProvider>(context, listen: false)
+                          .setSwitch(
+                          jsonResponse['mac_address'],
+                          'sw1',
+                          jsonResponse['sw0']);
+                    }
+                    if (deviceStatus.firstWhere(
+                          (device) =>
+                      device['MacAddress'] == jsonResponse['mac_address'],
+                    )['sw2'] !=
+                        jsonResponse['sw1']) {
+                      print('step2');
+                      Provider.of<AuthProvider>(context, listen: false)
+                          .setSwitch(
+                          jsonResponse['mac_address'],
+                          'sw2',
+                          jsonResponse['sw1']);
+                    }
+                    if (deviceStatus.firstWhere(
+                          (device) =>
+                      device['MacAddress'] == jsonResponse['mac_address'],
+                    )['sw3'] !=
+                        jsonResponse['sw2']) {
+                      print('step3');
+                      Provider.of<AuthProvider>(context, listen: false)
+                          .setSwitch(
+                          jsonResponse['mac_address'],
+                          'sw3',
+                          jsonResponse['sw2']);
+                    }
+                    if (deviceStatus.firstWhere(
+                          (device) =>
+                      device['MacAddress'] == jsonResponse['mac_address'],
+                    )['led'] !=
+                        jsonResponse['led']) {
+                      print('step4');
+                      Provider.of<AuthProvider>(context, listen: false)
+                          .setSwitch(
+                          jsonResponse['mac_address'],
+                          'led',
+                          jsonResponse['led']);
+                    }
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .addingDevice(commandResponse, jsonResponse);
                   }
-                  if (deviceStatus.firstWhere(
-                        (device) =>
-                    device['MacAddress'] == jsonResponse['mac_address'],
-                  )['sw2'] !=
-                      jsonResponse['sw1']) {
-                    Provider.of<AuthProvider>(context, listen: false).setSwitch(
-                        jsonResponse['mac_address'],
-                        'sw2',
-                        jsonResponse['sw1']);
+                  else if (commandResponse == 'MAC_ADDRESS_READ_OK') {
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .addingDevice('MAC_ADDRESS_READ_OK', jsonResponse);
                   }
-                  if (deviceStatus.firstWhere(
-                        (device) =>
-                    device['MacAddress'] == jsonResponse['mac_address'],
-                  )['sw3'] !=
-                      jsonResponse['sw2']) {
-                    Provider.of<AuthProvider>(context, listen: false).setSwitch(
-                        jsonResponse['mac_address'],
-                        'sw3',
-                        jsonResponse['sw2']);
+                  else if (commandResponse == 'WIFI_CONFIG_FAILED') {
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .addingDevice('WIFI_CONFIG_FAILED', {});
                   }
-                  if (deviceStatus.firstWhere(
-                        (device) =>
-                    device['MacAddress'] == jsonResponse['mac_address'],
-                  )['led'] !=
-                      jsonResponse['led']) {
-                    Provider.of<AuthProvider>(context, listen: false).setSwitch(
-                        jsonResponse['mac_address'],
-                        'led',
-                        jsonResponse['led']);
+                  else if (commandResponse == 'WIFI_CONFIG_CONNECTING' ||
+                      commandResponse == 'WIFI_CONFIG_SAME') {
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .addingDevice('WIFI_CONFIG_CONNECTING', {});
+                    if (commandResponse == 'WIFI_CONFIG_SAME') {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Same Wi-Fi network data")));
+                    }
                   }
-                  Provider.of<AuthProvider>(context, listen: false)
-                      .addingDevice(commandResponse, jsonResponse);
-                }
-                else if (commandResponse == 'RGB_READ_OK' || commandResponse == 'RGB_WRITE_OK') {
-                }
-                else if (commandResponse == 'MAC_ADDRESS_READ_OK') {
-                  Provider.of<AuthProvider>(context, listen: false)
-                      .addingDevice('MAC_ADDRESS_READ_OK', jsonResponse);
-                }
-                else if (commandResponse == 'WIFI_CONFIG_OK') {
-                }
-                else if (commandResponse == 'WIFI_CONFIG_FAILED') {
-                  Provider.of<AuthProvider>(context, listen: false)
-                      .addingDevice('WIFI_CONFIG_FAILED', {});
-                }
-                else if (commandResponse == 'WIFI_CONFIG_CONNECTING' || commandResponse == 'WIFI_CONFIG_SAME') {
-                  Provider.of<AuthProvider>(context, listen: false)
-                      .addingDevice('WIFI_CONFIG_CONNECTING', {});
-                  if (commandResponse == 'WIFI_CONFIG_SAME') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Same Wi-Fi network data")));
+                  else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .addingDevice('WIFI_CONNECT_CHECK_OK', {});
+                    const snackBar =
+                    SnackBar(content: Text('Connected Successfully'));
+                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
                   }
+                  else if (commandResponse == 'CHECK_FOR_NEW_FIRMWARE_OK' ||
+                      commandResponse == 'CHECK_FOR_NEW_FIRMWARE_FAIL' ||
+                      commandResponse == 'CHECK_FOR_NEW_FIRMWARE_SAME' ||
+                      commandResponse == 'DOWNLOAD_NEW_FIRMWARE_SAME' ||
+                      commandResponse == 'DOWNLOAD_NEW_FIRMWARE_START' ||
+                      commandResponse == 'DOWNLOAD_NEW_FIRMWARE_OK' ||
+                      commandResponse == 'DOWNLOAD_NEW_FIRMWARE_FAIL' ||
+                      commandResponse.contains(
+                          'DOWNLOAD_NEW_FIRMWARE_UPDATING')) {
+                    Provider.of<AuthProvider>(context, listen: false)
+                        .firmwareUpdating(jsonResponse, context);
+                  }
+                  else if (commandResponse == 'DEVICE_CONFIG_WRITE_OK' ||
+                      commandResponse == 'WIFI_CONFIG_MISSED_DATA' ||
+                      commandResponse == 'READ_OK' ||commandResponse == 'WIFI_CONFIG_OK'||commandResponse == 'RGB_READ_OK' ||
+                      commandResponse == 'RGB_WRITE_OK'
+                  ) {}
+                } catch (e) {
+                  throw Exception(
+                      "Something went wrong while processing the data $e");
                 }
-                else if (commandResponse == 'WIFI_CONFIG_MISSED_DATA') {
-                }
-                else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
-                  Provider.of<AuthProvider>(context, listen: false)
-                      .addingDevice('WIFI_CONNECT_CHECK_OK', {});
-                  const snackBar =
-                  SnackBar(content: Text('Connected Successfully'));
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                }
-                else if (commandResponse == 'DEVICE_CONFIG_WRITE_OK') {
-                  Provider.of<AuthProvider>(context, listen: false)
-                      .addingDevice('DEVICE_CONFIG_WRITE_OK', jsonResponse);
-                }
-                else if (commandResponse == 'READ_OK') {}
-                else if (commandResponse == 'CHECK_FOR_NEW_FIRMWARE_OK' ||
-                    commandResponse == 'CHECK_FOR_NEW_FIRMWARE_FAIL' ||
-                    commandResponse == 'CHECK_FOR_NEW_FIRMWARE_SAME' ||
-                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_SAME' ||
-                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_START' ||
-                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_OK' ||
-                    commandResponse == 'DOWNLOAD_NEW_FIRMWARE_FAIL' ||
-                    commandResponse.contains('DOWNLOAD_NEW_FIRMWARE_UPDATING') ) {
-                  Provider.of<AuthProvider>(context, listen: false)
-                      .firmwareUpdating(jsonResponse, context);
-                }
-              } catch (e) {
               }
             }
           }
@@ -459,10 +459,10 @@ Future<void> deleteSpecificFile(String fileName) async {
       if (item.name.contains(fileName)) {
         try {
           await item.delete();
-        } catch (e) {}
-      } else {}
+        } catch (e) {throw Exception("Failed to delete the file $e");}
+      }
     }
-  } catch (e) {}
+  } catch (e) {throw Exception("Failed to get the files from the firebase storage $e");}
 }
 
 
@@ -501,19 +501,11 @@ Future<void> deleteOldFiles() async {
           if (now - uploadTime > oneHourInMs) {
             await item.delete();
           }
-        } catch (e) {}
-      } else {}
+        } catch (e) {throw Exception("Failed to delete the old files $e");}
+      }
     }
-  } catch (e) {}
+  } catch (e) {throw Exception("Failed to get the files from the firebase storage $e");}
 }
-
-
-final List<Map<String, dynamic>> messages = [
-  {"time": 2, "message": "Preparing files..."},
-  {"time": 5, "message": "Downloading..."},
-  {"time": 8, "message": "Almost there..."},
-  {"time": 10, "message": "Download complete!"}
-];
 
 void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynamic> newDevice, BuildContext context) {
   String key = 'mac_address';
@@ -536,7 +528,7 @@ void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynami
       }
       else if(deviceList[i]['firmware_version'] != newDevice['firmware_version'] && newDevice['status'] == ''){
         deviceList[i] = newDevice;
-        checkFirmwareUpdates(macVersion, Provider.of<AuthProvider>(context, listen: false).firmwareInfo!, context);
+        isConnectedToInternet().then((value) => {if(value){checkFirmwareUpdates(macVersion, Provider.of<AuthProvider>(context, listen: false).firmwareInfo!, context)}});
       }
       exists = true;
       continue;
@@ -545,7 +537,7 @@ void addOrUpdateDevice(List<Map<String, dynamic>> deviceList, Map<String, dynami
 
   if (!exists) {
     deviceList.add(newDevice);
-    checkFirmwareUpdates(macVersion, Provider.of<AuthProvider>(context, listen: false).firmwareInfo!, context);
+    isConnectedToInternet().then((value) => {if(value){checkFirmwareUpdates(macVersion, Provider.of<AuthProvider>(context, listen: false).firmwareInfo!, context)}});
   }
 }
 
@@ -575,8 +567,7 @@ Future<String?> checkFirmwareVersion(
         return utf8.decode(fileData);
       }
     }
-  } catch (e) {
-  }
+  } catch (e) {throw Exception("Failed to retrieve the firmware info file from the firebase storage $e");}
   return null;
 }
 
@@ -590,4 +581,27 @@ void checkFirmwareUpdates(List<Map<String, dynamic>> devices, String firmwareInf
     }
   }
   Provider.of<AuthProvider>(context, listen: false).toggling('notification', shouldToggleNotification);
+}
+
+void startListeningForNetworkChanges() {
+  Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> connectivityResults) async {
+    print('Connectivity changed: $connectivityResults');
+
+    final info = NetworkInfo();
+
+    if (connectivityResults.contains(ConnectivityResult.wifi)) {
+      // Get the Wi-Fi IP address
+      String? wifiIP = await info.getWifiIP();
+      if (wifiIP != null) {
+        ip = modifyIP(wifiIP);
+        print("Connected to Wi-Fi. IP Address: $wifiIP, Modified IP: $ip");
+      }
+    }
+  });
+}
+
+String modifyIP(String ip) {
+  List<String> parts = ip.split('.');
+  parts[3] = '255'; // Replace the last segment
+  return parts.join('.');
 }

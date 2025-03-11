@@ -1,9 +1,4 @@
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter/material.dart';
-import 'package:mega/constants/constants.dart';
-import 'package:mega/utils/functions.dart';
-import 'package:mega/screens/rooms_screen.dart';
-import 'package:provider/provider.dart';
+import '../commons.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -56,8 +51,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       Provider.of<AuthProvider>(context, listen: false)
                           .setFirstTime()
                           .then((value) {
-                        sqlDb.insertApartment('My Home').then(
-                                (value) => sqlDb.getAllApartments().then((value) {
+                        insertApartment('My Home').then(
+                                (value) => getAllApartments().then((value) {
                               final firstTimeCheck =
                                   Provider.of<AuthProvider>(context,
                                       listen: false)
@@ -74,8 +69,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF087424),
-                      foregroundColor: const Color(0xFF609e51),
+                      backgroundColor: MyColors.greenDark2,
+                      foregroundColor: MyColors.greenLight2,
                     ),
                     child: const AutoSizeText(
                       'Get Started',

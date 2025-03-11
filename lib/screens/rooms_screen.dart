@@ -1,10 +1,4 @@
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:flutter/material.dart';
-import 'package:mega/screens/room_details_screen.dart';
-import 'package:mega/screens/settings_screen.dart';
-import 'package:provider/provider.dart';
-import '../constants/constants.dart';
-import '../utils/functions.dart';
+import '../commons.dart';
 
 class RoomsScreen extends StatefulWidget {
   const RoomsScreen({super.key});
@@ -33,14 +27,14 @@ class _RoomsScreenState extends State<RoomsScreen>
         titleTextStyle: const TextStyle(
           fontSize: 26,
           fontWeight: FontWeight.bold,
-          color: Color(0xFF047424),
+          color: MyColors.greenDark1,
         ),
         actions: [
           Consumer<AuthProvider>(
             builder: (context, toggleProvider, child) {
               return IconButton(
                 onPressed: () {
-                  sqlDb.getAllMacAddresses().then(
+                  getAllMacAddresses().then(
                         (value) => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -54,10 +48,10 @@ class _RoomsScreenState extends State<RoomsScreen>
                         label: null,
                         backgroundColor: Colors.red,
                         child: Icon(Icons.settings_rounded,
-                            color: Color(0xFF047424)),
+                            color: MyColors.greenDark1),
                       )
                     : const Icon(Icons.settings_rounded,
-                        color: Color(0xFF047424)),
+                        color: MyColors.greenDark1),
               );
             },
           ),
@@ -76,7 +70,7 @@ class _RoomsScreenState extends State<RoomsScreen>
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 26,
-                      color: Color(0xFF047424),
+                      color: MyColors.greenDark1,
                     ),
                   ),
                   Consumer<AuthProvider>(
@@ -92,7 +86,7 @@ class _RoomsScreenState extends State<RoomsScreen>
                           toggleProvider.toggle
                               ? Icons.grid_view_rounded
                               : Icons.list_outlined,
-                          color: const Color(0xFF047424),
+                          color: MyColors.greenDark1,
                         ),
                       );
                     },
@@ -104,7 +98,7 @@ class _RoomsScreenState extends State<RoomsScreen>
                   return Flexible(
                     child: loadingProvider.isLoading
                         ? const CircularProgressIndicator(
-                            color: Color(0xFF047424),
+                            color: MyColors.greenDark1,
                           )
                         : roomNames.isEmpty
                             ? const SizedBox(
@@ -113,7 +107,7 @@ class _RoomsScreenState extends State<RoomsScreen>
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 22,
-                                    color: Color(0xFF047424),
+                                    color: MyColors.greenDark1,
                                   ),
                                 ),
                               )
@@ -171,7 +165,7 @@ class _RoomsScreenState extends State<RoomsScreen>
                                               Icon(
                                                 getIconName(roomNames[index]),
                                                 color: isDarkMode
-                                                    ? const Color(0xFF047424)
+                                                    ? MyColors.greenDark1
                                                     : Colors.white,
                                                 size: width * .25,
                                               ),
@@ -182,8 +176,7 @@ class _RoomsScreenState extends State<RoomsScreen>
                                           _showOptions(context, index);
                                         },
                                         onTap: () {
-                                          sqlDb
-                                              .getDeviceDetailsByRoomID(
+                                          getDeviceDetailsByRoomID(
                                                 roomIDs[index],
                                               )
                                               .then(
@@ -237,13 +230,11 @@ class _RoomsScreenState extends State<RoomsScreen>
                                                     roomNames[index],
                                                   ),
                                                   color: isDarkMode
-                                                      ? const Color(0xFF047424)
+                                                      ? MyColors.greenDark1
                                                       : Colors.white,
                                                   size: 30,
                                                 ),
-                                                const SizedBox(
-                                                  width: 5.0,
-                                                ),
+                                                width5,
                                                 Align(
                                                   alignment:
                                                       Alignment.centerLeft,
@@ -267,8 +258,7 @@ class _RoomsScreenState extends State<RoomsScreen>
                                             ),
                                           ),
                                           onTap: () {
-                                            sqlDb
-                                                .getDeviceDetailsByRoomID(
+                                            getDeviceDetailsByRoomID(
                                                   roomIDs[index],
                                                 )
                                                 .then(
@@ -307,11 +297,11 @@ class _RoomsScreenState extends State<RoomsScreen>
 
   @override
   void initState() {
+    // startListeningForNetworkChanges();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       SocketManager().startListen(context);
     });
-    sqlDb
-        .getRoomsByApartmentID(context, apartmentMap.first['ApartmentID'])
+    getRoomsByApartmentID(context, apartmentMap.first['ApartmentID'])
         .then((value) {
       setState(() {
         Provider.of<AuthProvider>(context, listen: false).toggling(
@@ -343,12 +333,12 @@ class _RoomsScreenState extends State<RoomsScreen>
               ListTile(
                 leading: const Icon(
                   Icons.edit,
-                  color: Color(0xFF047424),
+                  color: MyColors.greenDark1,
                 ),
                 title: const Text(
                   'Edit',
                   style: TextStyle(
-                    color: Color(0xFF047424),
+                    color: MyColors.greenDark1,
                   ),
                 ),
                 onTap: () {
@@ -363,27 +353,25 @@ class _RoomsScreenState extends State<RoomsScreen>
               ListTile(
                 leading: const Icon(
                   Icons.delete,
-                  color: Color(0xFF047424),
+                  color: MyColors.greenDark1,
                 ),
                 title: const Text(
                   'Delete',
                   style: TextStyle(
-                    color: Color(0xFF047424),
+                    color: MyColors.greenDark1,
                   ),
                 ),
                 onTap: () {
-                  sqlDb
-                      .deleteRoomAndDevices(
+                  deleteRoomAndDevices(
                         roomIDs[index],
                       )
                       .then((value) => {
-                            sqlDb
-                                .getRoomsByApartmentID(
+                            getRoomsByApartmentID(
                                   context,
                                   apartmentMap.first['ApartmentID'],
                                 )
                                 .then((value) => {
-                                      sqlDb.exportData(),
+                                      exportData(),
                                       setState(() {
                                         Provider.of<AuthProvider>(context,
                                                 listen: false)
@@ -420,7 +408,7 @@ class _RoomsScreenState extends State<RoomsScreen>
                 title: const Text(
                   'Edit Room Name',
                   style: TextStyle(
-                    color: Color(0xFF047424),
+                    color: MyColors.greenDark1,
                   ),
                 ),
                 content: SingleChildScrollView(
@@ -431,16 +419,16 @@ class _RoomsScreenState extends State<RoomsScreen>
                         menuMaxHeight: 200,
                         icon: const Icon(
                           Icons.arrow_downward,
-                          color: Color(0xFF047424),
+                          color: MyColors.greenDark1,
                         ),
                         iconSize: 24,
                         elevation: 16,
                         style: const TextStyle(
-                          color: Color(0xFF047424),
+                          color: MyColors.greenDark1,
                         ),
                         underline: Container(
                           height: 2,
-                          color: const Color(0xFF047424),
+                          color: MyColors.greenDark1,
                         ),
                         onChanged: (IconData? newValue) {
                           setStateDialog(() {
@@ -466,11 +454,9 @@ class _RoomsScreenState extends State<RoomsScreen>
                               children: [
                                 Icon(
                                   icon,
-                                  color: const Color(0xFF455D56),
+                                  color: MyColors.oliveDark,
                                 ),
-                                const SizedBox(
-                                  width: 10.0,
-                                ),
+                                width10,
                                 Text(
                                   getRoomName(icon),
                                 ),
@@ -501,7 +487,7 @@ class _RoomsScreenState extends State<RoomsScreen>
                   TextButton(
                     style: ElevatedButton.styleFrom(
                       side: const BorderSide(
-                        color: Color(0xFF047424),
+                        color: MyColors.greenDark1,
                       ),
                     ),
                     onPressed: () {
@@ -510,22 +496,21 @@ class _RoomsScreenState extends State<RoomsScreen>
                     child: const Text(
                       'Cancel',
                       style: TextStyle(
-                        color: Color(0xFF047424),
+                        color: MyColors.greenDark1,
                       ),
                     ),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF047424),
+                      backgroundColor: MyColors.greenDark1,
                     ),
                     onPressed: () {
                       if (hintMessage == null) {
-                        sqlDb
-                            .updateRoomName(apartmentMap.first['ApartmentID'],
+                        updateRoomName(apartmentMap.first['ApartmentID'],
                                 roomName, roomNames[index])
                             .then(
-                              (value) => sqlDb.exportData().then(
-                                    (value) => sqlDb.getRoomsByApartmentID(
+                              (value) => exportData().then(
+                                    (value) => getRoomsByApartmentID(
                                       context,
                                       apartmentMap.first['ApartmentID'],
                                     ),

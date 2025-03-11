@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import '../commons.dart';
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -12,9 +12,9 @@ class _SupportScreenState extends State<SupportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: const Color(0xFF70AD61),
-        shadowColor: const Color(0xFF609e51),
-        backgroundColor: const Color(0xFF047424),
+        surfaceTintColor: MyColors.greenLight1,
+        shadowColor: MyColors.greenLight2,
+        backgroundColor: MyColors.greenDark1,
         foregroundColor: Colors.white,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -40,7 +40,7 @@ class _SupportScreenState extends State<SupportScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 19,
-                  color: Color(0xFF047424),
+                  color: MyColors.greenDark1,
                 ),
               ),
               collapsedShape: RoundedRectangleBorder(
@@ -67,7 +67,7 @@ class _SupportScreenState extends State<SupportScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 19,
-                  color: Color(0xFF047424),
+                  color: MyColors.greenDark1,
                 ),
               ),
               collapsedShape: RoundedRectangleBorder(

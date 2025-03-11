@@ -1,9 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../constants/constants.dart';
-import '../utils/functions.dart';
-import 'package:wifi_iot/wifi_iot.dart';
+import '../commons.dart';
 
 class DeviceConfigurationScreen extends StatefulWidget {
   const DeviceConfigurationScreen({super.key});
@@ -26,8 +21,8 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
         child: Theme(
           data: Theme.of(context).copyWith(
               colorScheme: Theme.of(context).colorScheme.copyWith(
-                  onSurface: const Color(0xFF609e51),
-                  primary: const Color(0xFF047424))),
+                  onSurface: MyColors.greenLight2,
+                  primary: MyColors.greenDark1)),
           child: Stepper(
             steps: getSteps(),
             physics: const ScrollPhysics(),
@@ -69,13 +64,13 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                           },
                           style: ElevatedButton.styleFrom(
                             side: const BorderSide(
-                              color: Color(0xFF047424),
+                              color: MyColors.greenDark1,
                             ),
                           ),
                           child: const Text(
                             'Back',
                             style: TextStyle(
-                              color: Color(0xFF047424),
+                              color: MyColors.greenDark1,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -84,9 +79,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    width: 5,
-                  ),
+                  width5,
                   Expanded(
                     child: SizedBox(
                       child: Consumer<AuthProvider>(
@@ -108,8 +101,8 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                   } else {
                                     sendFrame(
                                       {"commands": 'MAC_ADDRESS_READ'},
-                                      '255.255.255.255',
-                                      8888,
+                                      ip,
+                                      port,
                                     );
                                     pressCount++;
                                     if(pressCount==2){
@@ -130,8 +123,8 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                         "commands": 'WIFI_CONNECT_CHECK',
                                         "mac_address": booleanProvider.macAddress,
                                       },
-                                      '255.255.255.255',
-                                      8888,
+                                      ip,
+                                      port,
                                     );
                                     showSnack(context, 'Wait A Second', 'Please Make sure you are connected to your Wi-Fi Network');
                                   }
@@ -148,8 +141,8 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                           "wifi_ssid": name,
                                           "wifi_password": password,
                                         },
-                                        '255.255.255.255',
-                                        8888,
+                                        ip,
+                                        port,
                                       );
                                     } else {
                                       showSnack(context, 'Fields are Empty', 'You must Fill the field to continue the steps');
@@ -160,14 +153,12 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                     booleanProvider.roomConfig = false;
                                     Navigator.pop(context);
                                   } else {
-                                    sqlDb
-                                        .insertRoom(roomName,
+                                    insertRoom(roomName,
                                         apartmentMap.first['ApartmentID'])
                                         .then((value) {
-                                      sqlDb.getRoomsByApartmentID(context,
+                                      getRoomsByApartmentID(context,
                                           apartmentMap.first['ApartmentID']);
-                                      sqlDb
-                                          .insertDevice(
+                                      insertDevice(
                                         booleanProvider.macAddress,
                                         booleanProvider.wifiSsid,
                                         booleanProvider.wifiPassword,
@@ -178,7 +169,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                         Provider.of<AuthProvider>(context,
                                             listen: false)
                                             .roomConfig = true,
-                                        sqlDb.exportData().then((value) =>
+                                        exportData().then((value) =>
                                             Provider.of<AuthProvider>(
                                                 context,
                                                 listen: false)
@@ -189,7 +180,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF047424),
+                                backgroundColor: MyColors.greenDark1,
                               ),
                               child: Text(
                                 currentStep == 0
@@ -249,7 +240,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                   const Text(
                     'Connecting To The Device',
                     style: TextStyle(
-                      color: Color(0xFF047424),
+                      color: MyColors.greenDark1,
                       fontWeight: FontWeight.bold,
                       fontSize: 26,
                     ),
@@ -285,7 +276,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
               const Text(
                 'Wifi Network Configuration',
                 style: TextStyle(
-                  color: Color(0xFF047424),
+                  color: MyColors.greenDark1,
                   fontWeight: FontWeight.bold,
                   fontSize: 26,
                 ),
@@ -406,7 +397,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                   const Text(
                     'Check connection',
                     style: TextStyle(
-                      color: Color(0xFF047424),
+                      color: MyColors.greenDark1,
                       fontWeight: FontWeight.bold,
                       fontSize: 26,
                     ),
@@ -442,7 +433,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
               const Text(
                 'choose your room name',
                 style: TextStyle(
-                  color: Color(0xFF047424),
+                  color: MyColors.greenDark1,
                   fontWeight: FontWeight.bold,
                   fontSize: 26,
                 ),
@@ -479,9 +470,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                       child: Row(
                         children: [
                           Icon(icon),
-                          const SizedBox(
-                            width: 10.0,
-                          ),
+                          width10,
                           Text(
                             getRoomName(icon),
                           ),
