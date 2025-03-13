@@ -40,7 +40,7 @@ const int maxSnackBarCount = 3;
 DateTime? lastSnackBarTime;
 int pressCount = 0;
 
-///*functions.dart**
+///*socket_manager.dart**
 var commandResponse = '';
 final List<Map<String, dynamic>> messages = [
   {"time": 2, "message": "Preparing files..."},

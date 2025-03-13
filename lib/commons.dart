@@ -6,7 +6,8 @@ export 'dart:math';
 
 // Flutter and third-party packages
 export 'package:auto_size_text/auto_size_text.dart';
-export 'package:connectivity_plus/connectivity_plus.dart';
+export 'package:connectivity_plus/connectivity_plus.dart' hide NetworkManagerClientFactory;
+export 'package:network_info_plus/network_info_plus.dart';
 export 'package:firebase_core/firebase_core.dart';
 export 'package:firebase_storage/firebase_storage.dart';
 export 'package:flutter/material.dart';
@@ -23,9 +24,12 @@ export 'package:sqflite/sqflite.dart';
 export 'package:wifi_iot/wifi_iot.dart';
 
 // Project-specific imports
-export '../constants/constants.dart';
-export '../data/database_helper.dart';
-export '../data/sqldb.dart';
+export 'constants/constants.dart';
+export 'data/database_helper.dart';
+export 'data/apartment_db.dart';
+export 'data/room_db.dart';
+export 'data/device_db.dart';
+export 'data/export_db.dart';
 export 'commons.dart';
 export 'glow_grid.dart';
 export 'firebase_options.dart';
@@ -42,4 +46,11 @@ export 'screens/support_screen.dart';
 export 'styles/colors.dart';
 export 'styles/sizes.dart';
 export 'styles/themes.dart';
-export 'utils/functions.dart';
+export 'utils/socket_manager.dart';
+export 'utils/app_state.dart';
+export 'utils/firebase_storage_util.dart';
+export 'utils/device_util.dart';
+export 'utils/firmware_util.dart';
+export 'utils/network_util.dart';
+export 'utils/ui_utils.dart';
+export 'utils/utility.dart';
