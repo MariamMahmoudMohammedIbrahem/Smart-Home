@@ -16,7 +16,217 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
+    return Platform.isIOS
+        ? CupertinoPageScaffold(
+        child: SafeArea(
+          child: Material(
+            color: Colors.transparent,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  canvasColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black  // Dark mode background
+                      : Colors.white, // Set the background color of the Stepper
+                ),
+                child: Stepper(
+                    steps: getSteps(),
+                    // physics: const ScrollPhysics(),
+                            type: StepperType.horizontal,
+                            currentStep: currentStep,
+                            onStepCancel: () => currentStep == 0
+                  ? null
+                  : setState(() {
+                currentStep -= 1;
+                            }),
+                            onStepContinue: () {
+                bool isLastStep = (currentStep == getSteps().length - 1);
+                if (isLastStep) {
+                } else {
+                  setState(() {
+                    currentStep += 1;
+                  });
+                }
+                            },
+                            // onStepTapped: (step) {},
+                            controlsBuilder: (BuildContext context, ControlsDetails controls) {
+                return Row(
+                  mainAxisAlignment: currentStep != 0 &&
+                      !Provider.of<AuthProvider>(context).configured &&
+                      !!Provider.of<AuthProvider>(context).connectionSuccess
+                      ? MainAxisAlignment.spaceBetween
+                      : MainAxisAlignment.center,
+                  children: [
+                    Visibility(
+                      visible: (currentStep == 2 &&
+                          Provider.of<AuthProvider>(context).connectionFailed),
+                      child: Expanded(
+                        child: SizedBox(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Provider.of<AuthProvider>(context, listen: false).configured = false;
+                              snackBarCount = 0;
+                              controls.onStepCancel!();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              side: const BorderSide(
+                                color: MyColors.greenDark1,
+                              ),
+                            ),
+                            child: const Text(
+                              'Back',
+                              style: TextStyle(
+                                color: MyColors.greenDark1,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    width5,
+                    Expanded(
+                      child: SizedBox(
+                        child: Consumer<AuthProvider>(
+                            builder: (context, booleanProvider, child) {
+                              return ElevatedButton(
+                                onPressed: () {
+                                  if (currentStep == 0) {
+                                    if (booleanProvider.readOnly) {
+                                      pressCount = 0;
+                                      if (macMap
+                                          .contains(booleanProvider.macAddress)) {
+                                        showSnack(context,
+                                            'you already have this device configured', 'Please Make sure you are connected to the device you want to configure');
+                                      } else {
+                                        snackBarCount = 0;
+                                        pressCount = 0;
+                                        controls.onStepContinue!();
+                                      }
+                                    } else {
+                                      sendFrame(
+                                        {"commands": 'MAC_ADDRESS_READ'},
+                                        ip,
+                                        port,
+                                      );
+                                      pressCount++;
+                                      if(pressCount==2){
+                                        showHint(context, 'Please Make sure you are connected to the device you want to configure');
+                                      }
+                                    }
+                                  }
+                                  else if (currentStep == 2) {
+                                    if (booleanProvider.connectionFailed) {
+                                      showSnack(context, 'Connection Failed', 'Please Make Sure Your Wi-Fi network data are correct');
+                                    } else if (booleanProvider.connectionSuccess &&
+                                        !booleanProvider.connectionFailed) {
+                                      snackBarCount = 0;
+                                      controls.onStepContinue!();
+                                    } else {
+                                      print("sending frame");
+                                      sendFrame(
+                                        {
+                                          "commands": 'WIFI_CONNECT_CHECK',
+                                          "mac_address": booleanProvider.macAddress,
+                                        },
+                                        ip,
+                                        port,
+                                      );
+                                      showSnack(context, 'Wait A Second', 'Please Make sure you are connected to your Wi-Fi Network');
+                                    }
+                                  } else if (currentStep == 1) {
+                                    if (booleanProvider.configured) {
+                                      snackBarCount = 0;
+                                      controls.onStepContinue!();
+                                    } else {
+                                      if (formKey.currentState!.validate() && name.isNotEmpty) {
+                                        sendFrame(
+                                          {
+                                            "commands": "WIFI_CONFIG",
+                                            "mac_address": booleanProvider.macAddress,
+                                            "wifi_ssid": name,
+                                            "wifi_password": password,
+                                          },
+                                          ip,
+                                          port,
+                                        );
+                                      } else {
+                                        showSnack(context, 'Fields are Empty', 'You must Fill the field to continue the steps');
+                                      }
+                                    }
+                                  } else {
+                                    if (booleanProvider.roomConfig) {
+                                      booleanProvider.roomConfig = false;
+                                      Navigator.pop(context);
+                                    } else {
+                                      insertRoom(roomName,
+                                          apartmentMap.first['ApartmentID'])
+                                          .then((value) {
+                                        getRoomsByApartmentID(context,
+                                            apartmentMap.first['ApartmentID']);
+                                        insertDevice(
+                                          booleanProvider.macAddress,
+                                          booleanProvider.wifiSsid,
+                                          booleanProvider.wifiPassword,
+                                          booleanProvider.deviceType,
+                                          value,
+                                        )
+                                            .then((value) => {
+                                          Provider.of<AuthProvider>(context,
+                                              listen: false)
+                                              .roomConfig = true,
+                                          exportData().then((value) =>
+                                              Provider.of<AuthProvider>(
+                                                  context,
+                                                  listen: false)
+                                                  .toggling('adding', false))
+                                        });
+                                      });
+                                    }
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: MyColors.greenDark1,
+                                ),
+                                child: Text(
+                                  currentStep == 0
+                                      ? (booleanProvider.readOnly &&
+                                      !deviceDetails.contains(
+                                          booleanProvider.macAddress)
+                                      ? 'Next'
+                                      : 'connect')
+                                      : currentStep == 2
+                                      ? (booleanProvider.connectionSuccess &&
+                                      !booleanProvider.connectionFailed
+                                      ? 'Next'
+                                      : 'Check Connection')
+                                      : currentStep == 1
+                                      ? (booleanProvider.configured
+                                      ? 'Next'
+                                      : 'Configure')
+                                      : !booleanProvider.roomConfig
+                                      ? 'Save'
+                                      : 'Finish',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                    isDarkMode ? Colors.grey[900] : Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              );
+                            }),
+                      ),
+                    ),
+                  ],
+                );
+                            },
+                ),
+              )
+          ),
+        )
+            )
+        : Scaffold(
       body: SafeArea(
         child: Theme(
           data: Theme.of(context).copyWith(
@@ -247,7 +457,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const Text(
-                    'go to the wifi lists and connect to \'EsPap\' Network',
+                    'go to the wifi lists and connect to \'MegaSmart\' Network',
                     style: TextStyle(
                       fontSize: 23,
                     ),
@@ -302,6 +512,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                         icon: const Icon(Icons.arrow_downward),
                         iconSize: 24,
                         elevation: 16,
+                        onTap: getWifiNetworks,
                         onChanged: (String? newValue) {
                           setState(() {
                             name = newValue ?? '';

@@ -26,10 +26,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -54,10 +51,18 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDTkQseDr2ZWfSnJiivLPCVMUvOPSXJZHc',
-    appId: '1:958844814535:android:0deb25ec56af5d2757eae2',
+    appId: '1:958844814535:android:98837554da82cf7c57eae2',
     messagingSenderId: '958844814535',
     projectId: 'smart-home-aae4e',
     storageBucket: 'smart-home-aae4e.appspot.com',
   );
 
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyB0mryvZrSdQofgFR3Dk3DmBLg2gZHeS2c',
+    appId: '1:958844814535:ios:a104bec44c67f3ee57eae2',
+    messagingSenderId: '958844814535',
+    projectId: 'smart-home-aae4e',
+    storageBucket: 'smart-home-aae4e.appspot.com',
+    iosBundleId: 'eg.eoip.mega.glowGrid',
+  );
 }

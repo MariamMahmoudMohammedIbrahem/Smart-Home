@@ -62,6 +62,7 @@ Future<void> deleteOldFiles() async {
               DateTime.parse(uploadTimeStr).millisecondsSinceEpoch;
 
           if (now - uploadTime > oneHourInMs) {
+            print("now$now, upload time $uploadTime");
             await item.delete();
           }
         } catch (e) {throw Exception("Failed to delete the old files $e");}

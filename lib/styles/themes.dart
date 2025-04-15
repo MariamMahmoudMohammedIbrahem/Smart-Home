@@ -1,7 +1,30 @@
 import '../commons.dart';
+// Constants for Light and Dark Themes
+const CupertinoThemeData cupertinoLightTheme = CupertinoThemeData(
+  brightness: Brightness.light,
+  primaryColor: MyColors.greenDark1,
+  scaffoldBackgroundColor: Colors.white,
+  textTheme: CupertinoTextThemeData(
+    textStyle: TextStyle(color: Colors.black, fontSize: 16),
+    actionTextStyle: TextStyle(color: MyColors.greenDark1),
+    navTitleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
+  ),
+);
+
+const CupertinoThemeData cupertinoDarkTheme = CupertinoThemeData(
+  brightness: Brightness.dark,
+  primaryColor: MyColors.greenDark1,
+  scaffoldBackgroundColor: Colors.black,
+  textTheme: CupertinoTextThemeData(
+    textStyle: TextStyle(color: Colors.white, fontSize: 16),
+    actionTextStyle: TextStyle(color: MyColors.greenDark1),
+    navTitleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+  ),
+  barBackgroundColor: MyColors.greenDark1
+);
 
 // Custom Light Theme
-ThemeData lightTheme = ThemeData(
+ThemeData materialLightTheme = ThemeData(
   brightness: Brightness.light,
   primaryColor: MyColors.greenDark1,
   colorScheme: const ColorScheme.light(
@@ -38,7 +61,7 @@ ThemeData lightTheme = ThemeData(
 );
 
 // Custom Dark Theme
-ThemeData darkTheme = ThemeData(
+ThemeData materialDarkTheme = ThemeData(
   brightness: Brightness.dark,
   primaryColor: MyColors.greenDark1,
   colorScheme: const ColorScheme.dark(

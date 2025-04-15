@@ -12,7 +12,259 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-    return Scaffold(
+    return Platform.isIOS
+        ? CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        leading: CupertinoNavigationBarBackButton(
+          color: MyColors.greenDark1, // Set the back arrow color
+          onPressed: () {
+            Navigator.pop(context); // Pop to go back to the previous screen
+          },
+        ),
+            middle: const Text(
+              'Firmware Updating',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+            ),
+      ),
+      ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: SizedBox(
+              height: height * .88,
+              child: Center(
+                child: Provider.of<AuthProvider>(context).firmwareInfo == null
+                    ? Provider.of<AuthProvider>(context).isConnected
+                    ? const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    Text('Checking for Updates')
+                  ],
+                )
+                    : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.signal_wifi_connected_no_internet_4_rounded,
+                      size: 50,
+                      color: Colors.grey.shade600,
+                    ),
+                    Text(
+                      'No Internet Connection.',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade600),
+                    ),
+                  ],
+                )
+                    : Column(
+                  children: [
+                    Container(
+                      margin: EdgeInsets.symmetric(
+                          horizontal: width * .07, vertical: 20),
+                      padding: EdgeInsets.all(width * .03),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: MyColors.greenDark1),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Colors.grey.shade100,
+                                backgroundImage:
+                                const AssetImage('assets/images/appIcon.png'),
+                              ),
+                              width20,
+                              Consumer(builder:
+                                  (context, firmwareUpdating, child) {
+                                return Text(
+                                  'Version ${Provider.of<AuthProvider>(context).firmwareInfo}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: roomNames.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: EdgeInsets.symmetric(horizontal: width * 0.07, vertical: 10),
+                            child: Material(
+                              child: ExpansionTile(
+                                title: Row(
+                                  children: [
+                                    Icon(
+                                      getIconName(roomNames[index]),
+                                      color: MyColors.greenDark1,
+                                    ),
+                                    width10,
+                                    Text(roomNames[index]),
+                                  ],
+                                ),
+                                children: [
+                                  FutureBuilder<List<Map<String, dynamic>>>(
+                                    future: getDevices([roomIDs[index]]),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasError) {
+                                        return Text("Error: ${snapshot.error}");
+                                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                        return const Text("No devices found.");
+                                      } else {
+                                        return ListView.builder(
+                                          shrinkWrap: true,
+                                          physics: const NeverScrollableScrollPhysics(),
+                                          itemCount: snapshot.data!.length,
+                                          itemBuilder: (context, innerIndex) {
+                                            final deviceMacAddress = snapshot.data![innerIndex]['MacAddress'];
+                                            final matchedDevice = macVersion.firstWhere(
+                                                  (device) => device['mac_address'] == deviceMacAddress,
+                                              orElse: () => {},
+                                            );
+                                            final firmwareVersion = matchedDevice.isNotEmpty
+                                                ? matchedDevice['firmware_version'] ?? 'disconnected'
+                                                : 'Device not connected';
+
+                                            final deviceStatus = matchedDevice.isNotEmpty
+                                                ? matchedDevice['status'] ?? ''
+                                                : '';
+                                            return Padding(
+                                              padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
+                                              child: Consumer<AuthProvider>(
+                                                builder: (context, firmwareUpdating, child) {
+                                                  return Column(
+                                                    children: [
+                                                      Material(
+                                                        child: ListTile(
+                                                          leading: const Icon(
+                                                            Icons.lightbulb_circle_outlined,
+                                                            color: MyColors.greenDark1,
+                                                          ),
+                                                          title: Text(
+                                                            snapshot.data![innerIndex]['deviceName'] ?? 'Switch',
+                                                          ),
+                                                          subtitle: Text(
+                                                            firmwareVersion,
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              color: matchedDevice.isNotEmpty
+                                                                  ? Colors.grey
+                                                                  : Colors.red,
+                                                            ),
+                                                          ),
+                                                          trailing: matchedDevice.isNotEmpty
+                                                              ? (firmwareVersion ==
+                                                              Provider.of<AuthProvider>(context, listen: false)
+                                                                  .firmwareInfo
+                                                              ? const Text(
+                                                            'up to date',
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.bold,
+                                                              color: MyColors.greenDark1,
+                                                            ),
+                                                          )
+                                                              : deviceStatus.toString() == 'OK' ||
+                                                              deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_START' ||
+                                                              deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_FAIL' ||
+                                                              deviceStatus.toString() == 'DOWNLOAD_NEW_FIRMWARE_OK' ||
+                                                              double.tryParse(deviceStatus) != null
+                                                              ? _buildWidgetBasedOnState(matchedDevice)
+                                                              : (macVersion.isEmpty ||
+                                                              !macVersion.any((element) =>
+                                                              element['mac_address'] ==
+                                                                  snapshot.data![innerIndex]['MacAddress']))
+                                                              ? ElevatedButton(
+                                                            onPressed: () {
+                                                              sendFrame(
+                                                                {
+                                                                  'commands': 'CHECK_FOR_NEW_FIRMWARE',
+                                                                  'mac_address': deviceMacAddress,
+                                                                },
+                                                                ip,
+                                                                port,
+                                                              );
+                                                            },
+                                                            child: const Text('check'),
+                                                          )
+                                                              : ElevatedButton(
+                                                            onPressed: () {
+                                                              Fluttertoast.showToast(
+                                                                msg: 'wait a second',
+                                                                backgroundColor: MyColors.greenDark1,
+                                                                textColor: Colors.white,
+                                                              );
+                                                              sendFrame(
+                                                                {
+                                                                  "commands": 'DOWNLOAD_NEW_FIRMWARE',
+                                                                  "mac_address": deviceMacAddress,
+                                                                },
+                                                                ip,
+                                                                port,
+                                                              );
+                                                              setState(() {
+                                                                addOrUpdateDevice(macVersion,{'mac_address': deviceMacAddress, 'firmware_version': firmwareVersion, 'status': 'OK'}, context);
+                                                                Future.delayed(const Duration(seconds: 5), () {
+                                                                  if(deviceStatus.toString() == 'OK') {
+                                                                    addOrUpdateDevice(
+                                                                        macVersion, {
+                                                                      'mac_address': deviceMacAddress,
+                                                                      'firmware_version': firmwareVersion,
+                                                                      'status': ''
+                                                                    }, context);
+                                                                  }
+                                                                });
+                                                              });
+                                                            },
+                                                            child: const Text('Update'),
+                                                          ))
+                                                              : kEmptyWidget,
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.circular(20),
+                                                            side: BorderSide(color: Colors.green.shade100),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+    )
+        : Scaffold(
       appBar: AppBar(
         surfaceTintColor: MyColors.greenLight1,
         shadowColor: MyColors.greenLight2,

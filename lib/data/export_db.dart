@@ -29,3 +29,26 @@ Future<void> exportData() async {
     throw Exception("Error happened while exporting the data $e");
   }
 }
+
+Future<Map<String, dynamic>> getRoomAndDevices(int roomId) async {
+  final database = openDatabase(
+    join(await getDatabasesPath(), 'GlowGrid.db'),
+  );
+  final db = await database;
+  final room = await db.query(
+    'Rooms',
+    where: 'RoomID = ?',
+    whereArgs: [roomId],
+  );
+
+  final devices = await db.query(
+    'Devices',
+    where: 'RoomID = ?',
+    whereArgs: [roomId],
+  );
+
+  return {
+    'room': room.first,
+    'devices': devices,
+  };
+}

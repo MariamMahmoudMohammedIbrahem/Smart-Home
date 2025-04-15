@@ -26,7 +26,7 @@ class SocketManager {
             if (response == "OK") {
               commandResponse = response;
             } else {
-              if(deviceStatus.isNotEmpty) {
+              // if(deviceStatus.isNotEmpty) {
                 try {
                   Map<String, dynamic> jsonResponse = jsonDecode(response);
                   print('jsonResponse $jsonResponse');
@@ -35,53 +35,55 @@ class SocketManager {
                   if (commandResponse == 'UPDATE_OK' ||
                       commandResponse == 'SWITCH_WRITE_OK' ||
                       commandResponse == 'SWITCH_READ_OK') {
-                    if (deviceStatus.firstWhere(
-                          (device) =>
-                      device['MacAddress'] == jsonResponse['mac_address'],
-                    )['sw1'] !=
-                        jsonResponse['sw0']) {
-                      print('step1');
-                      Provider.of<AuthProvider>(context, listen: false)
-                          .setSwitch(
-                          jsonResponse['mac_address'],
-                          'sw1',
-                          jsonResponse['sw0']);
-                    }
-                    if (deviceStatus.firstWhere(
-                          (device) =>
-                      device['MacAddress'] == jsonResponse['mac_address'],
-                    )['sw2'] !=
-                        jsonResponse['sw1']) {
-                      print('step2');
-                      Provider.of<AuthProvider>(context, listen: false)
-                          .setSwitch(
-                          jsonResponse['mac_address'],
-                          'sw2',
-                          jsonResponse['sw1']);
-                    }
-                    if (deviceStatus.firstWhere(
-                          (device) =>
-                      device['MacAddress'] == jsonResponse['mac_address'],
-                    )['sw3'] !=
-                        jsonResponse['sw2']) {
-                      print('step3');
-                      Provider.of<AuthProvider>(context, listen: false)
-                          .setSwitch(
-                          jsonResponse['mac_address'],
-                          'sw3',
-                          jsonResponse['sw2']);
-                    }
-                    if (deviceStatus.firstWhere(
-                          (device) =>
-                      device['MacAddress'] == jsonResponse['mac_address'],
-                    )['led'] !=
-                        jsonResponse['led']) {
-                      print('step4');
-                      Provider.of<AuthProvider>(context, listen: false)
-                          .setSwitch(
-                          jsonResponse['mac_address'],
-                          'led',
-                          jsonResponse['led']);
+                    if(deviceStatus.isNotEmpty) {
+                      if (deviceStatus.firstWhere(
+                            (device) =>
+                        device['MacAddress'] == jsonResponse['mac_address'],
+                      )['sw1'] !=
+                          jsonResponse['sw0']) {
+                        print('step1');
+                        Provider.of<AuthProvider>(context, listen: false)
+                            .setSwitch(
+                            jsonResponse['mac_address'],
+                            'sw1',
+                            jsonResponse['sw0']);
+                      }
+                      if (deviceStatus.firstWhere(
+                            (device) =>
+                        device['MacAddress'] == jsonResponse['mac_address'],
+                      )['sw2'] !=
+                          jsonResponse['sw1']) {
+                        print('step2');
+                        Provider.of<AuthProvider>(context, listen: false)
+                            .setSwitch(
+                            jsonResponse['mac_address'],
+                            'sw2',
+                            jsonResponse['sw1']);
+                      }
+                      if (deviceStatus.firstWhere(
+                            (device) =>
+                        device['MacAddress'] == jsonResponse['mac_address'],
+                      )['sw3'] !=
+                          jsonResponse['sw2']) {
+                        print('step3');
+                        Provider.of<AuthProvider>(context, listen: false)
+                            .setSwitch(
+                            jsonResponse['mac_address'],
+                            'sw3',
+                            jsonResponse['sw2']);
+                      }
+                      if (deviceStatus.firstWhere(
+                            (device) =>
+                        device['MacAddress'] == jsonResponse['mac_address'],
+                      )['led'] !=
+                          jsonResponse['led']) {
+                        print('step4');
+                        Provider.of<AuthProvider>(context, listen: false)
+                            .setSwitch(
+                            jsonResponse['mac_address'],
+                            'led',
+                            jsonResponse['led']);
+                      }
                     }
                     Provider.of<AuthProvider>(context, listen: false)
                         .addingDevice(commandResponse, jsonResponse);
@@ -99,17 +101,21 @@ class SocketManager {
                     Provider.of<AuthProvider>(context, listen: false)
                         .addingDevice('WIFI_CONFIG_CONNECTING', {});
                     if (commandResponse == 'WIFI_CONFIG_SAME') {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text("Same Wi-Fi network data")));
+                      Platform.isIOS
+                          ? showCupertinoSnackBar(context, "Same Wi-Fi network data")
+                          : ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text("Same Wi-Fi network data")));
                     }
                   }
                   else if (commandResponse == 'WIFI_CONNECT_CHECK_OK') {
                     Provider.of<AuthProvider>(context, listen: false)
                         .addingDevice('WIFI_CONNECT_CHECK_OK', {});
-                    const snackBar =
-                    SnackBar(content: Text('Connected Successfully'));
-                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                    Platform.isIOS
+                        ? showCupertinoSnackBar(context, "Connected Successfully")
+                        : ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Connected Successfully")));
                   }
                   else if (commandResponse == 'CHECK_FOR_NEW_FIRMWARE_OK' ||
                       commandResponse == 'CHECK_FOR_NEW_FIRMWARE_FAIL' ||
@@ -132,7 +138,7 @@ class SocketManager {
                   throw Exception(
                       "Something went wrong while processing the data $e");
                 }
-              }
+              // }
             }
           }
         }

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "958844814535",
+    "project_id": "smart-home-aae4e",
+    "storage_bucket": "smart-home-aae4e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:958844814535:android:0deb25ec56af5d2757eae2",
+        "android_client_info": {
+          "package_name": "com.example.mega"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTkQseDr2ZWfSnJiivLPCVMUvOPSXJZHc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:958844814535:android:98837554da82cf7c57eae2",
+        "android_client_info": {
+          "package_name": "eg.eoip.mega.glow_grid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTkQseDr2ZWfSnJiivLPCVMUvOPSXJZHc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

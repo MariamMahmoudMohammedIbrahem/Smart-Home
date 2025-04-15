@@ -7,9 +7,24 @@ class GlowGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     isConnectedToInternet().then((value) => {if(value){
       checkFirmwareVersion('firmware-update/switch', 'firmware_version.txt', context)}});
-    return MaterialApp(
-      theme: lightTheme,
-      darkTheme: darkTheme,
+
+    return Platform.isIOS
+        ? CupertinoApp(
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+        DefaultMaterialLocalizations.delegate,
+        DefaultWidgetsLocalizations.delegate,
+        DefaultCupertinoLocalizations.delegate,
+      ],
+      theme: Provider.of<AuthProvider>(context).isDarkMode
+          ? cupertinoDarkTheme
+          : cupertinoLightTheme,
+      title: 'GlowGrid',
+      debugShowCheckedModeBanner: false,
+      home: const LoadingScreen(),
+    )
+        : MaterialApp(
+      theme: materialLightTheme,
+      darkTheme: materialDarkTheme,
       themeMode: Provider.of<AuthProvider>(context).isDarkMode
           ? ThemeMode.dark
           : ThemeMode.light,

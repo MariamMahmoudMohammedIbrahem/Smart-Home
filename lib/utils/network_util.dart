@@ -29,11 +29,9 @@ void startListeningForNetworkChanges() {
   Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> connectivityResults) async {
     print('Connectivity changed: $connectivityResults');
 
-    final info = NetworkInfo();
-
     if (connectivityResults.contains(ConnectivityResult.wifi)) {
       // Get the Wi-Fi IP address
-      String? wifiIP = await info.getWifiIP();
+      String? wifiIP = await getLocalIpByInterface();
       if (wifiIP != null) {
         ip = modifyIP(wifiIP);
         print("Connected to Wi-Fi. IP Address: $wifiIP, Modified IP: $ip");
@@ -42,8 +40,28 @@ void startListeningForNetworkChanges() {
   });
 }
 
+Future<String?> getLocalIpByInterface() async{
+  for(var interface in await NetworkInterface.list()){
+    if(interface.name.contains("wlan") || interface.name.contains("en")){
+      for(var addr in interface.addresses) {
+        if(addr.type == InternetAddressType.IPv4) {
+          return addr.address;
+        }
+      }
+    }
+  }
+  return null;
+}
+
 String modifyIP(String ip) {
   List<String> parts = ip.split('.');
   parts[3] = '255'; // Replace the last segment
   return parts.join('.');
+}
+
+Future<void> getWifiNetworks() async {
+  print("here inside getWifiNetworks");
+  List<WifiNetwork?> networks = await WiFiForIoTPlugin.loadWifiList();
+  print("wifiNetworks $networks");
+  wifiNetworks = networks;
 }

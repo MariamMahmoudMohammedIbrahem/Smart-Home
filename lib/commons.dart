@@ -11,6 +11,7 @@ export 'package:network_info_plus/network_info_plus.dart';
 export 'package:firebase_core/firebase_core.dart';
 export 'package:firebase_storage/firebase_storage.dart';
 export 'package:flutter/material.dart';
+export 'package:flutter/cupertino.dart' hide RefreshCallback;
 export 'package:flutter/services.dart';
 export 'package:flutter_colorpicker/flutter_colorpicker.dart';
 export 'package:fluttertoast/fluttertoast.dart';
@@ -19,9 +20,11 @@ export 'package:path/path.dart' hide context;
 export 'package:path_provider/path_provider.dart';
 export 'package:provider/provider.dart';
 export 'package:qr_flutter/qr_flutter.dart';
+export 'package:mobile_scanner/mobile_scanner.dart';
 export 'package:shared_preferences/shared_preferences.dart';
 export 'package:sqflite/sqflite.dart';
 export 'package:wifi_iot/wifi_iot.dart';
+export 'package:geolocator/geolocator.dart';
 
 // Project-specific imports
 export 'constants/constants.dart';

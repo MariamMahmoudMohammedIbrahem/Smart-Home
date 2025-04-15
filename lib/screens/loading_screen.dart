@@ -11,7 +11,16 @@ class LoadingScreenState extends State<LoadingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Platform.isIOS
+        ? CupertinoPageScaffold(
+      backgroundColor: MyColors.greenDark1,
+      child: Center(
+        child: Image.asset(
+          'assets/images/loading-animate.gif',
+        ),
+      ),
+    )
+        : Scaffold(
       backgroundColor: MyColors.greenDark1,
       body: Center(
         child: Image.asset(
