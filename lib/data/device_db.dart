@@ -31,6 +31,7 @@ Future<bool> insertDevice(
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    getAllMacAddresses();
     return true;
   }
 }
@@ -47,21 +48,6 @@ Future<List<Map<String, dynamic>>> getDeviceDetailsByRoomID(
     whereArgs: [roomID],
   );
   macAddress = deviceDetails.first['MacAddress'];
-  for (var device in deviceDetails) {
-    bool exists =
-    deviceStatus.any((d) => d['MacAddress'] == device['MacAddress']);
-
-    if (!exists || deviceDetails.isEmpty) {
-      deviceStatus.add({
-        'MacAddress': device['MacAddress'],
-        'sw1': 0,
-        'sw2': 0,
-        'sw3': 0,
-        'led': 0,
-        'CurrentColor': 0xffffff,
-      });
-    }
-  }
   return deviceDetails;
 }
 
@@ -90,7 +76,10 @@ Future<void> getAllMacAddresses() async {
     ],
   );
 
-  macMap = result.map((row) => row['MacAddress'] as String).toList();
+  macAddresses = result.map((row) => row['MacAddress'] as String).toList();
+  deviceStatus = macAddresses.map((mac) {
+    return DeviceStatus(macAddress: mac);
+  }).toList();
 }
 
 Future<void> deleteDeviceByMacAddress(String macAddress) async {

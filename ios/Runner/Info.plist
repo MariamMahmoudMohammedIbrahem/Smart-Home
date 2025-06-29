@@ -8,6 +8,13 @@
         <key>NSAllowsArbitraryLoads</key>
         <true/>
     </dict>
+<key>NSLocalNetworkUsageDescription</key>
+<string>This app needs access to the local network to communicate with devices nearby.</string>
+
+<key>NSBonjourServices</key>
+<array>
+    <string>_udp._myapp</string> <!-- Or whatever makes sense in your use case -->
+</array>
 
     <!-- Camera Permission -->
     <key>NSCameraUsageDescription</key>

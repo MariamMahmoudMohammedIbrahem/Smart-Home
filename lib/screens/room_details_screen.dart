@@ -1,14 +1,11 @@
-
 import '../commons.dart';
 
 class RoomDetailsScreen extends StatefulWidget {
-  final String roomName;
-  final int roomID;
+  final Room roomDetail;
 
   const RoomDetailsScreen({
     super.key,
-    required this.roomName,
-    required this.roomID,
+    required this.roomDetail,
   });
 
   @override
@@ -30,200 +27,722 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
             Navigator.pop(context); // Pop to go back to the previous screen
           },
         ),
-        middle: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        middle: navBarChild(),
+      ),
+        child: SafeArea(
+          child: scaffoldBody(width, isDarkMode),
+        ),
+        )
+        : Scaffold(
+      appBar: AppBar(
+        surfaceTintColor: MyColors.greenLight1,
+        shadowColor: MyColors.greenLight2,
+        backgroundColor: MyColors.greenDark1,
+        foregroundColor: Colors.white,
+        shape: appBarShape,
+        title: navBarChild(),
+        centerTitle: true,
+        titleTextStyle: materialNavTitleTextStyle,
+      ),
+      body: scaffoldBody(width, isDarkMode),
+    );
+  }
+
+  Widget navBarChild () {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          widget.roomDetail.name,
+          style: Platform.isIOS?cupertinoNavTitleStyle:null,
+        ),
+        width5,
+        Icon(
+          widget.roomDetail.icon,
+        ),
+      ],
+    );
+  }
+  switchOnChanged (int adjustedIndex, DeviceStatus? device, int newValue) {
+    final key = adjustedIndex == 3
+        ? 'led'
+        : 'sw$adjustedIndex';
+
+    sendFrame(
+      {
+        'commands': 'SWITCH_WRITE',
+        'mac_address': macAddress,
+        key: newValue,
+      },
+      ip,
+      port,
+    );
+  }
+  // Widget scaffoldBody (double width, bool isDarkMode) {
+  //
+  //   return Padding(
+  //     padding: EdgeInsets.symmetric(horizontal: width * .07, vertical: 10),
+  //     // child: SingleChildScrollView(
+  //       child: ListView( /// changed from column to list view so we can comment single child scroll view
+  //         children: [
+  //           Visibility(
+  //             visible: deviceDetails.length > 1,
+  //             child: SingleChildScrollView(
+  //               scrollDirection: Axis.horizontal,
+  //               child: Row(
+  //                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //                 children: deviceDetails.asMap().entries.map((entry) {
+  //                   Map<String, dynamic> device = entry.value;
+  //                   String macAddressDevice = device['MacAddress'];
+  //                   return Padding(
+  //                     padding: const EdgeInsets.symmetric(horizontal: 7.5),
+  //                     child: ElevatedButton(
+  //                       onPressed: () {
+  //                         setState(() {
+  //                           macAddress = macAddressDevice;
+  //                         });
+  //                       },
+  //                       onLongPress: () {
+  //                         /// TODO: material only need to be optimized with cupertino also
+  //                         showModalBottomSheet(
+  //                           context: context,
+  //                           builder: (context) {
+  //                             return Container(
+  //                               decoration: BoxDecoration(
+  //                                 color: Provider.of<AuthProvider>(context).isDarkMode
+  //                                     ? Colors.grey[900]
+  //                                     : Colors.white,
+  //                                 borderRadius: const BorderRadius.only(
+  //                                   topLeft: Radius.circular(20.0),
+  //                                   topRight: Radius.circular(20.0),
+  //                                 ),
+  //                               ),
+  //                               child: Column(
+  //                                 mainAxisSize: MainAxisSize.min,
+  //                                 children: <Widget>[
+  //                                   ListTile(
+  //                                     leading: const Icon(
+  //                                       Icons.delete,
+  //                                       color: MyColors.greenDark1,
+  //                                     ),
+  //                                     title: const Text(
+  //                                       'Delete',
+  //                                       style: TextStyle(
+  //                                         color: MyColors.greenDark1,
+  //                                       ),
+  //                                     ),
+  //                                     onTap: () {
+  //                                       deleteDeviceByMacAddress(
+  //                                         macAddressDevice,
+  //                                       )
+  //                                           .then((value) => {
+  //                                         Provider.of<AuthProvider>(
+  //                                             context,
+  //                                             listen: false)
+  //                                             .toggling(
+  //                                           'delete',
+  //                                           true,
+  //                                         ),
+  //                                         getDeviceDetailsByRoomID(
+  //                                             widget.roomDetail.id!)
+  //                                             .then((value) => {
+  //                                           exportData(),
+  //                                           Provider.of<AuthProvider>(
+  //                                               context,
+  //                                               listen:
+  //                                               false)
+  //                                               .toggling(
+  //                                             'delete',
+  //                                             false,
+  //                                           ),
+  //                                           Navigator.pop(
+  //                                               context),
+  //                                         }),
+  //                                       });
+  //                                     },
+  //                                   ),
+  //                                 ],
+  //                               ),
+  //                             );
+  //                           },
+  //                           backgroundColor: Colors.transparent,
+  //                           isScrollControlled: true,
+  //                         );
+  //                       },
+  //                       style: ElevatedButton.styleFrom(
+  //                         side: BorderSide(
+  //                           color: macAddress == macAddressDevice
+  //                               ? MyColors.greenDark1
+  //                               : Colors.grey,
+  //                         ),
+  //                         backgroundColor: macAddress == macAddressDevice
+  //                             ? MyColors.greyLight
+  //                             : Colors.white,
+  //                       ),
+  //                       child: Text(
+  //                         '${device['DeviceType'] ?? "Switch"} ${entry.key + 1}',
+  //                         style: const TextStyle(
+  //                           color: MyColors.greenDark1,
+  //                         ),
+  //                       ),
+  //                     ),
+  //                   );
+  //                 }).toList(),
+  //               ),
+  //             ),
+  //           ),
+  //           height10,
+  //           GridView.builder(
+  //             physics: const NeverScrollableScrollPhysics(),
+  //             shrinkWrap: true,
+  //             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+  //               crossAxisCount: 2,
+  //               mainAxisSpacing: 15.0,
+  //               crossAxisSpacing: 15.0,
+  //             ),
+  //             itemCount: 4,
+  //             itemBuilder: (context, index) {
+  //               int adjustedIndex = (index == 1) ? 2 : (index == 2) ? 1 : index;
+  //               final device = findDeviceByMac(deviceStatus, macAddress);
+  //
+  //               final isActive = device?.getSwitchValue(adjustedIndex) == 1;
+  //               final borderColor = resolveColor(isActive, isDarkMode, MyColors.greenDark1);
+  //               final backgroundColor = isDarkMode
+  //                   ? Colors.transparent
+  //                   : isActive
+  //                   ? MyColors.greyLight
+  //                   : Colors.grey.shade200;
+  //
+  //               return GestureDetector(
+  //                 child: Consumer<AuthProvider>(
+  //                   builder: (context, switchesProvider, child) {
+  //                     return Container(
+  //                       decoration: BoxDecoration(
+  //                         color: backgroundColor,
+  //                         borderRadius: BorderRadius.circular(20),
+  //                         border: Border.all(color: borderColor),
+  //                       ),
+  //                       padding: const EdgeInsets.symmetric(horizontal: 20),
+  //                       child: Column(
+  //                         crossAxisAlignment: CrossAxisAlignment.start,
+  //                         children: [
+  //                           Row(
+  //                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                             children: [
+  //                               Icon(
+  //                                 adjustedIndex == 3
+  //                                     ? Icons.light_mode_outlined
+  //                                     : adjustedIndex == 1
+  //                                     ? Icons.color_lens_outlined
+  //                                     : Icons.lightbulb_circle_outlined,
+  //                                 color: borderColor,
+  //                                 size: 40,
+  //                               ),
+  //                               Platform.isIOS
+  //                                 ? CupertinoSwitch(
+  //                                 value: isActive,
+  //                                 onChanged: (newValue){switchOnChanged(adjustedIndex, device, newValue?1:0);},
+  //                                 )
+  //                                 : Switch(
+  //                                   value: isActive,
+  //                                   onChanged: (newValue){switchOnChanged(adjustedIndex, device, newValue?1:0);},
+  //                                 ),
+  //                             ],
+  //                           ),
+  //                           Text(
+  //                             ledInfo[index],
+  //                             style: TextStyle(
+  //                               color: borderColor,
+  //                               fontSize: 20,
+  //                               fontWeight: FontWeight.bold,
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     );
+  //                   },
+  //                 ),
+  //               );
+  //             },
+  //           ),
+  //           Padding(
+  //             padding: const EdgeInsets.symmetric(vertical: 8.0),
+  //             child: Consumer<AuthProvider>(
+  //               builder: (context, switchesProvider, child) {
+  //                 final device = findDeviceByMac(deviceStatus, macAddress);
+  //                 final isSw2On = device?.sw2 == 1;
+  //
+  //                 return isSw2On
+  //                     ? Padding(
+  //                   padding: const EdgeInsets.symmetric(vertical: 15.0),
+  //                   child: ColorPicker(
+  //                     pickerColor: tempColor,
+  //                     onColorChanged: (color) {
+  //                       debounceConfirm?.cancel();
+  //                       if (debounce?.isActive ?? false) {
+  //                         debounce!.cancel();
+  //                       }
+  //
+  //                       setState(() {
+  //                         tempColor = color;
+  //                       });
+  //
+  //                       debounce = Timer(
+  //                         const Duration(milliseconds: 100),
+  //                             () {
+  //                           setState(() {
+  //                             currentColor = tempColor;
+  //                           });
+  //
+  //                           sendFrame(
+  //                             {
+  //                               "commands": "RGB_WRITE",
+  //                               "mac_address": macAddress,
+  //                               "red": currentColor.red,
+  //                               "green": currentColor.green,
+  //                               "blue": currentColor.blue,
+  //                             },
+  //                             ip,
+  //                             port,
+  //                           );
+  //                         },
+  //                       );
+  //                       debounceConfirm = Timer(
+  //                           const Duration(seconds: 10),(){
+  //                         setState(() {
+  //                           tempColor = device!.currentColor;
+  //                         });
+  //                       });
+  //                     },
+  //                     paletteType: PaletteType.hueWheel,
+  //                     enableAlpha: false,
+  //                     labelTypes: const [],
+  //                     colorPickerWidth: 250,
+  //                   ),
+  //                 )
+  //                     : kEmptyWidget;
+  //               },
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     // ),
+  //   );
+  // }
+  Widget scaffoldBody(double width, bool isDarkMode) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: width * .07, vertical: 10),
+      child: SingleChildScrollView(
+        child: Column(
           children: [
-            Text(
-              widget.roomName,
-              style: const TextStyle(
-                color: MyColors.greenDark1,
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            width5,
-            Icon(
-              getIconName(
-                widget.roomName,
-              ),
-            ),
+            if (deviceDetails.length > 1) _buildDeviceButtons(authProvider),
+            height10,
+            _buildGridSwitches(isDarkMode),
+            _buildColorPickerIfNeeded(),
           ],
         ),
       ),
-        child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: width * .07, vertical: 10),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Visibility(
-                    visible: deviceDetails.length > 1,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: deviceDetails.asMap().entries.map((entry) {
-                          Map<String, dynamic> device = entry.value;
-                          String macAddressDevice = device['MacAddress'];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 7.5),
-                            child: ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  macAddress = macAddressDevice;
-                                });
-                              },
-                              onLongPress: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (context) {
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        color: Provider.of<AuthProvider>(context).isDarkMode
-                                            ? Colors.grey[900]
-                                            : Colors.white,
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(20.0),
-                                          topRight: Radius.circular(20.0),
-                                        ),
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: <Widget>[
-                                          Material(
-                                            child: ListTile(
-                                              leading: const Icon(
-                                                Icons.delete,
-                                                color: MyColors.greenDark1,
-                                              ),
-                                              title: const Text(
-                                                'Delete',
-                                                style: TextStyle(
-                                                  color: MyColors.greenDark1,
-                                                ),
-                                              ),
-                                              onTap: () {
-                                                deleteDeviceByMacAddress(
-                                                  macAddressDevice,
-                                                )
-                                                    .then((value) => {
-                                                  Provider.of<AuthProvider>(
-                                                      context,
-                                                      listen: false)
-                                                      .toggling(
-                                                    'delete',
-                                                    true,
-                                                  ),
-                                                  getDeviceDetailsByRoomID(
-                                                      widget.roomID)
-                                                      .then((value) => {
-                                                    exportData(),
-                                                    Provider.of<AuthProvider>(
-                                                        context,
-                                                        listen:
-                                                        false)
-                                                        .toggling(
-                                                      'delete',
-                                                      false,
-                                                    ),
-                                                    Navigator.pop(
-                                                        context),
-                                                  }),
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                  backgroundColor: Colors.transparent,
-                                  isScrollControlled: true,
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                side: BorderSide(
-                                  color: macAddress == macAddressDevice
-                                      ? MyColors.greenDark1
-                                      : Colors.grey,
-                                ),
-                                backgroundColor: macAddress == macAddressDevice
-                                    ? MyColors.greyLight
-                                    : Colors.white,
-                              ),
-                              child: Text(
-                                device['DeviceType'] ?? "Switch",
-                                style: const TextStyle(
-                                  color: MyColors.greenDark1,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
+    );
+  }
+  Widget _buildDeviceButtons(AuthProvider authProvider) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: List.generate(deviceDetails.length, (index) {
+          final device = deviceDetails[index];
+          final macAddressDevice = device['MacAddress'];
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 7.5),
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  macAddress = macAddressDevice;
+                });
+              },
+              onLongPress: () => _showDeleteModal(macAddressDevice),
+              style: ElevatedButton.styleFrom(
+                side: BorderSide(
+                  color: macAddress == macAddressDevice
+                      ? MyColors.greenDark1
+                      : Colors.grey,
+                ),
+                backgroundColor: macAddress == macAddressDevice
+                    ? MyColors.greyLight
+                    : Colors.white,
+              ),
+              child: Text(
+                '${device['DeviceType'] ?? "Switch"} ${index + 1}',
+                style: const TextStyle(color: MyColors.greenDark1),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  void _showDeleteModal(String macAddressDevice) {
+    Platform.isIOS
+    ? showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => CupertinoActionSheet(
+        title: Text("Delete Switch?", style: TextStyle(fontWeight: FontWeight.bold, color: MyColors.greenDark1, fontSize: 20,),),
+      message: Text("This action cannot be undone. Are you sure you want to delete this item", style: TextStyle(fontStyle: FontStyle.italic,color: CupertinoColors.systemGrey),),
+      actions: [
+        CupertinoActionSheetAction(
+          onPressed: (){deleteSwitch(macAddressDevice);},
+          child: Text('Delete'),
+        ),
+      ],
+        cancelButton: CupertinoButton(child: const Text("Cancel"), onPressed: (){Navigator.pop(context);}),
+    ),
+    )
+    : showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        final isDark = Provider.of<AuthProvider>(context).isDarkMode;
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey[900] : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: ListTile(
+            leading: const Icon(Icons.delete, color: MyColors.greenDark1),
+            title: const Text('Delete', style: TextStyle(color: MyColors.greenDark1)),
+            onTap: (){deleteSwitch(macAddressDevice);},
+          ),
+        );
+      },
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+    );
+  }
+
+  void deleteSwitch (macAddressDevice) {
+    deleteDeviceByMacAddress(macAddressDevice).then((_) {
+      Provider.of<AuthProvider>(context, listen: false).toggling('delete', true);
+      getDeviceDetailsByRoomID(widget.roomDetail.id!).then((_) {
+        exportData();
+        Provider.of<AuthProvider>(context, listen: false).toggling('delete', false);
+        Navigator.pop(context);
+      });
+    });
+  }
+  Widget _buildGridSwitches(bool isDarkMode) {
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: 4,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 15.0,
+        crossAxisSpacing: 15.0,
+      ),
+      itemBuilder: (context, index) {
+        final adjustedIndex = (index == 1) ? 2 : (index == 2) ? 1 : index;
+        final device = findDeviceByMac(deviceStatus, macAddress);
+        final isActive = device?.getSwitchValue(adjustedIndex) == 1;
+        final borderColor = _resolveColor(isActive, isDarkMode, MyColors.greenDark1);
+        final backgroundColor = isDarkMode
+            ? Colors.transparent
+            : isActive
+            ? MyColors.greyLight
+            : Colors.grey.shade200;
+
+        return GestureDetector(
+          child: Consumer<AuthProvider>(
+            builder: (context, switchesProvider, child) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: backgroundColor,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: borderColor),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Icon(
+                          _getIconForIndex(adjustedIndex),
+                          color: borderColor,
+                          size: 40,
+                        ),
+                        _platformSwitch(isActive, (newValue) {
+                          switchOnChanged(adjustedIndex, device, newValue ? 1 : 0);
+                        }),
+                      ],
+                    ),
+                    Text(
+                      ledInfo[index],
+                      style: TextStyle(
+                        color: borderColor,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  height10,
-                  GridView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 15.0,
-                      crossAxisSpacing: 15.0,
-                    ),
-                    itemCount: 4,
-                    itemBuilder: (context, index) {
-                      int adjustedIndex = index;
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 
-                      if (index == 1) {
-                        adjustedIndex = 2;
-                      } else if (index == 2) {
-                        adjustedIndex = 1;
-                      }
-                      return GestureDetector(
-                        child: Consumer<AuthProvider>(
+  IconData _getIconForIndex(int index) {
+    switch (index) {
+      case 1:
+        return Icons.color_lens_outlined;
+      case 3:
+        return Icons.light_mode_outlined;
+      default:
+        return Icons.lightbulb_circle_outlined;
+    }
+  }
+
+  Widget _platformSwitch(bool value, void Function(bool) onChanged) {
+    return Platform.isIOS
+        ? CupertinoSwitch(value: value, onChanged: onChanged)
+        : Switch(value: value, onChanged: onChanged);
+  }
+  Widget _buildColorPickerIfNeeded() {
+    return Consumer<AuthProvider>(
+      builder: (context, provider, child) {
+        final device = findDeviceByMac(deviceStatus, macAddress);
+        final isSw2On = device?.sw2 == 1;
+
+        if (!isSw2On) return kEmptyWidget;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          child: ColorPicker(
+            pickerColor: device!.currentColor,
+            onColorChanged: _onColorChanged,
+            paletteType: PaletteType.hueWheel,
+            enableAlpha: false,
+            labelTypes: const [],
+            colorPickerWidth: 250,
+          ),
+        );
+      },
+    );
+  }
+
+  void _onColorChanged(Color color) {
+    debounceConfirm?.cancel();
+    debounce?.cancel();
+    final device = findDeviceByMac(deviceStatus, macAddress);
+    setState(() => tempColor = color);
+    setState(() => device!.currentColor = color);
+
+    debounce = Timer(const Duration(milliseconds: 100), () {
+      setState(() => currentColor = tempColor);
+
+      sendFrame(
+        {
+          "commands": "RGB_WRITE",
+          "mac_address": macAddress,
+          "red": currentColor.red,
+          "green": currentColor.green,
+          "blue": currentColor.blue,
+        },
+        ip,
+        port,
+      );
+    });
+
+    // debounceConfirm = Timer(const Duration(seconds: 10), () {
+    //   final device = findDeviceByMac(deviceStatus, macAddress);
+    //   setState(() {
+    //     tempColor = device!.currentColor;
+    //   });
+    // });
+  }
+
+  Color _resolveColor(bool isActive, bool isDarkMode, Color activeColor) {
+    return isActive
+        ? activeColor
+        : isDarkMode
+        ? Colors.grey.shade400
+        : Colors.grey.shade800;
+  }
+
+  @override
+  void dispose() {
+    debounce?.cancel();
+    super.dispose();
+  }
+}
+/*
+ return Platform.isIOS
+        ? CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        leading: CupertinoNavigationBarBackButton(
+          color: MyColors.greenDark1, // Set the back arrow color
+          onPressed: () {
+            Navigator.pop(context); // Pop to go back to the previous screen
+          },
+        ),
+        middle: navBarChild(),
+      ),
+        child: SafeArea(
+          child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: width * .07, vertical: 10),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Visibility(
+                      visible: deviceDetails.length > 1,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: deviceDetails.asMap().entries.map((entry) {
+                            Map<String, dynamic> device = entry.value;
+                            String macAddressDevice = device['MacAddress'];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 7.5),
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    macAddress = macAddressDevice;
+                                  });
+                                },
+                                onLongPress: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    builder: (context) {
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          color: Provider.of<AuthProvider>(context).isDarkMode
+                                              ? Colors.grey[900]
+                                              : Colors.white,
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.circular(20.0),
+                                            topRight: Radius.circular(20.0),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: <Widget>[
+                                            Material(
+                                              child: ListTile(
+                                                leading: const Icon(
+                                                  Icons.delete,
+                                                  color: MyColors.greenDark1,
+                                                ),
+                                                title: const Text(
+                                                  'Delete',
+                                                  style: TextStyle(
+                                                    color: MyColors.greenDark1,
+                                                  ),
+                                                ),
+                                                onTap: () {
+                                                  deleteDeviceByMacAddress(
+                                                    macAddressDevice,
+                                                  )
+                                                      .then((value) => {
+                                                    Provider.of<AuthProvider>(
+                                                        context,
+                                                        listen: false)
+                                                        .toggling(
+                                                      'delete',
+                                                      true,
+                                                    ),
+                                                    getDeviceDetailsByRoomID(
+                                                        widget.roomDetail.id!)
+                                                        .then((value) => {
+                                                      exportData(),
+                                                      Provider.of<AuthProvider>(
+                                                          context,
+                                                          listen:
+                                                          false)
+                                                          .toggling(
+                                                        'delete',
+                                                        false,
+                                                      ),
+                                                      Navigator.pop(
+                                                          context),
+                                                    }),
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                    backgroundColor: Colors.transparent,
+                                    isScrollControlled: true,
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  side: BorderSide(
+                                    color: macAddress == macAddressDevice
+                                        ? MyColors.greenDark1
+                                        : Colors.grey,
+                                  ),
+                                  backgroundColor: macAddress == macAddressDevice
+                                      ? MyColors.greyLight
+                                      : Colors.white,
+                                ),
+                                child: Text(
+                                  '${device['DeviceType'] ?? "Switch"} ${entry.key + 1}',
+                                  style: const TextStyle(
+                                    color: MyColors.greenDark1,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    height10,
+                    GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 15.0,
+                        crossAxisSpacing: 15.0,
+                      ),
+                      itemCount: 4,
+                      itemBuilder: (context, index) {
+                        int adjustedIndex = (index == 1) ? 2 : (index == 2) ? 1 : index;
+                        final device = findDeviceByMac(deviceStatus, macAddress);
+
+                        final isActive = device?.getSwitchValue(adjustedIndex) == 1;
+                        final borderColor = resolveColor(isActive, isDarkMode, MyColors.greenDark1);
+                        final backgroundColor = isDarkMode
+                            ? Colors.transparent
+                            : isActive
+                            ? MyColors.greyLight
+                            : Colors.grey.shade200;
+
+                        return GestureDetector(
+                          child: Consumer<AuthProvider>(
                             builder: (context, switchesProvider, child) {
                               return Container(
                                 decoration: BoxDecoration(
-                                  color: isDarkMode
-                                      ? Colors.transparent
-                                      : adjustedIndex == 3
-                                      ? deviceStatus.firstWhere(
-                                        (device) =>
-                                    device['MacAddress'] ==
-                                        macAddress,
-                                  )['led'] ==
-                                      1
-                                      ? const Color(0xffcbe3c5)
-                                      : Colors.grey.shade200
-                                      : deviceStatus.firstWhere(
-                                        (device) =>
-                                    device['MacAddress'] ==
-                                        macAddress,
-                                  )['sw${adjustedIndex + 1}'] ==
-                                      1
-                                      ? const Color(0xffcbe3c5)
-                                      : Colors.grey.shade200,
+                                  color: backgroundColor,
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: deviceStatus.firstWhere(
-                                          (device) =>
-                                      device['MacAddress'] == macAddress,
-                                    )['sw${adjustedIndex + 1}'] ==
-                                        1 || (adjustedIndex == 3 && deviceStatus.firstWhere((device) => device['MacAddress'] == macAddress,)['led'] == 1)
-                                        ? const Color(0xFF047424)
-                                        : isDarkMode
-                                        ? Colors.grey.shade400
-                                        : Colors.grey.shade800,
-                                  ),
+                                  border: Border.all(color: borderColor),
                                 ),
                                 padding: const EdgeInsets.symmetric(horizontal: 20),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Icon(
                                           adjustedIndex == 3
@@ -231,135 +750,35 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                               : adjustedIndex == 1
                                               ? Icons.color_lens_outlined
                                               : Icons.lightbulb_circle_outlined,
-                                          color: deviceStatus.firstWhere(
-                                                (device) =>
-                                            device['MacAddress'] ==
-                                                macAddress,
-                                          )['sw${adjustedIndex + 1}'] ==
-                                              1 || (adjustedIndex == 3 && deviceStatus.firstWhere((device) => device['MacAddress'] == macAddress,)['led'] == 1)
-                                              ? const Color(0xFF047424)
-                                              : isDarkMode
-                                              ? Colors.grey.shade400
-                                              : Colors.grey.shade800,
+                                          color: borderColor,
                                           size: 40,
                                         ),
-                                        Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            CupertinoSwitch(
-                                              value: adjustedIndex == 3
-                                                  ? deviceStatus.firstWhere(
-                                                    (device) =>
-                                                device[
-                                                'MacAddress'] ==
-                                                    macAddress,
-                                              )['led'] ==
-                                                  1
-                                                  ? true
-                                                  : false
-                                                  : deviceStatus.firstWhere(
-                                                    (device) =>
-                                                device[
-                                                'MacAddress'] ==
-                                                    macAddress,
-                                              )['sw${adjustedIndex + 1}'] ==
-                                                  1
-                                                  ? true
-                                                  : false,
-                                              onChanged: (value) {
-                                                if (index == 0) {
-                                                  sendFrame(
-                                                    {
-                                                      "commands": 'SWITCH_WRITE',
-                                                      "mac_address": macAddress,
-                                                      "sw0": deviceStatus.firstWhere(
-                                                            (device) =>
-                                                        device[
-                                                        'MacAddress'] ==
-                                                            macAddress,
-                                                      )['sw1'] ==
-                                                          0
-                                                          ? 1
-                                                          : 0,
-                                                    },
-                                                    ip,
-                                                    port,
-                                                  );
-                                                } else if (index == 2) {
-                                                  sendFrame(
-                                                    {
-                                                      "commands": 'SWITCH_WRITE',
-                                                      "mac_address": macAddress,
-                                                      "sw1": deviceStatus.firstWhere(
-                                                            (device) =>
-                                                        device[
-                                                        'MacAddress'] ==
-                                                            macAddress,
-                                                      )['sw2'] ==
-                                                          0
-                                                          ? 1
-                                                          : 0,
-                                                    },
-                                                    ip,
-                                                    port,
-                                                  );
-                                                } else if (index == 1) {
-                                                  sendFrame(
-                                                    {
-                                                      "commands": 'SWITCH_WRITE',
-                                                      "mac_address": macAddress,
-                                                      "sw2": deviceStatus.firstWhere(
-                                                            (device) =>
-                                                        device[
-                                                        'MacAddress'] ==
-                                                            macAddress,
-                                                      )['sw3'] ==
-                                                          0
-                                                          ? 1
-                                                          : 0,
-                                                    },
-                                                    ip,
-                                                    port,
-                                                  );
-                                                } else {
-                                                  sendFrame(
-                                                    {
-                                                      "commands": 'SWITCH_WRITE',
-                                                      "mac_address": macAddress,
-                                                      "led": deviceStatus.firstWhere(
-                                                            (device) =>
-                                                        device[
-                                                        'MacAddress'] ==
-                                                            macAddress,
-                                                      )['led'] ==
-                                                          0
-                                                          ? 1
-                                                          : 0,
-                                                    },
-                                                    ip,
-                                                    port,
-                                                  );
-                                                }
+                                        CupertinoSwitch(
+                                          value: isActive,
+                                          onChanged: (value) {
+                                            final key = adjustedIndex == 3
+                                                ? 'led'
+                                                : 'sw$adjustedIndex';
+                                            final newValue =
+                                            device?.getSwitchValue(adjustedIndex) == 0 ? 1 : 0;
+
+                                            sendFrame(
+                                              {
+                                                'commands': 'SWITCH_WRITE',
+                                                'mac_address': macAddress,
+                                                key: newValue,
                                               },
-                                            ),
-                                          ],
+                                              ip,
+                                              port,
+                                            );
+                                          },
                                         ),
                                       ],
                                     ),
                                     Text(
                                       ledInfo[index],
                                       style: TextStyle(
-                                        color: deviceStatus.firstWhere(
-                                              (device) =>
-                                          device['MacAddress'] ==
-                                              macAddress,
-                                        )['sw${adjustedIndex + 1}'] ==
-                                            1 || (adjustedIndex == 3 && deviceStatus.firstWhere((device) => device['MacAddress'] == macAddress,)['led'] == 1)
-                                            ? const Color(0xFF047424)
-                                            : isDarkMode
-                                            ? Colors.grey.shade400
-                                            : Colors.grey.shade800,
+                                        color: borderColor,
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -367,47 +786,60 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                   ],
                                 ),
                               );
-                            }),
-                      );
-                    },
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Consumer<AuthProvider>(
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Consumer<AuthProvider>(
                         builder: (context, switchesProvider, child) {
-                          return deviceStatus.firstWhere(
-                                (device) => device['MacAddress'] == macAddress,
-                          )['sw2'] ==
-                              1
+                          final device = findDeviceByMac(deviceStatus, macAddress);
+                          final isSw2On = device?.sw2 == 1;
+
+                          return isSw2On
                               ? Padding(
                             padding: const EdgeInsets.symmetric(vertical: 15.0),
                             child: ColorPicker(
                               pickerColor: tempColor,
                               onColorChanged: (color) {
+                                debounceConfirm?.cancel();
                                 if (debounce?.isActive ?? false) {
                                   debounce!.cancel();
                                 }
 
                                 setState(() {
                                   tempColor = color;
+                                  print("${tempColor.red}, ${tempColor.green}, ${tempColor.blue}");
                                 });
 
                                 debounce = Timer(
-                                    const Duration(milliseconds: 100), () {
+                                  const Duration(milliseconds: 100),
+                                      () {
+                                    setState(() {
+                                      currentColor = tempColor;
+                                    });
+
+                                    sendFrame(
+                                      {
+                                        "commands": "RGB_WRITE",
+                                        "mac_address": macAddress,
+                                        "red": currentColor.red,
+                                        "green": currentColor.green,
+                                        "blue": currentColor.blue,
+                                      },
+                                      ip,
+                                      port,
+                                    );
+                                  },
+                                );
+
+                                debounceConfirm = Timer(
+                                    const Duration(seconds: 10),(){
                                   setState(() {
-                                    currentColor = tempColor;
+                                    tempColor = device!.currentColor;
                                   });
-                                  sendFrame(
-                                    {
-                                      "commands": "RGB_WRITE",
-                                      "mac_address": macAddress,
-                                      "red": currentColor.red,
-                                      "green": currentColor.green,
-                                      "blue": currentColor.blue,
-                                    },
-                                    ip,
-                                    port,
-                                  );
                                 });
                               },
                               paletteType: PaletteType.hueWheel,
@@ -417,11 +849,13 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                             ),
                           )
                               : kEmptyWidget;
-                        }),
-                  ),
-                ],
-              ),
-            )),
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+        ),
         )
         : Scaffold(
       appBar: AppBar(
@@ -429,30 +863,10 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
         shadowColor: MyColors.greenLight2,
         backgroundColor: MyColors.greenDark1,
         foregroundColor: Colors.white,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
-        ),
-        title: Row(
-          children: [
-            Text(
-              widget.roomName,
-            ),
-            width5,
-            Icon(
-              getIconName(
-                widget.roomName,
-              ),
-            ),
-          ],
-        ),
+        shape: appBarShape,
+        title: navBarChild(),
         centerTitle: true,
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 26,
-          fontWeight: FontWeight.bold,
-        ),
+        titleTextStyle: materialNavTitleTextStyle,
       ),
       body: Padding(
           padding: EdgeInsets.symmetric(horizontal: width * .07, vertical: 10),
@@ -517,7 +931,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                                 true,
                                               ),
                                               getDeviceDetailsByRoomID(
-                                                  widget.roomID)
+                                                  widget.roomDetail.id!)
                                                   .then((value) => {
                                                     exportData(),
                                                 Provider.of<AuthProvider>(
@@ -575,230 +989,109 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                   ),
                   itemCount: 4,
                   itemBuilder: (context, index) {
-                    int adjustedIndex = index;
+                    int adjustedIndex = (index == 1) ? 2 : (index == 2) ? 1 : index;
+                    final device = findDeviceByMac(deviceStatus, macAddress);
 
-                    if (index == 1) {
-                      adjustedIndex = 2;
-                    } else if (index == 2) {
-                      adjustedIndex = 1;
-                    }
+                    final isActive = device?.getSwitchValue(adjustedIndex) == 1;
+                    final borderColor = resolveColor(isActive, isDarkMode, MyColors.greenDark1);
+                    final backgroundColor = isDarkMode
+                        ? Colors.transparent
+                        : isActive
+                        ? MyColors.greyLight
+                        : Colors.grey.shade200;
+
                     return GestureDetector(
                       child: Consumer<AuthProvider>(
-                          builder: (context, switchesProvider, child) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                color: isDarkMode
-                                    ? Colors.transparent
-                                    : adjustedIndex == 3
-                                    ? deviceStatus.firstWhere(
-                                      (device) =>
-                                  device['MacAddress'] ==
-                                      macAddress,
-                                )['led'] ==
-                                    1
-                                    ? const Color(0xffcbe3c5)
-                                    : Colors.grey.shade200
-                                    : deviceStatus.firstWhere(
-                                      (device) =>
-                                  device['MacAddress'] ==
-                                      macAddress,
-                                )['sw${adjustedIndex + 1}'] ==
-                                    1
-                                    ? const Color(0xffcbe3c5)
-                                    : Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: deviceStatus.firstWhere(
-                                        (device) =>
-                                    device['MacAddress'] == macAddress,
-                                  )['sw${adjustedIndex + 1}'] ==
-                                      1 || (adjustedIndex == 3 && deviceStatus.firstWhere((device) => device['MacAddress'] == macAddress,)['led'] == 1)
-                                      ? const Color(0xFF047424)
-                                      : isDarkMode
-                                      ? Colors.grey.shade400
-                                      : Colors.grey.shade800,
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Icon(
-                                        adjustedIndex == 3
-                                            ? Icons.light_mode_outlined
-                                            : adjustedIndex == 1
-                                            ? Icons.color_lens_outlined
-                                            : Icons.lightbulb_circle_outlined,
-                                        color: deviceStatus.firstWhere(
-                                              (device) =>
-                                          device['MacAddress'] ==
-                                              macAddress,
-                                        )['sw${adjustedIndex + 1}'] ==
-                                            1 || (adjustedIndex == 3 && deviceStatus.firstWhere((device) => device['MacAddress'] == macAddress,)['led'] == 1)
-                                            ? const Color(0xFF047424)
-                                            : isDarkMode
-                                            ? Colors.grey.shade400
-                                            : Colors.grey.shade800,
-                                        size: 40,
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Switch(
-                                            value: adjustedIndex == 3
-                                                ? deviceStatus.firstWhere(
-                                                  (device) =>
-                                              device[
-                                              'MacAddress'] ==
-                                                  macAddress,
-                                            )['led'] ==
-                                                1
-                                                ? true
-                                                : false
-                                                : deviceStatus.firstWhere(
-                                                  (device) =>
-                                              device[
-                                              'MacAddress'] ==
-                                                  macAddress,
-                                            )['sw${adjustedIndex + 1}'] ==
-                                                1
-                                                ? true
-                                                : false,
-                                            onChanged: (value) {
-                                              if (index == 0) {
-                                                sendFrame(
-                                                  {
-                                                    "commands": 'SWITCH_WRITE',
-                                                    "mac_address": macAddress,
-                                                    "sw0": deviceStatus.firstWhere(
-                                                          (device) =>
-                                                      device[
-                                                      'MacAddress'] ==
-                                                          macAddress,
-                                                    )['sw1'] ==
-                                                        0
-                                                        ? 1
-                                                        : 0,
-                                                  },
-                                                  ip,
-                                                  port,
-                                                );
-                                              } else if (index == 2) {
-                                                sendFrame(
-                                                  {
-                                                    "commands": 'SWITCH_WRITE',
-                                                    "mac_address": macAddress,
-                                                    "sw1": deviceStatus.firstWhere(
-                                                          (device) =>
-                                                      device[
-                                                      'MacAddress'] ==
-                                                          macAddress,
-                                                    )['sw2'] ==
-                                                        0
-                                                        ? 1
-                                                        : 0,
-                                                  },
-                                                  ip,
-                                                  port,
-                                                );
-                                              } else if (index == 1) {
-                                                sendFrame(
-                                                  {
-                                                    "commands": 'SWITCH_WRITE',
-                                                    "mac_address": macAddress,
-                                                    "sw2": deviceStatus.firstWhere(
-                                                          (device) =>
-                                                      device[
-                                                      'MacAddress'] ==
-                                                          macAddress,
-                                                    )['sw3'] ==
-                                                        0
-                                                        ? 1
-                                                        : 0,
-                                                  },
-                                                  ip,
-                                                  port,
-                                                );
-                                              } else {
-                                                sendFrame(
-                                                  {
-                                                    "commands": 'SWITCH_WRITE',
-                                                    "mac_address": macAddress,
-                                                    "led": deviceStatus.firstWhere(
-                                                          (device) =>
-                                                      device[
-                                                      'MacAddress'] ==
-                                                          macAddress,
-                                                    )['led'] ==
-                                                        0
-                                                        ? 1
-                                                        : 0,
-                                                  },
-                                                  ip,
-                                                  port,
-                                                );
-                                              }
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  Text(
-                                    ledInfo[index],
-                                    style: TextStyle(
-                                      color: deviceStatus.firstWhere(
-                                            (device) =>
-                                        device['MacAddress'] ==
-                                            macAddress,
-                                      )['sw${adjustedIndex + 1}'] ==
-                                          1 || (adjustedIndex == 3 && deviceStatus.firstWhere((device) => device['MacAddress'] == macAddress,)['led'] == 1)
-                                          ? const Color(0xFF047424)
-                                          : isDarkMode
-                                          ? Colors.grey.shade400
-                                          : Colors.grey.shade800,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
+                        builder: (context, switchesProvider, child) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: backgroundColor,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: borderColor),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Icon(
+                                      adjustedIndex == 3
+                                          ? Icons.light_mode_outlined
+                                          : adjustedIndex == 1
+                                          ? Icons.color_lens_outlined
+                                          : Icons.lightbulb_circle_outlined,
+                                      color: borderColor,
+                                      size: 40,
                                     ),
+                                    Switch(
+                                      value: isActive,
+                                      onChanged: (value) {
+                                        final key = adjustedIndex == 3
+                                            ? 'led'
+                                            : 'sw$adjustedIndex';
+                                        final newValue =
+                                        device?.getSwitchValue(adjustedIndex) == 0 ? 1 : 0;
+
+                                        sendFrame(
+                                          {
+                                            'commands': 'SWITCH_WRITE',
+                                            'mac_address': macAddress,
+                                            key: newValue,
+                                          },
+                                          ip,
+                                          port,
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  ledInfo[index],
+                                  style: TextStyle(
+                                    color: borderColor,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                ],
-                              ),
-                            );
-                          }),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Consumer<AuthProvider>(
-                      builder: (context, switchesProvider, child) {
-                        return deviceStatus.firstWhere(
-                              (device) => device['MacAddress'] == macAddress,
-                        )['sw2'] ==
-                            1
-                            ? Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 15.0),
-                          child: ColorPicker(
-                            pickerColor: tempColor,
-                            onColorChanged: (color) {
-                              if (debounce?.isActive ?? false) {
-                                debounce!.cancel();
-                              }
+                    builder: (context, switchesProvider, child) {
+                      final device = findDeviceByMac(deviceStatus, macAddress);
+                      final isSw2On = device?.sw2 == 1;
 
-                              setState(() {
-                                tempColor = color;
-                              });
+                      return isSw2On
+                          ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15.0),
+                        child: ColorPicker(
+                          pickerColor: tempColor,
+                          onColorChanged: (color) {
+                            debounceConfirm?.cancel();
+                            if (debounce?.isActive ?? false) {
+                              debounce!.cancel();
+                            }
 
-                              debounce = Timer(
-                                  const Duration(milliseconds: 100), () {
+                            setState(() {
+                              tempColor = color;
+                            });
+
+                            debounce = Timer(
+                              const Duration(milliseconds: 100),
+                                  () {
                                 setState(() {
                                   currentColor = tempColor;
                                 });
+
                                 sendFrame(
                                   {
                                     "commands": "RGB_WRITE",
@@ -810,26 +1103,26 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                                   ip,
                                   port,
                                 );
-                              });
-                            },
-                            paletteType: PaletteType.hueWheel,
-                            enableAlpha: false,
-                            labelTypes: const [],
-                            colorPickerWidth: 250,
-                          ),
-                        )
-                            : kEmptyWidget;
-                      }),
+                              },
+                            );
+                            debounceConfirm = Timer(
+                                const Duration(seconds: 10),(){
+                                  setState(() {
+                                    tempColor = device!.currentColor;
+                                  });
+                            });
+                          },
+                          paletteType: PaletteType.hueWheel,
+                          enableAlpha: false,
+                          labelTypes: const [],
+                          colorPickerWidth: 250,
+                        ),
+                      )
+                          : kEmptyWidget;
+                    },
+                  ),
                 ),
               ],
             ),
           )),
-    );
-  }
-
-  @override
-  void dispose() {
-    debounce?.cancel();
-    super.dispose();
-  }
-}
+    );*/

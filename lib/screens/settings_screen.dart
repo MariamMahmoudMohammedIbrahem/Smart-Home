@@ -9,6 +9,162 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   @override
+  void initState() {
+    super.initState();
+    if (Platform.isAndroid) getWifiNetworks(); // Prefetch WiFi networks on Android
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Platform.isIOS
+        ? CupertinoPageScaffold(
+          navigationBar: buildCupertinoNavBar("Settings", context),
+          child: SafeArea(
+              child: _buildSettingsList(context, isDarkMode, true)
+          ),
+        )
+        : Scaffold(
+          appBar: buildMaterialAppBar("Settings"),
+          body: _buildSettingsList(context, isDarkMode, false),
+        );
+  }
+
+  /// Shared settings list (used by both Android and iOS)
+  Widget _buildSettingsList(BuildContext context, bool isDarkMode, bool isIOS) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    return ListView(
+      children: [
+        _buildSwitchTile(
+          title: 'Dark Theme',
+          value: isDarkMode,
+          onChanged: (value) => authProvider.setTheme(value),
+          isIOS: isIOS,
+        ),
+        _buildTapTile(
+          title: 'Add New Device',
+          onTap: () {
+            authProvider.toggling('adding', false);
+            if (!isIOS) getWifiNetworks(); // Only fetch WiFi on Android
+            promptEnableLocation(context, () {
+              Navigator.push(
+                context,
+                isIOS
+                    ? CupertinoPageRoute(
+                    builder: (_) => const DeviceConfigurationScreen())
+                    : MaterialPageRoute(
+                    builder: (_) => const DeviceConfigurationScreen()),
+              );
+            });
+          },
+          isIOS: isIOS,
+        ),
+        _buildTapTile(
+          title: 'Export Data',
+          onTap: () {
+            authProvider.checkFirstTime().then((_) {
+              Navigator.push(
+                context,
+                isIOS
+                    ? CupertinoPageRoute(
+                    builder: (_) => const ExportDataScreen())
+                    : MaterialPageRoute(
+                    builder: (_) => const ExportDataScreen()),
+              );
+            });
+          },
+          isIOS: isIOS,
+        ),
+        _buildTapTile(
+          title: 'Import Data',
+          onTap: () {
+            Navigator.push(
+              context,
+              isIOS
+                  ? CupertinoPageRoute(builder: (_) => const ImportDataScreen())
+                  : MaterialPageRoute(builder: (_) => const ImportDataScreen()),
+            );
+          },
+          isIOS: isIOS,
+        ),
+        Consumer<AuthProvider>(
+          builder: (context, firmwareUpdating, _) {
+            return _buildTapTile(
+              title: 'Firmware Updating',
+              trailing: firmwareUpdating.notificationMark
+                  ? const CircleAvatar(radius: 5, backgroundColor: Colors.red)
+                  : null,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  isIOS
+                      ? CupertinoPageRoute(builder: (_) => const FirmwareScreen())
+                      : MaterialPageRoute(
+                      builder: (_) => const FirmwareScreen()),
+                );
+              },
+              isIOS: isIOS,
+            );
+          },
+        ),
+        _buildTapTile(
+          title: 'FAQs',
+          onTap: () {
+            Navigator.push(
+              context,
+              isIOS
+                  ? CupertinoPageRoute(builder: (_) => const SupportScreen())
+                  : MaterialPageRoute(builder: (_) => const SupportScreen()),
+            );
+          },
+          isIOS: isIOS,
+        ),
+      ],
+    );
+  }
+
+  /// Reusable switch tile (Dark Theme)
+  Widget _buildSwitchTile({
+    required String title,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required bool isIOS,
+  }) {
+    return isIOS
+        ? Material(
+      color: Colors.transparent,
+      child: ListTile(
+        title: Text(title),
+        trailing: CupertinoSwitch(value: value, onChanged: onChanged),
+      ),
+    )
+        : ListTile(
+      title: Text(title),
+      trailing: Switch(value: value, onChanged: onChanged),
+    );
+  }
+
+  /// Reusable tap tile for navigation actions
+  Widget _buildTapTile({
+    required String title,
+    required VoidCallback onTap,
+    bool isIOS = false,
+    Widget? trailing,
+  }) {
+    final tile = ListTile(
+      title: Text(title),
+      trailing: trailing,
+      onTap: onTap,
+    );
+
+    return isIOS
+        ? Material(color: Colors.transparent, child: tile)
+        : tile;
+  }
+
+/*@override
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Platform.isIOS
@@ -16,17 +172,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       navigationBar: CupertinoNavigationBar(
         leading: CupertinoNavigationBarBackButton(
           color: MyColors.greenDark1, // Set the back arrow color
-          onPressed: () {
-            Navigator.pop(context); // Pop to go back to the previous screen
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         middle: Text(
           'Settings',
-          style: TextStyle(
-            color: MyColors.greenDark1,
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-          ),
+          style: cupertinoNavTitleStyle,
         ),
       ),
       child: SafeArea(
@@ -143,17 +293,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shadowColor: MyColors.greenLight2,
         backgroundColor: MyColors.greenDark1,
         foregroundColor: Colors.white,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
-        ),
+        shape: appBarShape,
         title: const Text('Settings'),
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 26,
-          fontWeight: FontWeight.bold,
-        ),
+        titleTextStyle: materialNavTitleTextStyle,
         centerTitle: true,
       ),
       body: ListView(
@@ -172,10 +314,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Add New Device'),
             onTap: () {
               getWifiNetworks();
-              print("1");
               Provider.of<AuthProvider>(context, listen: false)
                   .toggling('adding', false);
-              print("2");
               promptEnableLocation(context, (){
                 Navigator.push(
                 context,
@@ -233,7 +373,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           ListTile(
-            title: const Text('Help and Support'),
+            title: const Text('FAQs'),
             onTap: () {
               Navigator.push(
                 context,
@@ -250,7 +390,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void initState() {
-    getWifiNetworks();
     super.initState();
-  }
+    if (Platform.isAndroid) getWifiNetworks();
+  }*/
 }

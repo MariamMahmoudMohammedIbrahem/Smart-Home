@@ -41,15 +41,19 @@ class AuthProvider extends ChangeNotifier {
   String? _firmwareVersion;
   String? get firmwareInfo => _firmwareVersion;
 
-  void setSwitch(String macAddress, String dataKey, int state) {
+  bool _wifiConnected = false;
+  bool get wifiConnected => _wifiConnected;
+
+  void setSwitch(String macAddress, void Function(DeviceStatus device) updateFn) {
     for (var device in deviceStatus) {
-      if (device['MacAddress'] == macAddress) {
-        device[dataKey] = state;
+      if (device.macAddress == macAddress) {
+        updateFn(device);
         break;
       }
     }
     notifyListeners();
   }
+
 
   Future<void> checkFirstTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -108,6 +112,9 @@ class AuthProvider extends ChangeNotifier {
       configured = newValue;
       connectionSuccess = newValue;
     }
+    if (dataType == "internetStatus") {
+      _wifiConnected = newValue;
+    }
     notifyListeners();
   }
 
@@ -116,9 +123,11 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
   void addingDevice(String command, Map<String, dynamic> jsonResponse) {
+    print("inside adding device switch");
     switch (command) {
       case 'MAC_ADDRESS_READ_OK':
         macAddress = jsonResponse['mac_address'];
+        print("macAddress is $macAddress, macAddresses $macAddresses");
         readOnly = true;
         break;
       case 'WIFI_CONFIG_CONNECTING':
@@ -149,10 +158,10 @@ class AuthProvider extends ChangeNotifier {
       totalByteSize = double.parse(matches[1].group(1)!);
       double testingValue = downloadedBytesSize / totalByteSize * 100;
       downloadPercentage = testingValue.toInt();
-      addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': '${downloadPercentage.toDouble()}'}, context);
+      addOrUpdateDevice({'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': '${downloadPercentage.toDouble()}'}, context);
     }
     else{
-      addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': command}, context);
+      addOrUpdateDevice({'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': command}, context);
     }
     notifyListeners();
   }

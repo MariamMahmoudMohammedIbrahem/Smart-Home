@@ -20,7 +20,6 @@ const CupertinoThemeData cupertinoDarkTheme = CupertinoThemeData(
     actionTextStyle: TextStyle(color: MyColors.greenDark1),
     navTitleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
   ),
-  barBackgroundColor: MyColors.greenDark1
 );
 
 // Custom Light Theme

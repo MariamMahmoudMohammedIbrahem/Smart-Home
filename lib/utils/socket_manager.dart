@@ -26,69 +26,59 @@ class SocketManager {
             if (response == "OK") {
               commandResponse = response;
             } else {
-              // if(deviceStatus.isNotEmpty) {
                 try {
                   Map<String, dynamic> jsonResponse = jsonDecode(response);
-                  print('jsonResponse $jsonResponse');
+                  final mac = jsonResponse['mac_address'];
+                  final device = findDeviceByMac(deviceStatus, mac);
+                  final selectedColor = Color.fromRGBO(jsonResponse["red"], jsonResponse["green"], jsonResponse["blue"], 1.0);
                   commandResponse = jsonResponse['commands'];
-                  addOrUpdateDevice(macVersion,{'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': ''}, context);
+
+                  if (deviceStatus.any((device) => device.macAddress == jsonResponse['mac_address']) || deviceStatus.isEmpty) {
+                    // here we update the map that contains the firmware version
+                    // for each switch's macAddress
+                    // to check later if this switch needs a firmware update or no
+                    addOrUpdateDevice({
+                      'mac_address': jsonResponse['mac_address'],
+                      'firmware_version': jsonResponse['firmware_version'],
+                      'status': ''
+                    }, context);
+                  }
                   if (commandResponse == 'UPDATE_OK' ||
                       commandResponse == 'SWITCH_WRITE_OK' ||
                       commandResponse == 'SWITCH_READ_OK') {
-                    if(deviceStatus.isNotEmpty) {
-                      if (deviceStatus.firstWhere(
-                            (device) =>
-                        device['MacAddress'] == jsonResponse['mac_address'],
-                      )['sw1'] !=
-                          jsonResponse['sw0']) {
-                        print('step1');
-                        Provider.of<AuthProvider>(context, listen: false)
-                            .setSwitch(
-                            jsonResponse['mac_address'],
-                            'sw1',
-                            jsonResponse['sw0']);
+                    if (device != null) {
+                      if (device.sw1 != jsonResponse['sw0']) {
+                        Provider.of<AuthProvider>(context, listen: false).setSwitch(mac, (d) {
+                          d.sw1 = jsonResponse['sw0'];
+                        });
                       }
-                      if (deviceStatus.firstWhere(
-                            (device) =>
-                        device['MacAddress'] == jsonResponse['mac_address'],
-                      )['sw2'] !=
-                          jsonResponse['sw1']) {
-                        print('step2');
-                        Provider.of<AuthProvider>(context, listen: false)
-                            .setSwitch(
-                            jsonResponse['mac_address'],
-                            'sw2',
-                            jsonResponse['sw1']);
+                      if (device.sw2 != jsonResponse['sw1']) {
+                        Provider.of<AuthProvider>(context, listen: false).setSwitch(mac, (d) {
+                          d.sw2 = jsonResponse['sw1'];
+                        });
                       }
-                      if (deviceStatus.firstWhere(
-                            (device) =>
-                        device['MacAddress'] == jsonResponse['mac_address'],
-                      )['sw3'] !=
-                          jsonResponse['sw2']) {
-                        print('step3');
-                        Provider.of<AuthProvider>(context, listen: false)
-                            .setSwitch(
-                            jsonResponse['mac_address'],
-                            'sw3',
-                            jsonResponse['sw2']);
+                      if (device.sw3 != jsonResponse['sw2']) {
+                        Provider.of<AuthProvider>(context, listen: false).setSwitch(mac, (d) {
+                          d.sw3 = jsonResponse['sw2'];
+                        });
                       }
-                      if (deviceStatus.firstWhere(
-                            (device) =>
-                        device['MacAddress'] == jsonResponse['mac_address'],
-                      )['led'] !=
-                          jsonResponse['led']) {
-                        print('step4');
-                        Provider.of<AuthProvider>(context, listen: false)
-                            .setSwitch(
-                            jsonResponse['mac_address'],
-                            'led',
-                            jsonResponse['led']);
+                      if (device.led != jsonResponse['led']) {
+                        Provider.of<AuthProvider>(context, listen: false).setSwitch(mac, (d) {
+                          d.led = jsonResponse['led'];
+                        });
                       }
+                      if (device.currentColor != selectedColor) {
+                        Provider.of<AuthProvider>(context, listen: false).setSwitch(mac, (d) {
+                          d.currentColor = selectedColor;
+                        });
+                      }
+                      tempColor = device.currentColor;
                     }
                     Provider.of<AuthProvider>(context, listen: false)
                         .addingDevice(commandResponse, jsonResponse);
                   }
                   else if (commandResponse == 'MAC_ADDRESS_READ_OK') {
+                    print("commandResponse $commandResponse");
                     Provider.of<AuthProvider>(context, listen: false)
                         .addingDevice('MAC_ADDRESS_READ_OK', jsonResponse);
                   }
@@ -133,12 +123,16 @@ class SocketManager {
                       commandResponse == 'WIFI_CONFIG_MISSED_DATA' ||
                       commandResponse == 'READ_OK' ||commandResponse == 'WIFI_CONFIG_OK'||commandResponse == 'RGB_READ_OK' ||
                       commandResponse == 'RGB_WRITE_OK'
-                  ) {}
+                  ) {
+                    Provider.of<AuthProvider>(context, listen: false).setSwitch(mac, (d) {
+                      d.currentColor = selectedColor;
+                    });
+                    tempColor =  device!.currentColor;
+                  }
                 } catch (e) {
                   throw Exception(
                       "Something went wrong while processing the data $e");
                 }
-              // }
             }
           }
         }

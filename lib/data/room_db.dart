@@ -1,6 +1,65 @@
 import '../commons.dart';
 
 ///insert into rooms
+Future<int> insertRoom(Room room, int apartmentID) async {
+  Database? myDb = await sqlDb.db;
+
+  final List<Map<String, dynamic>> result = await myDb!.query(
+    'Rooms',
+    where: 'RoomName = ? AND ApartmentID = ?',
+    whereArgs: [room.name, apartmentID],
+    limit: 1,
+  );
+  print("result: $result");
+
+  if (result.isNotEmpty) {
+    return result.first['RoomID'] as int;
+  } else {
+    final int newRoomID = await myDb.insert(
+      'Rooms',
+      {
+        'RoomName': room.name,
+        'IconCodePoint': room.iconCodePoint,
+        'FontFamily': room.fontFamily,
+        'FontPackage': room.fontPackage ?? '', // Store empty string if null
+        'ApartmentID': apartmentID,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    return newRoomID;
+  }
+}
+
+// Future<int> insertRoom(Room room, int apartmentID) async {
+//   Database? myDb = await sqlDb.db;
+//
+//   final List<Map<String, dynamic>> result = await myDb!.query(
+//     'Rooms',
+//     where: 'RoomName = ? AND ApartmentID = ?',
+//     whereArgs: [room.name, apartmentID],
+//     limit: 1,
+//   );
+//   print("result: $result");
+//
+//   if (result.isNotEmpty) {
+//     return result.first['RoomID'] as int;
+//   } else {
+//     final int newRoomID = await myDb.insert(
+//       'Rooms',
+//       {
+//         'RoomName': room.name,
+//         'IconCodePoint': room.iconCodePoint,
+//         'FontFamily': room.fontFamily,
+//         'FontPackage': room.fontPackage ?? '',
+//         'ApartmentID': apartmentID,
+//       },
+//       conflictAlgorithm: ConflictAlgorithm.replace,
+//     );
+//     return newRoomID;
+//   }
+// }
+
+/*
 Future<int> insertRoom(String roomName, int apartmentID) async {
   Database? myDb = await sqlDb.db;
 
@@ -26,8 +85,39 @@ Future<int> insertRoom(String roomName, int apartmentID) async {
     return newRoomID;
   }
 }
+*/
 
 ///get rooms based on ApartmentID
+Future<List<Room>> getRoomsByApartmentID(BuildContext context, int apartmentID) async {
+  Database? myDb = await sqlDb.db;
+
+  if (context.mounted) {
+    Provider.of<AuthProvider>(context, listen: false).toggling('loading', true);
+  }
+
+  final List<Map<String, dynamic>> roomMaps = await myDb!.query(
+    'Rooms',
+    where: 'ApartmentID = ?',
+    whereArgs: [apartmentID],
+  );
+
+  print("roomMaps $roomMaps");
+  rooms = roomMaps.map((map) => Room.fromMap(map)).toList();
+  // iconsRoomsClass.addAll(rooms.map((room) => room));
+  iconsRoomsClass.addAll(
+      rooms.where((room) => !iconsRoomsClass.any((existingRoom) => existingRoom.name == room.name))
+  );
+  print("rooms $rooms");
+  print("rooms icons ${iconsRoomsClass.length}");
+
+  if (context.mounted) {
+    Provider.of<AuthProvider>(context, listen: false).toggling('loading', false);
+  }
+
+  return rooms;
+}
+
+/*
 Future<void> getRoomsByApartmentID(BuildContext context, int apartmentID) async {
   Database? myDb = await sqlDb.db;
 
@@ -51,9 +141,27 @@ Future<void> getRoomsByApartmentID(BuildContext context, int apartmentID) async 
     Provider.of<AuthProvider>(context, listen: false).toggling('loading', false);
   }
 }
+*/
 
 ///editing room info
-Future<void> updateRoomName(
+Future<void> updateRoom(int apartmentID, Room updatedRoom, String currentRoomName) async {
+  Database? myDb = await sqlDb.db;
+
+  await myDb!.update(
+    'Rooms',
+    {
+      'RoomName': updatedRoom.name,
+      'IconCodePoint': updatedRoom.iconCodePoint,
+      'FontFamily': updatedRoom.fontFamily,
+      'FontPackage': updatedRoom.fontPackage??"",
+    },
+    where: 'ApartmentID = ? AND RoomName = ?',
+    whereArgs: [apartmentID, currentRoomName],
+  );
+}
+
+
+/*Future<void> updateRoomName(
     int apartmentID, String newRoomName, String currentRoomName) async {
   Database? myDb = await sqlDb.db;
 
@@ -64,7 +172,7 @@ Future<void> updateRoomName(
     whereArgs: [apartmentID, currentRoomName],
   );
 
-}
+}*/
 
 ///deleting room
 Future<void> deleteRoomAndDevices(int roomID) async {

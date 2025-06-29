@@ -25,16 +25,21 @@ Future<bool> isConnectedToInternet() async {
 }
 
 ///*retrieve the ip based on the current connected network**
-void startListeningForNetworkChanges() {
+void startListeningForNetworkChanges(BuildContext context) {
   Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> connectivityResults) async {
     print('Connectivity changed: $connectivityResults');
 
+    if(connectivityResults.contains(ConnectivityResult.none)){
+      Provider.of<AuthProvider>(context, listen: false).toggling("internetStatus", false);
+    }
+    else {
+      Provider.of<AuthProvider>(context, listen: false).toggling("internetStatus", true);
+    }
     if (connectivityResults.contains(ConnectivityResult.wifi)) {
       // Get the Wi-Fi IP address
       String? wifiIP = await getLocalIpByInterface();
       if (wifiIP != null) {
         ip = modifyIP(wifiIP);
-        print("Connected to Wi-Fi. IP Address: $wifiIP, Modified IP: $ip");
       }
     }
   });
@@ -62,6 +67,9 @@ String modifyIP(String ip) {
 Future<void> getWifiNetworks() async {
   print("here inside getWifiNetworks");
   List<WifiNetwork?> networks = await WiFiForIoTPlugin.loadWifiList();
-  print("wifiNetworks $networks");
+  wifiNetworks = networks
+      .where((network) => network != null && (network.frequency ?? 0) < 3000)
+      .toList();
+
   wifiNetworks = networks;
 }

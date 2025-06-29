@@ -1,68 +1,31 @@
 import '../commons.dart';
 
-String getRoomName(IconData icon) {
-  if (icon == Icons.living) {
-    return 'Living Room';
-  } else if (icon == Icons.bedroom_baby) {
-    return 'Baby Bedroom';
-  } else if (icon == Icons.bedroom_parent) {
-    return 'Parent Bedroom';
-  } else if (icon == Icons.kitchen) {
-    return 'Kitchen';
-  } else if (icon == Icons.bathroom) {
-    return 'Bathroom';
-  } else if (icon == Icons.dining) {
-    return 'Dining Room';
-  } else if (icon == Icons.desk) {
-    return 'Desk';
-  } else if (icon == Icons.local_laundry_service) {
-    return 'Laundry Room';
-  } else if (icon == Icons.garage) {
-    return 'Garage';
-  } else {
-    return 'Outdoor';
-  }
+ObstructingPreferredSizeWidget? buildCupertinoNavBar(String title, BuildContext context) {
+  return CupertinoNavigationBar(
+    leading: CupertinoNavigationBarBackButton(
+      color: MyColors.greenDark1,
+      onPressed: () => Navigator.pop(context),
+    ),
+    middle: Text(
+      title,
+      style: cupertinoNavTitleStyle,
+    ),
+  );
 }
 
-IconData getIconName(String name) {
-  if (name == 'Living Room') {
-    return Icons.living;
-  } else if (name == 'Baby Bedroom') {
-    return Icons.bedroom_baby;
-  } else if (name == 'Parent Bedroom') {
-    return Icons.bedroom_parent;
-  } else if (name == 'Kitchen') {
-    return Icons.kitchen;
-  } else if (name == 'Bathroom') {
-    return Icons.bathroom;
-  } else if (name == 'Dining Room') {
-    return Icons.dining;
-  } else if (name == 'Desk') {
-    return Icons.desk;
-  } else if (name == 'Laundry Room') {
-    return Icons.local_laundry_service;
-  } else if (name == 'Garage') {
-    return Icons.garage;
-  } else {
-    return Icons.camera_outdoor;
-  }
+PreferredSizeWidget buildMaterialAppBar(String title) {
+  return AppBar(
+    surfaceTintColor: MyColors.greenLight1,
+    shadowColor: MyColors.greenLight2,
+    backgroundColor: MyColors.greenDark1,
+    foregroundColor: Colors.white,
+    shape: appBarShape,
+    title: Text(title),
+    titleTextStyle: materialNavTitleTextStyle,
+    centerTitle: true,
+  );
 }
 
-// void showSnack(BuildContext context, String message, String msg) {
-//   final currentTime = DateTime.now();
-//
-//   if (snackBarCount < maxSnackBarCount && (lastSnackBarTime == null || currentTime.difference(lastSnackBarTime!).inSeconds > 2)) {
-//     final snackBar = SnackBar(
-//       content: Text(message),
-//     );
-//     ScaffoldMessenger.of(context).showSnackBar(snackBar);
-//     lastSnackBarTime = currentTime;
-//     snackBarCount++;
-//   }
-//   if(snackBarCount == maxSnackBarCount){
-//     showHint(context, msg);
-//   }
-// }
 
 void showSnack(BuildContext context, String message, String msg) {
   final currentTime = DateTime.now();
@@ -149,78 +112,62 @@ void showHint(BuildContext context, String msg){
   );
 }
 
-void showCustomizedOptions(context, int index) {
+void showMaterialCustomizedOptions(context, int index) {
   showModalBottomSheet(
     context: context,
+    /// TODO: can add border shape
     builder: (context) {
-      return Container(
-        decoration: BoxDecoration(
-          color: Provider.of<AuthProvider>(context).isDarkMode
-              ? Colors.grey[900]
-              : Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20.0),
-            topRight: Radius.circular(20.0),
+      return SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Provider.of<AuthProvider>(context).isDarkMode
+                ? Colors.black
+                : Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20.0),
+              topRight: Radius.circular(20.0),
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            ListTile(
-              leading: const Icon(
-                Icons.edit,
-                color: MyColors.greenDark1,
-              ),
-              title: const Text(
-                'Edit',
-                style: TextStyle(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(
+                  Icons.edit,
                   color: MyColors.greenDark1,
                 ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                showCustomizedDialog(
-                  context,
-                  'editRoomName',
-                  index,
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.delete,
-                color: MyColors.greenDark1,
-              ),
-              title: const Text(
-                'Delete',
-                style: TextStyle(
-                  color: MyColors.greenDark1,
+                title: const Text(
+                  'Edit',
+                  style: TextStyle(
+                    color: MyColors.greenDark1,
+                  ),
                 ),
-              ),
-              onTap: () {
-                onTapDeleteRoom(context, roomIDs[index]);
-                /*deleteRoomAndDevices(
-                  roomIDs[index],
-                )
-                    .then((value) => {
-                  getRoomsByApartmentID(
+                onTap: () {
+                  Navigator.pop(context);
+                  showCustomizedDialog(
                     context,
-                    apartmentMap.first['ApartmentID'],
-                  )
-                      .then((value) => {
-                    exportData(),
-                      Provider.of<AuthProvider>(context,
-                          listen: false)
-                          .toggling(
-                        'loading',
-                        false,
-                      ),
-                    Navigator.pop(context),
-                  }),
-                });*/
-              },
-            ),
-          ],
+                    // 'editRoomName',
+                    index,
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.delete,
+                  color: MyColors.greenDark1,
+                ),
+                title: const Text(
+                  'Delete',
+                  style: TextStyle(
+                    color: MyColors.greenDark1,
+                  ),
+                ),
+                onTap: () {
+                  onTapDeleteRoom(context, rooms[index].id!);
+                },
+              ),
+            ],
+          ),
         ),
       );
     },
@@ -229,161 +176,112 @@ void showCustomizedOptions(context, int index) {
   );
 }
 
-void showCustomizedDialog(context, String type, int index) {
-  showDialog(
-      context: context,
-      builder: (context) {
-        IconData? selectedIconInDialog = getIconName(
-          roomNames[index],
-        );
-        String? hintMessage;
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return AlertDialog(
-              title: const Text(
-                'Edit Room Name',
-                style: TextStyle(
-                  color: MyColors.greenDark1,
-                ),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    DropdownButton<IconData>(
-                      value: selectedIconInDialog,
-                      menuMaxHeight: 200,
-                      icon: const Icon(
-                        Icons.arrow_downward,
-                        color: MyColors.greenDark1,
-                      ),
-                      iconSize: 24,
-                      elevation: 16,
-                      style: const TextStyle(
-                        color: MyColors.greenDark1,
-                      ),
-                      underline: Container(
-                        height: 2,
-                        color: MyColors.greenDark1,
-                      ),
-                      onChanged: (IconData? newValue) {
-                        setStateDialog(() {
-                          selectedIconInDialog = newValue;
-                          selectedIcon = newValue!;
-                          String selectedRoomName = getRoomName(
-                            newValue,
-                          );
-                          if (roomNames.contains(
-                            selectedRoomName,
-                          )) {
-                            hintMessage = 'This room name is already in use!';
-                          } else {
-                            hintMessage = null;
-                          }
-                        });
-                      },
-                      items: iconsRooms
-                          .map<DropdownMenuItem<IconData>>((IconData icon) {
-                        return DropdownMenuItem<IconData>(
-                          value: icon,
-                          child: Row(
-                            children: [
-                              Icon(
-                                icon,
-                                color: MyColors.oliveDark,
-                              ),
-                              width10,
-                              Text(
-                                getRoomName(icon),
-                              ),
-                            ],
-                          ),
-                          onTap: () {
-                            setStateDialog(() {
-                              roomName = getRoomName(icon);
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    if (hintMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 10.0),
-                        child: Text(
-                          hintMessage!,
-                          style: TextStyle(
-                            color: Colors.red.shade800,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  style: ElevatedButton.styleFrom(
-                    side: const BorderSide(
-                      color: MyColors.greenDark1,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(
-                      color: MyColors.greenDark1,
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: MyColors.greenDark1,
-                  ),
-                  onPressed: () {
-                    if (hintMessage == null) {
-                      updateRoomName(apartmentMap.first['ApartmentID'],
-                          roomName, roomNames[index])
-                          .then(
-                            (value) => exportData().then(
-                              (value) => getRoomsByApartmentID(
-                            context,
-                            apartmentMap.first['ApartmentID'],
-                          ),
-                        ),
-                      )
-                          .then((value) {
-                        // setState(() {
-                          Provider.of<AuthProvider>(context, listen: false)
-                              .toggling('loading', false);
-                        // });
-                        Navigator.pop(context);
-                      });
-                    } else {}
-                  },
-                  child: Text(
-                    'Submit',
-                    style: TextStyle(
-                      color: Provider.of<AuthProvider>(context).isDarkMode
-                          ? Colors.grey[900]
-                          : Colors.white,
-                    ),
-                  ),
-                ),
-              ],
+void showCupertinoCustomizedOptions(BuildContext context, int index) {
+  showCupertinoModalPopup(
+    context: context,
+    builder: (BuildContext context) => CupertinoActionSheet(
+      actions: [
+        CupertinoActionSheetAction(
+          child: Text('Edit', textAlign: TextAlign.left,),
+          onPressed: () {
+            Navigator.pop(context);
+            showCustomizedDialog(
+              context,
+              // 'editRoomName',
+              index,
             );
           },
-        );
-      });
+        ),
+        CupertinoActionSheetAction(
+          child: Text('Delete'),
+          onPressed: () {
+            onTapDeleteRoom(context, rooms[index].id!);
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> deleteRoom(int roomId, BuildContext context) async {
+  await deleteRoomAndDevices(roomId);
+}
+
+Future<void> onTapDeleteRoom(BuildContext context, int roomId) async {
+  await deleteRoom(roomId, context);
+  refreshUI(context);
+  Navigator.pop(context);
+}
+
+Future<void> refreshUI(BuildContext context) async {
+  final apartmentId = apartmentMap.first['ApartmentID'];
+  await getRoomsByApartmentID(context, apartmentId);
+  exportData();
+}
+void showCustomizedDialog(BuildContext context, int index) {
+  Room updatedRoom = rooms[index];
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setStateDialog) {
+          return AlertDialog(
+            title: const Text('Edit Room Name', style: TextStyle(color: MyColors.greenDark1)),
+            content: SingleChildScrollView(
+              child: RoomCustomizationContent(
+                initialRoom: rooms[index],
+                existingRooms: rooms,
+                onChanged: (room) {
+                  setStateDialog(() {
+                    updatedRoom = room;
+                  });
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel', style: TextStyle(color: MyColors.greenDark1)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: MyColors.greenDark1),
+                onPressed: () {
+                  updateRoom(
+                    apartmentMap.first['ApartmentID'],
+                    updatedRoom,
+                    rooms[index].name,
+                  ).then((_) => exportData()).then((_) {
+                    getRoomsByApartmentID(context, apartmentMap.first['ApartmentID']);
+                    Provider.of<AuthProvider>(context, listen: false).toggling('loading', false);
+                    Navigator.pop(context);
+                  });
+                },
+                child: Text(
+                  'Submit',
+                  style: TextStyle(
+                    color: Provider.of<AuthProvider>(context).isDarkMode
+                        ? Colors.grey[900]
+                        : Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
 }
 
 Future<void> promptEnableLocation (BuildContext context, VoidCallback action) async{
   bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
   print("3");
-  
+
   if(!serviceEnabled) {
     print("4");
     showDialog(
-        context: context, 
+        context: context,
         barrierDismissible: false,
         builder: (context) => Platform.isIOS
             ? CupertinoAlertDialog(
@@ -395,13 +293,13 @@ Future<void> promptEnableLocation (BuildContext context, VoidCallback action) as
           ],
         )
             : AlertDialog(
-              title: const Text("Enable Location"),
-              content: const Text("Adding new Devices require location services to be enabled."),
-              actions: [
-                TextButton(child: Text("Proceed"), onPressed: (){Navigator.pop(context);action();}),
-                TextButton(child: Text("Open Settings"), onPressed: () async{Navigator.pop(context);await Geolocator.openLocationSettings();}),
-              ],
-            )
+          title: const Text("Enable Location"),
+          content: const Text("Adding new Devices require location services to be enabled."),
+          actions: [
+            TextButton(child: Text("Proceed"), onPressed: (){Navigator.pop(context);action();}),
+            TextButton(child: Text("Open Settings"), onPressed: () async{Navigator.pop(context);await Geolocator.openLocationSettings();}),
+          ],
+        )
     );
   } else {
     print("5");
@@ -485,6 +383,236 @@ class CountdownCircle extends StatelessWidget {
           Text('$countdown', style: TextStyle(color: Colors.white, fontSize: 12)),
         ],
       ),
+    );
+  }
+}
+
+class RoomCustomizationContent extends StatefulWidget {
+  final Room initialRoom;
+  final List<Room> existingRooms;
+  final void Function(Room newRoom)? onChanged;
+
+  const RoomCustomizationContent({
+    super.key,
+    required this.initialRoom,
+    required this.existingRooms,
+    this.onChanged,
+  });
+
+  @override
+  State<RoomCustomizationContent> createState() => _RoomCustomizationContentState();
+}
+
+class _RoomCustomizationContentState extends State<RoomCustomizationContent> {
+  late IconData? selectedIcon;
+  late bool customizeRoomName;
+  late String customName;
+  IconData? customIcon;
+  String? hintMessage;
+  // late Room newRoom;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedIcon = widget.initialRoom.icon;
+    customizeRoomName = !iconsRoomsClass.any((e) => e.icon == selectedIcon);
+    customName = "";
+    customIcon = IconData(0, fontFamily: "", fontPackage: "");
+    // newRoom = newRoom;
+  }
+
+  void notifyChange() {
+    if (widget.onChanged != null) widget.onChanged!(newRoom);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DropdownButton<IconData>(
+          value: customizeRoomName ? null : selectedIcon,
+          menuMaxHeight: 200,
+          icon: const Icon(Icons.arrow_downward, color: MyColors.greenDark1),
+          style: const TextStyle(color: MyColors.greenDark1),
+          underline: Container(height: 2, color: MyColors.greenDark1),
+          onChanged: (IconData? newValue) {
+            if (newValue != null) {
+              setState(() {
+                selectedIcon = newValue;
+                Room room = iconsRoomsClass.firstWhere(
+                      (room) => room.iconCodePoint == newValue.codePoint,
+                  orElse: () => throw Exception('No room found'),
+                );
+                newRoom = Room(
+                  name: room.name,
+                  iconCodePoint: newValue.codePoint,
+                  fontFamily: newValue.fontFamily,
+                  fontPackage: newValue.fontPackage,
+                );
+                customizeRoomName = false;
+                hintMessage = widget.existingRooms.any((r) => r.name == newRoom.name)
+                    ? 'This room name is already in use!'
+                    : null;
+                notifyChange();
+              });
+            }
+          },
+          items: [
+            ...iconsRoomsClass.map((roomIcon) {
+              return DropdownMenuItem<IconData>(
+                value: roomIcon.icon,
+                child: Row(
+                  children: [
+                    Icon(roomIcon.icon, color: MyColors.oliveDark),
+                    width10,
+                    Text(roomIcon.name),
+                  ],
+                ),
+              );
+            }),
+            DropdownMenuItem<IconData>(
+              value: null,
+              child: const Text("Other"),
+              onTap: () {
+                setState(() {
+                  customizeRoomName = true;
+                  selectedIcon = null;
+                  // newRoom = Room(
+                  //   name: "Living Room",
+                  //   iconCodePoint: Icons.living.codePoint,
+                  //   fontFamily: Icons.living.fontFamily,
+                  //   fontPackage: Icons.living.fontPackage,
+                  // );
+                  hintMessage = null;
+                  notifyChange();
+                });
+              },
+            ),
+          ],
+        ),
+        if (customizeRoomName) ...[
+          const SizedBox(height: 16),
+          const Align(alignment: Alignment.centerLeft, child: Text("Enter Room Name:")),
+          TextFormField(
+            initialValue: customName,
+            decoration: const InputDecoration(
+              hintText: "Custom Room Name",
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: MyColors.greenDark1),
+              ),
+            ),
+            onChanged: (value) {
+              setState(() {
+                customName = value.trim();
+                newRoom = Room(
+                  name: customName,
+                  iconCodePoint: selectedIcon?.codePoint ?? 0,
+                  fontFamily: selectedIcon?.fontFamily,
+                  fontPackage: selectedIcon?.fontPackage,
+                );
+                hintMessage = widget.existingRooms.any((r) => r.name == newRoom.name)
+                    ? 'This room name is already in use!'
+                    : null;
+                notifyChange();
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Text("Pick Icon:"),
+              const SizedBox(width: 10),
+              if (customIcon != null) Icon(customIcon, color: MyColors.greenDark1),
+              TextButton(
+                onPressed: () async {
+                  IconPickerIcon? pickedIcon = await showIconPicker(context);
+                  if (pickedIcon != null) {
+                    setState(() {
+                      customIcon = pickedIcon.data;
+                      selectedIcon = customIcon;
+                      newRoom = Room(
+                        name: customName,
+                        iconCodePoint: selectedIcon!.codePoint,
+                        fontFamily: selectedIcon!.fontFamily,
+                        fontPackage: selectedIcon!.fontPackage,
+                      );
+                      hintMessage = widget.existingRooms.any((r) => r.icon == newRoom.icon)
+                          ? 'This icon is already in use!'
+                          : null;
+                      notifyChange();
+                    });
+                  }
+                },
+                child: const Text("Choose Icon"),
+              ),
+            ],
+          ),
+        ],
+        if (hintMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 10.0),
+            child: Text(
+              hintMessage!,
+              style: TextStyle(color: Colors.red.shade800),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// A circular green check icon used to indicate download completion.
+class DownloadCompleteIndicator extends StatelessWidget {
+  const DownloadCompleteIndicator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const CircleAvatar(
+      radius: 50,
+      backgroundColor: MyColors.greenDark1,
+      child: Icon(
+        Icons.done,
+        color: Colors.white,
+        size: 50,
+      ),
+    );
+  }
+}
+
+/// A circular progress indicator with a percentage label in the center.
+class DownloadProgressIndicator extends StatelessWidget {
+  final double? circleDiameter;
+  final double progress;
+
+  const DownloadProgressIndicator({super.key, required this.circleDiameter, required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        SizedBox(
+          width: circleDiameter,
+          height: circleDiameter,
+          child: CircularProgressIndicator(
+            value: progress,
+            strokeWidth: 8,
+            backgroundColor: Colors.grey.shade200,
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              MyColors.greenDark1,
+            ),
+          ),
+        ),
+        Text(
+          '${(progress * 100).toInt()}%',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: MyColors.greenDark1,
+          ),
+        ),
+      ],
     );
   }
 }

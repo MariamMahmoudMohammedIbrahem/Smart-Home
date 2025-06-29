@@ -20,7 +20,7 @@ class GlowGrid extends StatelessWidget {
           : cupertinoLightTheme,
       title: 'GlowGrid',
       debugShowCheckedModeBanner: false,
-      home: const LoadingScreen(),
+      home: const SplashScreen(),
     )
         : MaterialApp(
       theme: materialLightTheme,
@@ -30,7 +30,7 @@ class GlowGrid extends StatelessWidget {
           : ThemeMode.light,
       title: 'GlowGrid',
       debugShowCheckedModeBanner: false,
-      home: const LoadingScreen(),
+      home: const SplashScreen(),
     );
   }
 }
