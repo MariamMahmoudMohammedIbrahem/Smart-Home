@@ -1,1 +1,0 @@
- C:\\Users\\pc\\StudioProjects\\Smart-Home\\.dart_tool\\flutter_build\\57a482548bafc2cd86fd91e4a7364f4d\\native_assets.yaml: 
