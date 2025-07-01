@@ -29,10 +29,10 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
         ),
         middle: navBarChild(),
       ),
-        child: SafeArea(
-          child: scaffoldBody(width, isDarkMode),
-        ),
-        )
+      child: SafeArea(
+        child: scaffoldBody(width, isDarkMode),
+      ),
+    )
         : Scaffold(
       appBar: AppBar(
         surfaceTintColor: MyColors.greenLight1,
@@ -387,21 +387,21 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
 
   void _showDeleteModal(String macAddressDevice) {
     Platform.isIOS
-    ? showCupertinoModalPopup(
+        ? showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) => CupertinoActionSheet(
         title: Text("Delete Switch?", style: TextStyle(fontWeight: FontWeight.bold, color: MyColors.greenDark1, fontSize: 20,),),
-      message: Text("This action cannot be undone. Are you sure you want to delete this item", style: TextStyle(fontStyle: FontStyle.italic,color: CupertinoColors.systemGrey),),
-      actions: [
-        CupertinoActionSheetAction(
-          onPressed: (){deleteSwitch(macAddressDevice);},
-          child: Text('Delete'),
-        ),
-      ],
+        message: Text("This action cannot be undone. Are you sure you want to delete this item", style: TextStyle(fontStyle: FontStyle.italic,color: CupertinoColors.systemGrey),),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: (){deleteSwitch(macAddressDevice);},
+            child: Text('Delete'),
+          ),
+        ],
         cancelButton: CupertinoButton(child: const Text("Cancel"), onPressed: (){Navigator.pop(context);}),
-    ),
+      ),
     )
-    : showModalBottomSheet(
+        : showModalBottomSheet(
       context: context,
       builder: (context) {
         final isDark = Provider.of<AuthProvider>(context).isDarkMode;

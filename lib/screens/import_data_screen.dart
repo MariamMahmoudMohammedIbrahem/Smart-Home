@@ -24,33 +24,33 @@ class ImportDataScreenState extends State<ImportDataScreen>
         }
       },
       child:
-          Platform.isIOS
-              ? CupertinoPageScaffold(
-                navigationBar: CupertinoNavigationBar(
-                  leading: GestureDetector(
-                    onTap: () => _handlePop(context),
-                    child: Icon(
-                      CupertinoIcons.back,
-                      color: MyColors.greenDark1,
-                    ),
-                  ),
-                  middle: Text('Import Data', style: cupertinoNavTitleStyle),
-                ),
-                child: scaffoldBody(isDarkMode, width),
-              )
-              : Scaffold(
-                appBar: AppBar(
-                  surfaceTintColor: MyColors.greenLight1,
-                  shadowColor: MyColors.greenLight2,
-                  backgroundColor: MyColors.greenDark1,
-                  foregroundColor: Colors.white,
-                  shape: appBarShape,
-                  title: const Text('Import Data'),
-                  titleTextStyle: materialNavTitleTextStyle,
-                  centerTitle: true,
-                ),
-                body: scaffoldBody(isDarkMode, width),
-              ),
+      Platform.isIOS
+          ? CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(
+          leading: GestureDetector(
+            onTap: () => _handlePop(context),
+            child: Icon(
+              CupertinoIcons.back,
+              color: MyColors.greenDark1,
+            ),
+          ),
+          middle: Text('Import Data', style: cupertinoNavTitleStyle),
+        ),
+        child: scaffoldBody(isDarkMode, width),
+      )
+          : Scaffold(
+        appBar: AppBar(
+          surfaceTintColor: MyColors.greenLight1,
+          shadowColor: MyColors.greenLight2,
+          backgroundColor: MyColors.greenDark1,
+          foregroundColor: Colors.white,
+          shape: appBarShape,
+          title: const Text('Import Data'),
+          titleTextStyle: materialNavTitleTextStyle,
+          centerTitle: true,
+        ),
+        body: scaffoldBody(isDarkMode, width),
+      ),
     );
   }
 
@@ -68,15 +68,15 @@ class ImportDataScreenState extends State<ImportDataScreen>
   Widget scaffoldBody(bool isDarkMode, double width) {
     return Center(
       child:
-          Provider.of<AuthProvider>(context).wifiConnected
-              ? progressValue == 0.0
-                  ? qrScanIdleView(isDarkMode, width)
-                  : fileMissing
-                  ? fileMissingView()
-                  : errorOccurred
-                  ? qrScanErrorView()
-                  : qrScanInProgressView()
-              : noInternetView(),
+      Provider.of<AuthProvider>(context).wifiConnected
+          ? progressValue == 0.0
+          ? qrScanIdleView(isDarkMode, width)
+          : fileMissing
+          ? fileMissingView()
+          : errorOccurred
+          ? qrScanErrorView()
+          : qrScanInProgressView()
+          : noInternetView(),
     );
   }
 
@@ -88,10 +88,10 @@ class ImportDataScreenState extends State<ImportDataScreen>
     void onPressed() => scanQR(context);
 
     final child = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(Icons.qr_code_scanner_rounded,color: isDarkMode?Colors.black:Colors.white),
-        SizedBox(width: 8),
+        SizedBox(width: 4),
         Text('Scan QR Code', style: TextStyle(color: isDarkMode?Colors.black:Colors.white),),
       ],
     );
@@ -135,29 +135,29 @@ class ImportDataScreenState extends State<ImportDataScreen>
         SizedBox(
           width: width * .5,
           child:
-              Platform.isIOS
-                  ? CupertinoButton(
-                color: MyColors.greenDark1,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    onPressed: onPressed,
-                    child: child,
-                  )
-                  : ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: MyColors.greenDark1,
-                      foregroundColor:
-                          isDarkMode ? Colors.grey[900] : Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    onPressed: onPressed,
-                    child: child,
-                  ),
+          Platform.isIOS
+              ? CupertinoButton(
+            color: MyColors.greenDark1,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            onPressed: onPressed,
+            child: child,
+          )
+              : ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: MyColors.greenDark1,
+              foregroundColor:
+              isDarkMode ? Colors.grey[900] : Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+            onPressed: onPressed,
+            child: child,
+          ),
         ),
       ],
     );
@@ -222,11 +222,19 @@ class ImportDataScreenState extends State<ImportDataScreen>
 
     return Platform.isIOS
         ? CupertinoButton(
-          color: MyColors.greenDark1,
-          onPressed: onPressed,
-          child: child,
-        )
-        : ElevatedButton(onPressed: onPressed, child: child);
+      color: MyColors.greenDark1,
+      onPressed: onPressed,
+      child: child,
+    )
+        : ElevatedButton(onPressed: onPressed, style: ElevatedButton.styleFrom(
+      backgroundColor: MyColors.greenDark1,
+      foregroundColor:
+      isDarkMode ? Colors.grey[900] : Colors.white,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 12,
+      ),
+    ), child: child,);
   }
 
   /// Displays a progress indicator and message while data is being transferred or processed.
@@ -285,9 +293,9 @@ class ImportDataScreenState extends State<ImportDataScreen>
     }
 
     bool? exit =
-        Platform.isIOS
-            ? await _showExitConfirmationCupertino(context)
-            : await _showExitConfirmationMaterial(context);
+    Platform.isIOS
+        ? await _showExitConfirmationCupertino(context)
+        : await _showExitConfirmationMaterial(context);
 
     if (exit == true) {
       setState(() => _canPop = true);
@@ -303,25 +311,25 @@ class ImportDataScreenState extends State<ImportDataScreen>
     return showCupertinoDialog<bool>(
       context: context,
       barrierDismissible:
-          false, // Prevent closing the dialog by tapping outside
+      false, // Prevent closing the dialog by tapping outside
       builder:
           (context) => CupertinoAlertDialog(
-            title: const Text("Alert"),
-            content: const Text(
-              "If the data isn't successfully transferred yet, please don't close the screen.",
-            ),
-            actions: [
-              CupertinoDialogAction(
-                onPressed:
-                    () => Navigator.of(context).pop(false), // Stay on screen
-                child: const Text("Cancel"),
-              ),
-              CupertinoDialogAction(
-                onPressed: () => Navigator.of(context).pop(true), // Allow exit
-                child: const Text("Exit"),
-              ),
-            ],
+        title: const Text("Alert"),
+        content: const Text(
+          "If the data isn't successfully transferred yet, please don't close the screen.",
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed:
+                () => Navigator.of(context).pop(false), // Stay on screen
+            child: const Text("Cancel"),
           ),
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(context).pop(true), // Allow exit
+            child: const Text("Exit"),
+          ),
+        ],
+      ),
     );
   }
 
@@ -332,31 +340,31 @@ class ImportDataScreenState extends State<ImportDataScreen>
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Alert'),
-            content: const Text(
-              "If the data isn't successfully transferred yet, please don't close the screen.",
-            ),
-            actions: [
-              TextButton(
-                onPressed:
-                    () => Navigator.of(context).pop(false), // Stay on screen
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true), // Allow exit
-                child: const Text('Exit'),
-              ),
-            ],
+        title: const Text('Alert'),
+        content: const Text(
+          "If the data isn't successfully transferred yet, please don't close the screen.",
+        ),
+        actions: [
+          TextButton(
+            onPressed:
+                () => Navigator.of(context).pop(false), // Stay on screen
+            child: const Text('Cancel'),
           ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true), // Allow exit
+            child: const Text('Exit'),
+          ),
+        ],
+      ),
     );
   }
 
   /// Scans a QR code and processes the result if valid.
   Future<void> scanQR(BuildContext context) async {
     final route =
-        Platform.isIOS
-            ? CupertinoPageRoute(builder: (_) => _buildQRScanner(context))
-            : MaterialPageRoute(builder: (_) => _buildQRScanner(context));
+    Platform.isIOS
+        ? CupertinoPageRoute(builder: (_) => _buildQRScanner(context))
+        : MaterialPageRoute(builder: (_) => _buildQRScanner(context));
 
     await Navigator.of(context).push(route);
   }
@@ -375,9 +383,9 @@ class ImportDataScreenState extends State<ImportDataScreen>
 
   /// Imports JSON from the scanned barcode URL into the app
   Future<void> _importingFirebaseToApp(
-    BuildContext parentContext,
-    String url,
-  ) async {
+      BuildContext parentContext,
+      String url,
+      ) async {
     print("Starting import from Firebase...");
     Navigator.pop(parentContext); // Close the scanner
     await Future.delayed(const Duration(milliseconds: 100));
@@ -435,9 +443,9 @@ class ImportDataScreenState extends State<ImportDataScreen>
 
   /// Inserts apartments, rooms, and devices data into the local SQLite database
   Future<void> _insertDataIntoDatabase(
-    Map<String, dynamic> data,
-    BuildContext context,
-  ) async {
+      Map<String, dynamic> data,
+      BuildContext context,
+      ) async {
     final db = await openDatabase(
       join(await getDatabasesPath(), 'GlowGrid.db'),
     );
@@ -901,7 +909,6 @@ Widget cupertinoBody (bool isDarkMode, double width) {
     );
 print("jsonData insert into database $jsonData");
     final db = await database;
-    ///TODO: percentage error while importing
     List<dynamic> apartments = jsonData['Apartments'];
     print("apartments $apartments");
     for (var user in apartments) {

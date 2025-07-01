@@ -20,15 +20,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Platform.isIOS
         ? CupertinoPageScaffold(
-          navigationBar: buildCupertinoNavBar("Settings", context),
-          child: SafeArea(
-              child: _buildSettingsList(context, isDarkMode, true)
-          ),
-        )
+      navigationBar: buildCupertinoNavBar("Settings", context),
+      child: SafeArea(
+          child: _buildSettingsList(context, isDarkMode, true)
+      ),
+    )
         : Scaffold(
-          appBar: buildMaterialAppBar("Settings"),
-          body: _buildSettingsList(context, isDarkMode, false),
-        );
+      appBar: buildMaterialAppBar("Settings"),
+      body: _buildSettingsList(context, isDarkMode, false),
+    );
   }
 
   /// Shared settings list (used by both Android and iOS)

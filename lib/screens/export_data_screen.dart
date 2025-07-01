@@ -60,45 +60,45 @@ class ExportDataScreenState extends State<ExportDataScreen>{
         ? const CupertinoActivityIndicator()
         : const CircularProgressIndicator(color: MyColors.greenDark1,);
     return Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: width * .1),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              uploadProgress == 0.0 || downloadURL.isEmpty
-                  ? uploadFailed
-                  ? kEmptyWidget
-                  : child
-                  : QrImageView(
-                data: downloadURL,
-                version: QrVersions.auto,
-                size: 200.0,
-                eyeStyle: QrEyeStyle(
-                  eyeShape: QrEyeShape.square,
-                  color: isDarkMode
-                      ? Colors.grey.shade400
-                      : Colors.black,
-                ),
-                dataModuleStyle: QrDataModuleStyle(
-                  dataModuleShape: QrDataModuleShape.square,
-                  color: isDarkMode
-                      ? Colors.grey.shade400
-                      : Colors.black,
-                ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: width * .1),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            uploadProgress == 0.0 || downloadURL.isEmpty
+                ? uploadFailed
+                ? kEmptyWidget
+                : child
+                : QrImageView(
+              data: downloadURL,
+              version: QrVersions.auto,
+              size: 200.0,
+              eyeStyle: QrEyeStyle(
+                eyeShape: QrEyeShape.square,
+                color: isDarkMode
+                    ? Colors.grey.shade400
+                    : Colors.black,
               ),
-              height20,
-              Text(
-                uploadStatus == null ? '' : '$uploadStatus',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: MyColors.greenDark1,
-                ),
-                textAlign: TextAlign.center,
+              dataModuleStyle: QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.square,
+                color: isDarkMode
+                    ? Colors.grey.shade400
+                    : Colors.black,
               ),
-            ],
-          ),
+            ),
+            height20,
+            Text(
+              uploadStatus == null ? '' : '$uploadStatus',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: MyColors.greenDark1,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
+      ),
     );
   }
 

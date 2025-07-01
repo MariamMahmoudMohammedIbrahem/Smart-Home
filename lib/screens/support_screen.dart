@@ -12,12 +12,12 @@ class _SupportScreenState extends State<SupportScreen> {
     FAQItem(
       title: "What should I do if my device does not connect?",
       description:
-          "Double-check Wi-Fi credentials and ensure you are on the same network as the device.",
+      "Double-check Wi-Fi credentials and ensure you are on the same network as the device.",
     ),
     FAQItem(
       title: "How do I delete a device?",
       description:
-          "Long Press on the device in the room view and select the delete option.",
+      "Long Press on the device in the room view and select the delete option.",
       customSubtitle: RichText(
         text: TextSpan(
           style: TextStyle(fontSize: 16, color: CupertinoColors.systemGrey),
@@ -79,7 +79,7 @@ class _SupportScreenState extends State<SupportScreen> {
             ),
             const TextSpan(
               text:
-                  ".\nBy following the steps declared, you will be able to add a new device to a new or existing room.",
+              ".\nBy following the steps declared, you will be able to add a new device to a new or existing room.",
             ),
           ],
         ),
@@ -119,7 +119,7 @@ class _SupportScreenState extends State<SupportScreen> {
     FAQItem(
       title: "Why isn't my room responding when I tap it?",
       description:
-          "Ensure the room is properly configured. "
+      "Ensure the room is properly configured. "
           "If it's linked to at least a device, check the device connection. \n"
           "For non-functional rooms, delete them and try to reconfigure them.",
     ),
@@ -156,26 +156,26 @@ class _SupportScreenState extends State<SupportScreen> {
     FAQItem(
       title: "Can I change the color or style of grid tiles?",
       description:
-          "Currently, you can customize icons and names. "
+      "Currently, you can customize icons and names. "
           "Advanced styling like colors and themes will be added in future updates.",
     ),
     FAQItem(
       title: "How do I back up or restore my grid layout?",
       description:
-          "GlowGrid doesn't use automatic backups, but you can manually transfer your data between devices.\n"
+      "GlowGrid doesn't use automatic backups, but you can manually transfer your data between devices.\n"
           "Just export the data from one device and import it on another. "
           "This is useful if you're switching phones or resetting a device.",
     ),
     FAQItem(
       title: "Why do I get an error when trying to save changes?",
       description:
-          "Make sure you’ve filled out all required fields (e.g., name, icon). \n"
+      "Make sure you’ve filled out all required fields (e.g., name, icon). \n"
           "If the issue persists, restarting the app usually fixes temporary glitches.",
     ),
     FAQItem(
       title: "Can I create automations like \"Turn on all lights at night\"?",
       description:
-          "Automation features are under development. "
+      "Automation features are under development. "
           "For now you can control the switches when you want",
     ),
   ];
@@ -271,12 +271,12 @@ class _SupportScreenState extends State<SupportScreen> {
   /// Each tile can expand or collapse to reveal additional information,
   /// using `AnimatedCrossFade` for smooth UI transitions.
   Widget _buildListTile(
-    BuildContext context, {
-    required int index,
-    required String title,
-    String? description,
-    Widget? customSubtitle,
-  }) {
+      BuildContext context, {
+        required int index,
+        required String title,
+        String? description,
+        Widget? customSubtitle,
+      }) {
     final bool isIOS = Platform.isIOS;
     final bool isExpanded = _expanded[index];
 
@@ -286,7 +286,7 @@ class _SupportScreenState extends State<SupportScreen> {
       secondChild: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child:
-            customSubtitle ??
+        customSubtitle ??
             RichText(
               text: TextSpan(
                 text:description ?? '',
@@ -296,9 +296,9 @@ class _SupportScreenState extends State<SupportScreen> {
             ),
       ),
       crossFadeState:
-          isExpanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst, // Toggle visibility
+      isExpanded
+          ? CrossFadeState.showSecond
+          : CrossFadeState.showFirst, // Toggle visibility
       duration: const Duration(milliseconds: 200), // Smooth animation duration
     );
 
@@ -312,24 +312,24 @@ class _SupportScreenState extends State<SupportScreen> {
     // Return platform-specific list tile with shared content
     return isIOS
         ? CupertinoListTile(
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: titleTextStyle, maxLines: 5,),
-              descriptionWidget,
-            ],
-          ),
-          onTap: onTap,
-        )
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: titleTextStyle, maxLines: 5,),
+          descriptionWidget,
+        ],
+      ),
+      onTap: onTap,
+    )
         : ListTile(
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: titleTextStyle, maxLines: 5,),
-              descriptionWidget,
-            ],
-          ),
-          onTap: onTap,
-        );
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: titleTextStyle, maxLines: 5,),
+          descriptionWidget,
+        ],
+      ),
+      onTap: onTap,
+    );
   }
 }

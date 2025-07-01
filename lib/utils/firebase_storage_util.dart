@@ -50,7 +50,7 @@ Future<void> deleteOldFiles() async {
     FirebaseStorage.instance.ref().child('databases/');
     final ListResult result = await storageRef.listAll();
     final now = DateTime.now().millisecondsSinceEpoch;
-    const oneHourInMs = 60 * 60;
+    const oneHourInMs = 60 * 60 * 1000;
 
     for (var item in result.items) {
       final metadata = await item.getMetadata();
@@ -67,5 +67,5 @@ Future<void> deleteOldFiles() async {
         } catch (e) {throw Exception("Failed to delete the old files $e");}
       }
     }
-  } catch (e) {throw Exception("Failed to get the files from the firebase storage $e");}
+  } catch (e) {errorOccurred = true;throw Exception("Failed to get the files from the firebase storage $e");}
 }

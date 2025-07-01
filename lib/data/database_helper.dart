@@ -21,8 +21,7 @@ class SqlDb {
     return myDb;
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-  }
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {}
 
   Future _onCreate(Database db, int version) async {
     ///updated database table
@@ -38,6 +37,9 @@ class SqlDb {
         'RoomID' INTEGER PRIMARY KEY AUTOINCREMENT,
         'RoomName' VARCHAR(255) UNIQUE NOT NULL,
         'ApartmentID' INTEGER,
+        'IconCodePoint' INTEGER,
+        'FontFamily' TEXT,
+        'FontPackage' TEXT,
         FOREIGN KEY (ApartmentID) REFERENCES Apartments(ApartmentID)
       )
     ''');

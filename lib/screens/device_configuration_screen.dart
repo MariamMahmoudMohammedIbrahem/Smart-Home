@@ -20,7 +20,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
         ? CupertinoPageScaffold(
         child: SafeArea(
           child: Material(
-            color: Colors.transparent,
+              color: Colors.transparent,
               child: Theme(
                 data: Theme.of(context).copyWith(
                   canvasColor: Theme.of(context).brightness == Brightness.dark
@@ -28,216 +28,215 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                       : Colors.white, // Set the background color of the Stepper
                 ),
                 child: Stepper(
-                    steps: getSteps(),
-                            type: StepperType.horizontal,
-                            currentStep: currentStep,
-                            onStepCancel: () => currentStep == 0
-                  ? null
-                  : setState(() {
-                currentStep -= 1;
-                            }),
-                            onStepContinue: () {
-                bool isLastStep = (currentStep == getSteps().length - 1);
-                if (isLastStep) {
-                } else {
-                  setState(() {
-                    currentStep += 1;
-                  });
-                }
-                            },
-                            controlsBuilder: (BuildContext context, ControlsDetails controls) {
-                return Row(
-                  mainAxisAlignment: currentStep != 0 &&
-                      !Provider.of<AuthProvider>(context).configured &&
-                      !!Provider.of<AuthProvider>(context).connectionSuccess
-                      ? MainAxisAlignment.spaceBetween
-                      : MainAxisAlignment.center,
-                  children: [
-                    Visibility(
-                      visible: (currentStep == 2 &&
-                          Provider.of<AuthProvider>(context).connectionFailed),
-                      child: Expanded(
-                        child: SizedBox(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: MyColors.greenDark1,
-                                width: 1.5,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.transparent,
-                            ),
-                            child: CupertinoButton(
-                              onPressed: () {
-                                Provider.of<AuthProvider>(context, listen: false).configured = false;
-                                snackBarCount = 0;
-                                controls.onStepCancel!();
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.transparent, // important to keep border visible
-                              /*style: ElevatedButton.styleFrom(
+                  steps: getSteps(),
+                  type: StepperType.horizontal,
+                  currentStep: currentStep,
+                  onStepCancel: () => currentStep == 0
+                      ? null
+                      : setState(() {
+                    currentStep -= 1;
+                  }),
+                  onStepContinue: () {
+                    bool isLastStep = (currentStep == getSteps().length - 1);
+                    if (isLastStep) {
+                    } else {
+                      setState(() {
+                        currentStep += 1;
+                      });
+                    }
+                  },
+                  controlsBuilder: (BuildContext context, ControlsDetails controls) {
+                    return Row(
+                      mainAxisAlignment: currentStep != 0 &&
+                          !Provider.of<AuthProvider>(context).configured &&
+                          !!Provider.of<AuthProvider>(context).connectionSuccess
+                          ? MainAxisAlignment.spaceBetween
+                          : MainAxisAlignment.center,
+                      children: [
+                        Visibility(
+                          visible: (currentStep == 2 &&
+                              Provider.of<AuthProvider>(context).connectionFailed),
+                          child: Expanded(
+                            child: SizedBox(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: MyColors.greenDark1,
+                                    width: 1.5,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.transparent,
+                                ),
+                                child: CupertinoButton(
+                                  onPressed: () {
+                                    Provider.of<AuthProvider>(context, listen: false).configured = false;
+                                    snackBarCount = 0;
+                                    controls.onStepCancel!();
+                                  },
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.transparent, // important to keep border visible
+                                  /*style: ElevatedButton.styleFrom(
                                 side: const BorderSide(
                                   color: MyColors.greenDark1,
                                 ),
                               ),*/
-                              child: const Text(
-                                'Back',
-                                style: titleTextStyle,
+                                  child: const Text(
+                                    'Back',
+                                    style: titleTextStyle,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    width5,
-                    Expanded(
-                      child: SizedBox(
-                        child: Consumer<AuthProvider>(
-                            builder: (context, booleanProvider, child) {
-                              return CupertinoButton(
-                                onPressed: () {
-                                  if (currentStep == 0) {
-                                    if (booleanProvider.readOnly) {
-                                      pressCount = 0;
-                                      if (macAddresses
-                                          .contains(booleanProvider.macAddress)) {
-                                        showSnack(context,
-                                            'you already have this device configured', 'Please Make sure you are connected to the device you want to configure');
-                                      } else {
-                                        snackBarCount = 0;
-                                        pressCount = 0;
-                                        controls.onStepContinue!();
+                        width5,
+                        Expanded(
+                          child: SizedBox(
+                            child: Consumer<AuthProvider>(
+                                builder: (context, booleanProvider, child) {
+                                  return CupertinoButton(
+                                    onPressed: () {
+                                      if (currentStep == 0) {
+                                        if (booleanProvider.readOnly) {
+                                          pressCount = 0;
+                                          if (macAddresses
+                                              .contains(booleanProvider.macAddress)) {
+                                            showSnack(context,
+                                                'you already have this device configured', 'Please Make sure you are connected to the device you want to configure');
+                                          } else {
+                                            snackBarCount = 0;
+                                            pressCount = 0;
+                                            controls.onStepContinue!();
+                                          }
+                                        } else {
+                                          sendFrame(
+                                            {"commands": 'MAC_ADDRESS_READ'},
+                                            ip,
+                                            port,
+                                          );
+                                          pressCount++;
+                                          if(pressCount==2){
+                                            showHint(context, 'Please Make sure you are connected to the device you want to configure');
+                                          }
+                                        }
                                       }
-                                    } else {
-                                      sendFrame(
-                                        {"commands": 'MAC_ADDRESS_READ'},
-                                        ip,
-                                        port,
-                                      );
-                                      pressCount++;
-                                      if(pressCount==2){
-                                        showHint(context, 'Please Make sure you are connected to the device you want to configure');
-                                      }
-                                    }
-                                  }
-                                  else if (currentStep == 2) {
-                                    if (booleanProvider.connectionFailed) {
-                                      showSnack(context, 'Connection Failed', 'Please Make Sure Your Wi-Fi network data are correct');
-                                    } else if (booleanProvider.connectionSuccess &&
-                                        !booleanProvider.connectionFailed) {
-                                      snackBarCount = 0;
-                                      controls.onStepContinue!();
-                                    } else {
-                                      print("sending frame ${booleanProvider.macAddress}");
-                                      sendFrame(
-                                        {
-                                          "commands": 'WIFI_CONNECT_CHECK',
-                                          "mac_address": booleanProvider.macAddress,
-                                        },
-                                        ip,
-                                        port,
-                                      );
-                                      showSnack(context, 'Wait A Second', 'Please Make sure you are connected to your Wi-Fi Network');
-                                    }
-                                  } else if (currentStep == 1) {
-                                    if (booleanProvider.configured) {
-                                      snackBarCount = 0;
-                                      controls.onStepContinue!();
-                                    } else {
-                                      if (formKey.currentState!.validate() && name.isNotEmpty) {
-                                        print("sending frame ${booleanProvider.macAddress}, $name, $password");
-                                        sendFrame(
-                                          {
-                                            "commands": "WIFI_CONFIG",
-                                            "mac_address": booleanProvider.macAddress,
-                                            "wifi_ssid": name,
-                                            "wifi_password": password,
-                                          },
-                                          ip,
-                                          port,
-                                        );
+                                      else if (currentStep == 2) {
+                                        if (booleanProvider.connectionFailed) {
+                                          showSnack(context, 'Connection Failed', 'Please Make Sure Your Wi-Fi network data are correct');
+                                        } else if (booleanProvider.connectionSuccess &&
+                                            !booleanProvider.connectionFailed) {
+                                          snackBarCount = 0;
+                                          controls.onStepContinue!();
+                                        } else {
+                                          print("sending frame ${booleanProvider.macAddress}");
+                                          sendFrame(
+                                            {
+                                              "commands": 'WIFI_CONNECT_CHECK',
+                                              "mac_address": booleanProvider.macAddress,
+                                            },
+                                            ip,
+                                            port,
+                                          );
+                                          showSnack(context, 'Wait A Second', 'Please Make sure you are connected to your Wi-Fi Network');
+                                        }
+                                      } else if (currentStep == 1) {
+                                        if (booleanProvider.configured) {
+                                          snackBarCount = 0;
+                                          controls.onStepContinue!();
+                                        } else {
+                                          if (formKey.currentState!.validate() && name.isNotEmpty) {
+                                            print("sending frame ${booleanProvider.macAddress}, $name, $password");
+                                            sendFrame(
+                                              {
+                                                "commands": "WIFI_CONFIG",
+                                                "mac_address": booleanProvider.macAddress,
+                                                "wifi_ssid": name,
+                                                "wifi_password": password,
+                                              },
+                                              ip,
+                                              port,
+                                            );
+                                          } else {
+                                            showSnack(context, 'Fields are Empty', 'You must Fill the field to continue the steps');
+                                          }
+                                        }
                                       } else {
-                                        showSnack(context, 'Fields are Empty', 'You must Fill the field to continue the steps');
-                                      }
-                                    }
-                                  } else {
-                                    if (booleanProvider.roomConfig) {
-                                      booleanProvider.roomConfig = false;
-                                      Navigator.pop(context);
-                                    } else {
-                                      if (newRoom.name.isEmpty) {
-                                        newRoom = iconsRoomsClass.first;
-                                      } else {
-                                        insertRoom(newRoom,
-                                            apartmentMap.first['ApartmentID'])
-                                            .then((value) {
-                                          getRoomsByApartmentID(context,
-                                              apartmentMap
-                                                  .first['ApartmentID']);
-                                          insertDevice(
-                                            booleanProvider.macAddress,
-                                            booleanProvider.wifiSsid,
-                                            booleanProvider.wifiPassword,
-                                            booleanProvider.deviceType,
-                                            value,
-                                          )
-                                              .then((value) =>
-                                          {
-                                            Provider
-                                                .of<AuthProvider>(context,
-                                                listen: false)
-                                                .roomConfig = true,
-                                            exportData().then((value) =>
-                                                Provider.of<AuthProvider>(
-                                                    context,
+                                        if (booleanProvider.roomConfig) {
+                                          booleanProvider.roomConfig = false;
+                                          Navigator.pop(context);
+                                        } else {
+                                          if (newRoom.name.isEmpty) {
+                                            newRoom = iconsRoomsClass.first;
+                                          }
+                                            insertRoom(newRoom,
+                                                apartmentMap.first['ApartmentID'])
+                                                .then((value) {
+                                              getRoomsByApartmentID(context,
+                                                  apartmentMap
+                                                      .first['ApartmentID']);
+                                              insertDevice(
+                                                booleanProvider.macAddress,
+                                                booleanProvider.wifiSsid,
+                                                booleanProvider.wifiPassword,
+                                                booleanProvider.deviceType,
+                                                value,
+                                              )
+                                                  .then((value) =>
+                                              {
+                                                Provider
+                                                    .of<AuthProvider>(context,
                                                     listen: false)
-                                                    .toggling('adding', false))
-                                          });
-                                        });
+                                                    .roomConfig = true,
+                                                exportData().then((value) =>
+                                                    Provider.of<AuthProvider>(
+                                                        context,
+                                                        listen: false)
+                                                        .toggling('adding', false))
+                                              });
+                                            });
+                                        }
                                       }
-                                    }
-                                  }
-                                },
-                                color: MyColors.greenDark1,
-                                child: Text(
-                                  currentStep == 0
-                                      ? (booleanProvider.readOnly &&
-                                      !deviceDetails.contains(
-                                          booleanProvider.macAddress)
-                                      ? 'Next'
-                                      : 'connect')
-                                      : currentStep == 2
-                                      ? (booleanProvider.connectionSuccess &&
-                                      !booleanProvider.connectionFailed
-                                      ? 'Next'
-                                      : 'Check Connection')
-                                      : currentStep == 1
-                                      ? (booleanProvider.configured
-                                      ? 'Next'
-                                      : 'Configure')
-                                      : !booleanProvider.roomConfig
-                                      ? 'Save'
-                                      : 'Finish',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color:
-                                    isDarkMode ? Colors.grey[900] : Colors.white,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              );
-                            }),
-                      ),
-                    ),
-                  ],
-                );
-                            },
+                                    },
+                                    color: MyColors.greenDark1,
+                                    child: Text(
+                                      currentStep == 0
+                                          ? (booleanProvider.readOnly &&
+                                          !deviceDetails.contains(
+                                              booleanProvider.macAddress)
+                                          ? 'Next'
+                                          : 'connect')
+                                          : currentStep == 2
+                                          ? (booleanProvider.connectionSuccess &&
+                                          !booleanProvider.connectionFailed
+                                          ? 'Next'
+                                          : 'Check Connection')
+                                          : currentStep == 1
+                                          ? (booleanProvider.configured
+                                          ? 'Next'
+                                          : 'Configure')
+                                          : !booleanProvider.roomConfig
+                                          ? 'Save'
+                                          : 'Finish',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color:
+                                        isDarkMode ? Colors.grey[900] : Colors.white,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  );
+                                }),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               )
           ),
         )
-            )
+    )
         : Scaffold(
       body: SafeArea(
         child: Theme(
@@ -372,29 +371,35 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                     booleanProvider.roomConfig = false;
                                     Navigator.pop(context);
                                   } else {
-                                    insertRoom(newRoom,
-                                        apartmentMap.first['ApartmentID'])
-                                        .then((value) {
-                                      getRoomsByApartmentID(context,
-                                          apartmentMap.first['ApartmentID']);
-                                      insertDevice(
-                                        booleanProvider.macAddress,
-                                        booleanProvider.wifiSsid,
-                                        booleanProvider.wifiPassword,
-                                        booleanProvider.deviceType,
-                                        value,
-                                      )
-                                          .then((value) => {
-                                        Provider.of<AuthProvider>(context,
-                                            listen: false)
-                                            .roomConfig = true,
-                                        exportData().then((value) =>
-                                            Provider.of<AuthProvider>(
-                                                context,
-                                                listen: false)
-                                                .toggling('adding', false))
+                                    if (newRoom.name.isEmpty) {
+                                      newRoom = iconsRoomsClass.first;
+                                    }
+                                      insertRoom(newRoom,
+                                          apartmentMap.first['ApartmentID'])
+                                          .then((value) {
+                                        getRoomsByApartmentID(context,
+                                            apartmentMap
+                                                .first['ApartmentID']);
+                                        insertDevice(
+                                          booleanProvider.macAddress,
+                                          booleanProvider.wifiSsid,
+                                          booleanProvider.wifiPassword,
+                                          booleanProvider.deviceType,
+                                          value,
+                                        )
+                                            .then((value) =>
+                                        {
+                                          Provider
+                                              .of<AuthProvider>(context,
+                                              listen: false)
+                                              .roomConfig = true,
+                                          exportData().then((value) =>
+                                              Provider.of<AuthProvider>(
+                                                  context,
+                                                  listen: false)
+                                                  .toggling('adding', false))
+                                        });
                                       });
-                                    });
                                   }
                                 }
                               },
@@ -443,34 +448,34 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
 
   Widget scaffoldBody (BuildContext context, bool isDarkMode) {
     // 1. Main Stepper Entry Point
-      return SafeArea(
-        child: Platform.isIOS
-            ? Material(
-          color: Colors.transparent,
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              canvasColor: isDarkMode
-                  ? Colors.black
-                  : Colors.white,
-            ),
-            child: buildStepper(context, isDarkMode),
-          ),
-        )
-            : Theme(
+    return SafeArea(
+      child: Platform.isIOS
+          ? Material(
+        color: Colors.transparent,
+        child: Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              onSurface: MyColors.greenLight2,
-              primary: MyColors.greenDark1,
-            ),
+            canvasColor: isDarkMode
+                ? Colors.black
+                : Colors.white,
           ),
           child: buildStepper(context, isDarkMode),
         ),
-      );
-    }
+      )
+          : Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
+            onSurface: MyColors.greenLight2,
+            primary: MyColors.greenDark1,
+          ),
+        ),
+        child: buildStepper(context, isDarkMode),
+      ),
+    );
+  }
 
 // 2. Shared Stepper Widget
-    Widget buildStepper(BuildContext context, bool isDarkMode) {
-      return Stepper(
+  Widget buildStepper(BuildContext context, bool isDarkMode) {
+    return Stepper(
         type: StepperType.horizontal,
         physics: const ScrollPhysics(),
         steps: getSteps(),
@@ -483,92 +488,92 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
         onStepContinue: () => setState(() {
           if (currentStep < getSteps().length - 1) currentStep += 1;
         }),
-          controlsBuilder: (context, controls) {
-            final auth = Provider.of<AuthProvider>(context);
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: currentStep != 0 &&
-                    !auth.configured &&
-                    auth.connectionSuccess
-                    ? MainAxisAlignment.spaceBetween
-                    : MainAxisAlignment.center,
-                children: [
-                  if (currentStep == 2 && auth.connectionFailed)
-                    Expanded(
-                      child: Platform.isIOS
-                          ? CupertinoButton(
-                        onPressed: () {
-                          auth.configured = false;
-                          snackBarCount = 0;
-                          controls.onStepCancel?.call();
-                        },
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                        child: const Text('Back', style: titleTextStyle),
-                      )
-                          : ElevatedButton(
-                        onPressed: () {
-                          auth.configured = false;
-                          snackBarCount = 0;
-                          controls.onStepCancel?.call();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          side: const BorderSide(color: MyColors.greenDark1),
-                        ),
-                        child: const Text('Back', style: titleTextStyle),
-                      ),
-                    ),
-                  width5,
+        controlsBuilder: (context, controls) {
+          final auth = Provider.of<AuthProvider>(context);
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: currentStep != 0 &&
+                  !auth.configured &&
+                  auth.connectionSuccess
+                  ? MainAxisAlignment.spaceBetween
+                  : MainAxisAlignment.center,
+              children: [
+                if (currentStep == 2 && auth.connectionFailed)
                   Expanded(
                     child: Platform.isIOS
-                        ? buildCupertinoNextButton(context, controls, auth, isDarkMode)
-                        : buildMaterialNextButton(context, controls, auth, isDarkMode),
+                        ? CupertinoButton(
+                      onPressed: () {
+                        auth.configured = false;
+                        snackBarCount = 0;
+                        controls.onStepCancel?.call();
+                      },
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                      child: const Text('Back', style: titleTextStyle),
+                    )
+                        : ElevatedButton(
+                      onPressed: () {
+                        auth.configured = false;
+                        snackBarCount = 0;
+                        controls.onStepCancel?.call();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        side: const BorderSide(color: MyColors.greenDark1),
+                      ),
+                      child: const Text('Back', style: titleTextStyle),
+                    ),
                   ),
-                ],
-              ),
-            );
-          }
+                width5,
+                Expanded(
+                  child: Platform.isIOS
+                      ? buildCupertinoNextButton(context, controls, auth, isDarkMode)
+                      : buildMaterialNextButton(context, controls, auth, isDarkMode),
+                ),
+              ],
+            ),
+          );
+        }
 
-        // controlsBuilder: (context, controls) => buildControls(context, controls),
-      );
-    }
+      // controlsBuilder: (context, controls) => buildControls(context, controls),
+    );
+  }
 
 // 3. Controls Builder
-    Widget buildControls(BuildContext context, ControlsDetails controls) {
-      final auth = Provider.of<AuthProvider>(context);
-      final isVisible = (currentStep == 2 && auth.connectionFailed);
-      final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  Widget buildControls(BuildContext context, ControlsDetails controls) {
+    final auth = Provider.of<AuthProvider>(context);
+    final isVisible = (currentStep == 2 && auth.connectionFailed);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-      return Row(
-        mainAxisAlignment: currentStep != 0 && !auth.configured && auth.connectionSuccess
-            ? MainAxisAlignment.spaceBetween
-            : MainAxisAlignment.center,
-        children: [
-          Visibility(
-            visible: isVisible,
-            child: Expanded(
-              child: SizedBox(
-                child: Platform.isIOS
-                    ? buildCupertinoBackButton(context, controls)
-                    : buildMaterialBackButton(context, controls),
-              ),
-            ),
-          ),
-          width5,
-          Expanded(
+    return Row(
+      mainAxisAlignment: currentStep != 0 && !auth.configured && auth.connectionSuccess
+          ? MainAxisAlignment.spaceBetween
+          : MainAxisAlignment.center,
+      children: [
+        Visibility(
+          visible: isVisible,
+          child: Expanded(
             child: SizedBox(
-              child: Consumer<AuthProvider>(
-                builder: (context, booleanProvider, _) {
-                  return Platform.isIOS
-                      ? buildCupertinoNextButton(context, controls, booleanProvider, isDarkMode)
-                      : buildMaterialNextButton(context, controls, booleanProvider, isDarkMode);
-                },
-              ),
+              child: Platform.isIOS
+                  ? buildCupertinoBackButton(context, controls)
+                  : buildMaterialBackButton(context, controls),
             ),
           ),
-        ],
-      );
+        ),
+        width5,
+        Expanded(
+          child: SizedBox(
+            child: Consumer<AuthProvider>(
+              builder: (context, booleanProvider, _) {
+                return Platform.isIOS
+                    ? buildCupertinoNextButton(context, controls, booleanProvider, isDarkMode)
+                    : buildMaterialNextButton(context, controls, booleanProvider, isDarkMode);
+              },
+            ),
+          ),
+        ),
+      ],
+    );
 
   }
   Widget buildCupertinoBackButton(BuildContext context, ControlsDetails controls) {
@@ -816,42 +821,42 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                   children: <Widget>[
                     if(Platform.isAndroid) SizedBox( ///TODO: disappears and appears
                       width: double.infinity,
-                        child:DropdownButton<String>(
-                          isExpanded: true,
-                          hint: const Text('Select Wi-Fi Network'),
-                          value: name.isNotEmpty && (name == 'Other' || wifiNetworks.any((network) => network?.ssid == name)) ? name : null,
-                          menuMaxHeight: 200,
-                          icon: const Icon(Icons.arrow_downward),
-                          iconSize: 24,
-                          elevation: 16,
-                          onTap: getWifiNetworks,
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              name = newValue ?? '';
-                              _isPasswordFieldVisible = true;
+                      child:DropdownButton<String>(
+                        isExpanded: true,
+                        hint: const Text('Select Wi-Fi Network'),
+                        value: name.isNotEmpty && (name == 'Other' || wifiNetworks.any((network) => network?.ssid == name)) ? name : null,
+                        menuMaxHeight: 200,
+                        icon: const Icon(Icons.arrow_downward),
+                        iconSize: 24,
+                        elevation: 16,
+                        onTap: getWifiNetworks,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            name = newValue ?? '';
+                            _isPasswordFieldVisible = true;
 
-                              if (name == 'Other') {
-                                _isSsidFieldVisible = true;
-                              } else {
-                                _isSsidFieldVisible = false;
-                              }
-                            });
-                          },
-                          items: [
-                            ...wifiNetworks
-                                .where((network) => network?.ssid != null && (network!.ssid?.isNotEmpty ?? false))
-                                .map<DropdownMenuItem<String>>((WifiNetwork? network) {
-                              return DropdownMenuItem<String>(
-                                value: network?.ssid,
-                                child: Text(network?.ssid ?? ''),
-                              );
-                            }).toList(),
-                            const DropdownMenuItem<String>(
-                              value: 'Other',
-                              child: Text('Other (Enter manually)'),
-                            ),
-                          ],
-                        ),
+                            if (name == 'Other') {
+                              _isSsidFieldVisible = true;
+                            } else {
+                              _isSsidFieldVisible = false;
+                            }
+                          });
+                        },
+                        items: [
+                          ...wifiNetworks
+                              .where((network) => network?.ssid != null && (network!.ssid?.isNotEmpty ?? false))
+                              .map<DropdownMenuItem<String>>((WifiNetwork? network) {
+                            return DropdownMenuItem<String>(
+                              value: network?.ssid,
+                              child: Text(network?.ssid ?? ''),
+                            );
+                          }).toList(),
+                          const DropdownMenuItem<String>(
+                            value: 'Other',
+                            child: Text('Other (Enter manually)'),
+                          ),
+                        ],
+                      ),
                     ),
                     if (_isSsidFieldVisible || Platform.isIOS) ...[ ///TODO: disappears and appears
                       TextFormField(
