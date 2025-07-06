@@ -10,6 +10,7 @@ export 'package:connectivity_plus/connectivity_plus.dart' hide NetworkManagerCli
 export 'package:network_info_plus/network_info_plus.dart';
 export 'package:firebase_core/firebase_core.dart';
 export 'package:firebase_storage/firebase_storage.dart';
+// export 'package:firebase_analytics/firebase_analytics.dart';
 export 'package:flutter/material.dart';
 export 'package:flutter/cupertino.dart' hide RefreshCallback;
 export 'package:flutter/services.dart';
