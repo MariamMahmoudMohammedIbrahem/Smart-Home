@@ -74,12 +74,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                     controls.onStepCancel!();
                                   },
                                   borderRadius: BorderRadius.circular(8),
-                                  color: Colors.transparent, // important to keep border visible
-                                  /*style: ElevatedButton.styleFrom(
-                                side: const BorderSide(
-                                  color: MyColors.greenDark1,
-                                ),
-                              ),*/
+                                  color: Colors.transparent,
                                   child: const Text(
                                     'Back',
                                     style: titleTextStyle,
@@ -128,7 +123,6 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                           snackBarCount = 0;
                                           controls.onStepContinue!();
                                         } else {
-                                          print("sending frame ${booleanProvider.macAddress}");
                                           sendFrame(
                                             {
                                               "commands": 'WIFI_CONNECT_CHECK',
@@ -145,7 +139,6 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                           controls.onStepContinue!();
                                         } else {
                                           if (formKey.currentState!.validate() && name.isNotEmpty) {
-                                            print("sending frame ${booleanProvider.macAddress}, $name, $password");
                                             sendFrame(
                                               {
                                                 "commands": "WIFI_CONFIG",
@@ -350,7 +343,6 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                                     snackBarCount = 0;
                                     controls.onStepContinue!();
                                   } else {
-                                    print("wifi name $name");
                                     if (formKey.currentState!.validate() && name.isNotEmpty) {
                                       sendFrame(
                                         {
@@ -534,8 +526,6 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
             ),
           );
         }
-
-      // controlsBuilder: (context, controls) => buildControls(context, controls),
     );
   }
 
@@ -819,7 +809,7 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    if(Platform.isAndroid) SizedBox( ///TODO: disappears and appears
+                    if(Platform.isAndroid) SizedBox(
                       width: double.infinity,
                       child:DropdownButton<String>(
                         isExpanded: true,
@@ -858,8 +848,9 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                         ],
                       ),
                     ),
-                    if (_isSsidFieldVisible || Platform.isIOS) ...[ ///TODO: disappears and appears
+                    if (_isSsidFieldVisible || Platform.isIOS) ...[
                       TextFormField(
+                        autofocus: true,
                         controller: nameController,
                         decoration: const InputDecoration(
                           labelText: 'Enter Wi-Fi name',
@@ -875,8 +866,9 @@ class _DeviceConfigurationScreenState extends State<DeviceConfigurationScreen> {
                         },
                       ),
                     ],
-                    if (_isPasswordFieldVisible || _isSsidFieldVisible || Platform.isIOS) ...[ ///TODO: disappears and appears
+                    if (_isPasswordFieldVisible || _isSsidFieldVisible || Platform.isIOS) ...[
                       TextFormField(
+                        autofocus: true,
                         controller: passwordController,
                         decoration: InputDecoration(
                           labelText: 'Wifi Network Password',
