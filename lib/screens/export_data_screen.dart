@@ -1,3 +1,5 @@
+import 'package:encrypt/encrypt.dart' as encrypt;
+
 import '../commons.dart';
 
 class ExportDataScreen extends StatefulWidget {
@@ -10,6 +12,13 @@ class ExportDataScreen extends StatefulWidget {
 class ExportDataScreenState extends State<ExportDataScreen>{
   bool _canPop = false;
   Timer? timeoutTimer;
+
+  bool uploadFailed = false;
+  String? uploadStatus;
+  String downloadURL = '';
+  String encryptedQRData = "";
+  int uploadSteps = 0;
+  double uploadProgress = 0.0;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +79,7 @@ class ExportDataScreenState extends State<ExportDataScreen>{
                 ? kEmptyWidget
                 : child
                 : QrImageView(
-              data: downloadURL,
+              data: encryptedQRData,
               version: QrVersions.auto,
               size: 200.0,
               eyeStyle: QrEyeStyle(
@@ -103,8 +112,6 @@ class ExportDataScreenState extends State<ExportDataScreen>{
   }
 
   Future<void> _handlePop(BuildContext context) async {
-    print("Trying to exit $progressValue");
-
     // Directly allow exit if progress is 0
     if (uploadProgress == 0.0 || uploadSteps == 0) {
       setState(() => _canPop = true);
@@ -129,7 +136,6 @@ class ExportDataScreenState extends State<ExportDataScreen>{
       barrierDismissible: false,
       builder: (context)
       {
-        print("showing cupertino");
         return CupertinoAlertDialog(
 
           title: Text("Alert"),
@@ -189,8 +195,14 @@ class ExportDataScreenState extends State<ExportDataScreen>{
     });
   }
 
+  String encryptUrl(String url) {
+    final iv = encrypt.IV.fromSecureRandom(16);
+    final encrypted = encrypter.encrypt(url, iv: iv);
+    return "${iv.base64}:${encrypted.base64}";
+  }
+
   Future<void> _uploadDatabaseToFirebase() async {
-    bool isConnected = await isConnectedToInternet();
+    bool isConnected = Provider.of<AuthProvider>(context, listen: false).wifiConnected;
 
     if (!isConnected) {
       setState(() {
@@ -262,6 +274,15 @@ class ExportDataScreenState extends State<ExportDataScreen>{
       startTimeoutTimer();
 
       downloadURL = await firebaseStorageRef.getDownloadURL();
+      // Extract endpoint part by removing baseUrl
+      String endpoint = downloadURL.replaceFirst(baseURL, "");
+      // Encrypt before putting into QR
+      encryptedQRData = encryptUrl(endpoint);
+
+      setState(() {
+        uploadStatus = 'Upload complete! \n scan to get the data on your mobile';
+        uploadProgress = 1.0;
+      });
 
       setState(() {
         uploadStatus =
@@ -323,61 +344,3 @@ class ExportDataScreenState extends State<ExportDataScreen>{
     resetting();
   }
 }
-/*Future<bool> _onWillPop(BuildContext context) async {
-    print("trying to exit ");
-    // Show a Cupertino-style alert dialog to confirm whether the user wants to leave the screen
-    bool? exit = Platform.isIOS
-        ? await showCupertinoDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context)
-      {
-        print("showing cupertino");
-        return CupertinoAlertDialog(
-
-        title: Text("Alert"),
-        content: Text(
-            "if the data isn't successfully transferred yet, Please don't close the screen"),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () {
-              Navigator.of(context).pop(false); // Don't pop
-            },
-            child: Text("Cancel"),
-          ),
-          CupertinoDialogAction(
-            onPressed: () {
-              Navigator.of(context).pop(true); // Do pop
-            },
-            child: Text("Exit"),
-          ),
-        ],
-      );
-        },
-    )
-        :await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Alert'),
-          content: const Text('if the data isn\'t successfully transferred yet, Please don\'t close the screen'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            TextButton(
-              child: const Text('Exit'),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
-        );
-      },
-    );
-
-    return exit ?? false; // Return whether the user confirms to exit
-  }*/
