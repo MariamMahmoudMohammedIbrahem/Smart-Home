@@ -25,6 +25,7 @@ class GlowGrid extends StatelessWidget {
         : MaterialApp(
       theme: materialLightTheme,
       darkTheme: materialDarkTheme,
+      navigatorObservers: [],
       themeMode: Provider.of<AuthProvider>(context).isDarkMode
           ? ThemeMode.dark
           : ThemeMode.light,
