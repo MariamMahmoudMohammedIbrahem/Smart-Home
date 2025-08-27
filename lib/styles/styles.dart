@@ -20,7 +20,7 @@ const materialNavTitleTextStyle = TextStyle(
 /// FAQ item title style (used in both iOS and Android)
 const titleTextStyle = TextStyle(
   fontWeight: FontWeight.bold,
-  fontSize: 20,
+  fontSize: 18,
   color: MyColors.greenDark1,
 );
 

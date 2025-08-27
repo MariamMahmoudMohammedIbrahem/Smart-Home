@@ -10,11 +10,14 @@ Future<void> main() async {
   final authProvider = AuthProvider();
   await authProvider.checkTheme();
 
-
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthProvider(),
-      child: const GlowGrid(),
-    ),
-  );
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]).then((_) {
+    runApp(
+      ChangeNotifierProvider(
+        create: (context) => AuthProvider(),
+        child: const GlowGrid(),
+      ),
+    );
+  });
 }

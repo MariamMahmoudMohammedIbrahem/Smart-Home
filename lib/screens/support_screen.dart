@@ -178,6 +178,11 @@ class _SupportScreenState extends State<SupportScreen> {
       "Automation features are under development. "
           "For now you can control the switches when you want",
     ),
+
+    FAQItem(
+      title: "How can i reset the switch if i can't access it?",
+      customSubtitle: null,
+    ),
   ];
 
   // A list to track which FAQ item is expanded
@@ -211,6 +216,7 @@ class _SupportScreenState extends State<SupportScreen> {
     super.initState();
 
     _expanded = List.generate(_faqItems.length, (_) => false);
+    _startPressAnimation();
   }
 
   /// Builds the scrollable body for the FAQ screen.
@@ -287,13 +293,27 @@ class _SupportScreenState extends State<SupportScreen> {
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child:
         customSubtitle ??
-            RichText(
+            (title == "How can i reset the switch if i can't access it?"
+                ? Column(
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        text:"Press on the middle switch 5 times then on the right "
+                            "and the left twice then the settings will reset",
+                        style: subtitleTextStyle,
+                      ),
+                    ),
+                    height10,
+                    _buildResetIllustration(),
+                  ],
+                )
+                : RichText(
               text: TextSpan(
-                text:description ?? '',
+                text: description ?? '',
                 style: subtitleTextStyle,
               ),
               maxLines: 10,
-            ),
+            )),
       ),
       crossFadeState:
       isExpanded
@@ -306,6 +326,9 @@ class _SupportScreenState extends State<SupportScreen> {
     onTap() {
       setState(() {
         _expanded[index] = !_expanded[index];
+        if(index == _expanded.length-1) {
+          _expanded[index]? _startPressAnimation(): _timer?.cancel();
+        }
       });
     }
 
@@ -332,4 +355,154 @@ class _SupportScreenState extends State<SupportScreen> {
       onTap: onTap,
     );
   }
+
+  Widget _buildResetIllustration() {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Center(
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: MyColors.greenDark1,
+            width: .2,
+          ),
+        ),
+        width: 300,
+        height: 150,
+        child: CustomPaint(
+          painter: FacetedPainter(cornerSize: 75, isDarkMode),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildCircleButton(0),
+              _buildCircleButton(1),
+              _buildCircleButton(2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Set<int> _activeIndices = {};
+  Timer? _timer;
+
+  Widget _buildCircleButton(int index) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    bool isActive = _activeIndices.contains(index);
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 300),
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: isActive ? isDarkMode?Colors.black:Colors.white : isDarkMode?Colors.grey[850]:Colors.grey[200],
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.grey[800]!, width: 1),
+      ),
+    );
+  }
+
+  void _startPressAnimation() {
+    _timer?.cancel();
+
+    final List<List<int>> sequence = [
+      [1], [], [1], [], [1], [], [1], [], [1], [], // middle x5 press/release
+      [2, 0], [], [2,0],[]                          // right + left together twice
+    ];
+
+    int step = 0;
+    const frameInterval = Duration(milliseconds: 450);
+
+    _timer = Timer.periodic(frameInterval, (t) {
+      if (!mounted) { t.cancel(); _timer = null; return; }
+
+      if (step >= sequence.length) {
+        setState(() => _activeIndices.clear());
+        t.cancel();
+        _timer = null;
+        Future.delayed(const Duration(seconds: 1), () {
+          if (!mounted) return;
+          _startPressAnimation();
+        });
+        return;
+      }
+
+      setState(() => _activeIndices = sequence[step].toSet());
+      step++;
+    });
+  }
+
+  void _stopPressAnimation() {
+    _timer?.cancel();
+    _timer = null;
+    _activeIndices.clear();
+  }
+
+  @override
+  void dispose () {
+    super.dispose();
+    _stopPressAnimation();
+  }
 }
+
+class FacetedPainter extends CustomPainter {
+  final double cornerSize;
+  final bool isDarkMode;
+  FacetedPainter(this.isDarkMode, {this.cornerSize = 40});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint();
+
+    // Base fill
+    paint.color = isDarkMode?Colors.grey[850]!:Colors.grey[200]!;
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
+
+    // Top-left triangle
+    paint.color = isDarkMode?Colors.black:Colors.white;
+    canvas.drawPath(
+      Path()
+        ..moveTo(0, 0)
+        ..lineTo(cornerSize, 0)
+        ..lineTo(0, cornerSize)
+        ..close(),
+      paint,
+    );
+
+    // Top-right triangle
+    // paint.color = Colors.grey[800]!;
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width, 0)
+        ..lineTo(size.width - cornerSize, 0)
+        ..lineTo(size.width, cornerSize)
+        ..close(),
+      paint,
+    );
+
+    // Bottom-right triangle
+    // paint.color = Colors.grey[850]!;
+    canvas.drawPath(
+      Path()
+        ..moveTo(size.width, size.height)
+        ..lineTo(size.width - cornerSize, size.height)
+        ..lineTo(size.width, size.height - cornerSize)
+        ..close(),
+      paint,
+    );
+
+    // Bottom-left triangle
+    // paint.color = Colors.grey[800]!;
+    canvas.drawPath(
+      Path()
+        ..moveTo(0, size.height)
+        ..lineTo(cornerSize, size.height)
+        ..lineTo(0, size.height - cornerSize)
+        ..close(),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
