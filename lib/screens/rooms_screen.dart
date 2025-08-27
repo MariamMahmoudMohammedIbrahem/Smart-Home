@@ -13,6 +13,7 @@ class _RoomsScreenState extends State<RoomsScreen>
   /// Returns the current apartment name or a default
   String get apartmentName =>
       apartmentMap.isNotEmpty ? apartmentMap.first['ApartmentName'] : 'My Home';
+  late NetworkService _networkService;
 
   /// Returns the settings icon button for both Cupertino and Material
   Widget buildSettingsIconButton(BuildContext context, AuthProvider toggleProvider, bool isCupertino) {
@@ -89,7 +90,8 @@ class _RoomsScreenState extends State<RoomsScreen>
 
   @override
   void initState() {
-    startListeningForNetworkChanges(context);
+    _networkService = NetworkService();
+    _networkService.startMonitoring(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       SocketManager().startListen(context);
     });
@@ -117,6 +119,30 @@ class _RoomsScreenState extends State<RoomsScreen>
         child: Column(
           children: [
             _buildHeader(width, isIos),
+            if (Provider.of<AuthProvider>(context, listen: false).socketBindFailed)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: width*.07, vertical: 10.0),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),   // light red background
+                  border: Border.all(color: Colors.red), // red border
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.error, color: Colors.red),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Failed to bind to port. Another app may be using it.",
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Consumer<AuthProvider>(
               builder: (context, loadingProvider, _) {
                 if (loadingProvider.isLoading) {
@@ -302,238 +328,3 @@ class _RoomsScreenState extends State<RoomsScreen>
   }
 
 }
-
-/*
-Widget scaffoldBody (double width, double height, bool isDarkMode){
-    bool isIos = Platform.isIOS;
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: width * .05, vertical: 10),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Rooms',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 26,
-                    color: MyColors.greenDark1,
-                  ),
-                ),
-                Consumer<AuthProvider>(
-                  builder: (context, toggleProvider, child) {
-                    return IconButton(
-                      onPressed: () {
-                        toggleProvider.toggling(
-                          'toggling',
-                          !toggleProvider.toggle,
-                        );
-                      },
-                      icon: Icon(
-                        toggleProvider.toggle
-                            ? Icons.grid_view_rounded
-                            : isIos? CupertinoIcons.list_bullet : Icons.list_outlined,
-                        color: MyColors.greenDark1,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            Consumer<AuthProvider>(
-              builder: (context, loadingProvider, child) {
-                return Flexible(
-                  child: loadingProvider.isLoading
-                      ? isIos
-                        ? CupertinoActivityIndicator(color: MyColors.greenDark1,)
-                        : const CircularProgressIndicator(
-                          color: MyColors.greenDark1,
-                        )
-                      : rooms.isEmpty
-                      ? const SizedBox(
-                    child: Text(
-                      'There is no data to show',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 22,
-                        color: MyColors.greenDark1,
-                      ),
-                    ),
-                  )
-                      : Provider.of<AuthProvider>(context).toggle
-                      ? GridView.builder(
-                    gridDelegate:
-                    SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: width * 0.45,
-                      mainAxisSpacing: 15.0,
-                      crossAxisSpacing: 15.0,
-                      // mainAxisExtent: height * .27,
-                    ),
-                    itemCount: rooms.length,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isDarkMode
-                                ? Colors.transparent
-                                : Theme.of(context)
-                                .primaryColor,
-                            border: isDarkMode
-                                ? Border.all(
-                              color: Theme.of(context)
-                                  .primaryColor,
-                              width: 2,
-                            )
-                                : null,
-                            borderRadius:
-                            BorderRadius.circular(25.0),
-                          ),
-                          child: Column(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Padding(
-                                padding:
-                                const EdgeInsets.symmetric(
-                                    horizontal: 20.0),
-                                child: AutoSizeText(
-                                  rooms[index].name,
-                                  style: TextStyle(
-                                    color: isDarkMode
-                                        ? MyColors.greenDark1
-                                        : Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  minFontSize: 23.0,
-                                  maxFontSize: 25.0,
-                                  maxLines: 2,
-                                ),
-                              ),
-                              Icon(
-                                rooms[index].icon,
-                                color: isDarkMode
-                                    ? MyColors.greenDark1
-                                    : Colors.white,
-                                size: width * .25,
-                              ),
-                            ],
-                          ),
-                        ),
-                        onLongPress: () {
-                          showCustomizedOptions(context, index);
-                        },
-                        onTap: () {
-                          getDeviceDetailsByRoomID(
-                            rooms[index].id!,
-                          )
-                              .then(
-                                (value) => Navigator.push(
-                              context,
-                              Platform.isIOS
-                                  ? CupertinoPageRoute(builder: (_) => RoomDetailsScreen(roomDetail: rooms[index]))
-                                  : MaterialPageRoute(
-                                builder: (context) =>
-                                    RoomDetailsScreen(
-                                      roomDetail: rooms[index],
-                                    ),
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  )
-                      : ListView.builder(
-                    itemCount: rooms.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 7.5, horizontal: 8.0),
-                        child: GestureDetector(
-                          child: Container(
-                            height: 50.0,
-                            decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? Colors.transparent
-                                  : Theme.of(context)
-                                  .primaryColor,
-                              border: isDarkMode
-                                  ? Border.all(
-                                color: Theme.of(context)
-                                    .primaryColor,
-                                width: 2,
-                              )
-                                  : null,
-                              borderRadius:
-                              BorderRadius.circular(25.0),
-                            ),
-                            padding: const EdgeInsets.only(
-                              left: 15,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  rooms[index].icon,
-                                  color: isDarkMode
-                                      ? MyColors.greenDark1
-                                      : Colors.white,
-                                  size: 30,
-                                ),
-                                width5,
-                                Align(
-                                  alignment:
-                                  Alignment.centerLeft,
-                                  child: AutoSizeText(
-                                    rooms[index].name,
-                                    style: TextStyle(
-                                      fontSize: 18.0,
-                                      color: isDarkMode
-                                          ? MyColors.greenDark1
-                                          : Colors.white,
-                                      fontWeight:
-                                      FontWeight.bold,
-                                    ),
-                                    minFontSize: 16.0,
-                                    maxFontSize: 18.0,
-                                    maxLines: 2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          onTap: () {
-                            getDeviceDetailsByRoomID(
-                              rooms[index].id!,
-                            )
-                                .then(
-                                  (value) => Navigator.push(
-                                context,
-                                Platform.isIOS
-                                      ? CupertinoPageRoute(builder: (_) => RoomDetailsScreen(roomDetail: rooms[index],))
-                                    : MaterialPageRoute(builder: (context) => RoomDetailsScreen(roomDetail: rooms[index],),
-                                ),
-                              ),
-                            );
-                          },
-                          onLongPress: () {
-                            showCustomizedOptions(
-                              context,
-                              index,
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-*/

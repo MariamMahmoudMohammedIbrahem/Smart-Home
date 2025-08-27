@@ -21,21 +21,9 @@ class AuthProvider extends ChangeNotifier {
   bool get toggle => _toggle;
   bool get isDarkMode => _isDarkMode;
 
-  // bool similarityCheck = false;
-  // bool similarityDownload = false;
-  // bool startedCheck = false;
-  // bool startedDownload = false;
-  // bool failedCheck = false;
-  // bool failedDownload = false;
-  // bool completedCheck = false;
-  // bool completedDownload = false;
   double downloadedBytesSize = 0;
   double totalByteSize = 0;
   int downloadPercentage = 0;
-  // bool updating = false;
-  // String macFirmware = '';
-  bool _connecting = false;
-  bool get isConnected => _connecting;
   bool _notification = false;
   bool get notificationMark => _notification;
   String? _firmwareVersion;
@@ -43,7 +31,17 @@ class AuthProvider extends ChangeNotifier {
 
   bool _wifiConnected = false;
   bool get wifiConnected => _wifiConnected;
+  bool _deviceConnected = false;
+  bool get isDeviceConnected => _deviceConnected;
 
+  bool _socketBindFailed = false;
+
+  bool get socketBindFailed => _socketBindFailed;
+
+  void setSocketBindFailed(bool value) {
+    _socketBindFailed = value;
+    notifyListeners();
+  }
   void setSwitch(String macAddress, void Function(DeviceStatus device) updateFn) {
     for (var device in deviceStatus) {
       if (device.macAddress == macAddress) {
@@ -97,9 +95,6 @@ class AuthProvider extends ChangeNotifier {
     if (dataType == 'loading') {
       _loading = newValue;
     }
-    if (dataType == 'connecting') {
-      _connecting = newValue;
-    }
     if(dataType == 'notification') {
       _notification = newValue;
     }
@@ -123,11 +118,9 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
   void addingDevice(String command, Map<String, dynamic> jsonResponse) {
-    print("inside adding device switch");
     switch (command) {
       case 'MAC_ADDRESS_READ_OK':
         macAddress = jsonResponse['mac_address'];
-        print("macAddress is $macAddress, macAddresses $macAddresses");
         readOnly = true;
         break;
       case 'WIFI_CONFIG_CONNECTING':
@@ -158,11 +151,65 @@ class AuthProvider extends ChangeNotifier {
       totalByteSize = double.parse(matches[1].group(1)!);
       double testingValue = downloadedBytesSize / totalByteSize * 100;
       downloadPercentage = testingValue.toInt();
-      addOrUpdateDevice({'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': '${downloadPercentage.toDouble()}'}, context);
+      addOrUpdateDevice({'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'command': '${downloadPercentage.toDouble()}', 'time': DateTime.now()
+        ,'isConnected': true,}, context);
     }
     else{
-      addOrUpdateDevice({'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'status': command}, context);
+      addOrUpdateDevice({'mac_address':jsonResponse['mac_address'], 'firmware_version': jsonResponse['firmware_version'], 'command': command, 'time': DateTime.now(),
+        'isConnected': true,}, context);
     }
     notifyListeners();
+  }
+
+  void checkingStatus (String macAddress) {
+      // Find the map with matching MAC address
+      final entry = macVersion.firstWhere(
+            (item) => item['mac_address'] == macAddress,
+        orElse: () => {}, // Return empty map if not found
+      );
+
+      // If no matching entry found, return false
+      if (entry.isEmpty || entry['time'] == null) {
+        _deviceConnected = false;
+      }
+
+      // Parse the stored time
+      final DateTime storedTime = DateTime.parse(entry['time'].toString());
+
+      // Calculate difference
+      final Duration diff = DateTime.now().difference(storedTime);
+
+      // Return whether >= 30 seconds passed
+      _deviceConnected =  diff.inSeconds >= 30?false:true;
+      notifyListeners();
+  }
+
+  Timer? _timer;
+
+  AuthProvider() {
+    // Check every second
+    _timer = Timer.periodic(Duration(seconds: 1), (_) {
+      _updateConnectionStatuses();
+    });
+  }
+
+  List<Map<String, dynamic>> get devices => macVersion;
+
+  void _updateConnectionStatuses() {
+    final now = DateTime.now();
+
+    for (var device in macVersion) {
+      final lastSeen = DateTime.parse(device['time'].toString());
+      final diff = now.difference(lastSeen).inSeconds;
+      device['isConnected'] = diff <= 30;
+    }
+
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 }

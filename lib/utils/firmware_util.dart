@@ -3,13 +3,6 @@ import '../commons.dart';
 ///*check firmware version in firebase storage**
 Future<String?> checkFirmwareVersion(
     String folderPath, String fileName, BuildContext context) async {
-  bool isConnected = await isConnectedToInternet();
-  if(Provider.of<AuthProvider>(context, listen: false).isConnected != isConnected){
-    Provider.of<AuthProvider>(context, listen: false).toggling('connecting', isConnected);
-    if (!isConnected) {
-      return '';
-    }
-  }
   try {
     // Reference to the file in Firebase Storage (nested folder structure)
     Reference storageRef =
@@ -26,18 +19,26 @@ Future<String?> checkFirmwareVersion(
         return utf8.decode(fileData);
       }
     }
-  } catch (e) {throw Exception("Failed to retrieve the firmware info file from the firebase storage $e");}
+  } catch (e) {
+    throw Exception("Failed to retrieve the firmware info file from the firebase storage $e");
+  }
   return null;
 }
 
 ///*compare last version in devices with the version in the storage**
-void checkFirmwareUpdates(List<Map<String, dynamic>> devices, String firmwareInfo, BuildContext context) {
-  bool shouldToggleNotification = false;
-  for (var device in devices) {
-    if (device['firmware_version'] != firmwareInfo) {
-      shouldToggleNotification = true;
-      break;
-    }
+void checkAllFirmwareUpdates(BuildContext context) {
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  final firmwareInfo = authProvider.firmwareInfo;
+
+  if (firmwareInfo == null) {
+    return;
   }
-  Provider.of<AuthProvider>(context, listen: false).toggling('notification', shouldToggleNotification);
+
+  bool shouldShowBadge = macVersion.any(
+        (device) => device['firmware_version'] != firmwareInfo,
+  );
+
+  Future.microtask(() {
+    authProvider.toggling('notification', shouldShowBadge);
+  });
 }

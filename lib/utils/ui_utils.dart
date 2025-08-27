@@ -34,10 +34,8 @@ void showSnack(BuildContext context, String message, String msg) {
       (lastSnackBarTime == null || currentTime.difference(lastSnackBarTime!).inSeconds > 2)) {
 
     if (Platform.isIOS) {
-      // Cupertino-style toast message (Custom Overlay)
       showCupertinoSnackBar(context, message);
     } else {
-      // Material-style SnackBar
       final snackBar = SnackBar(
         content: Text(message),
       );
@@ -59,7 +57,6 @@ void showCupertinoSnackBar(BuildContext context, String message) {
   final overlayEntry = OverlayEntry(
     builder: (context) => Positioned(
       bottom: 50,
-      // left: MediaQuery.of(context).size.width * 0.1,
       width: MediaQuery.of(context).size.width,
       child: CupertinoPopupSurface(
         isSurfacePainted: true,
@@ -115,7 +112,6 @@ void showHint(BuildContext context, String msg){
 void showMaterialCustomizedOptions(context, int index) {
   showModalBottomSheet(
     context: context,
-    /// TODO: can add border shape
     builder: (context) {
       return SafeArea(
         child: Container(
@@ -146,7 +142,6 @@ void showMaterialCustomizedOptions(context, int index) {
                   Navigator.pop(context);
                   showCustomizedDialog(
                     context,
-                    // 'editRoomName',
                     index,
                   );
                 },
@@ -187,7 +182,6 @@ void showCupertinoCustomizedOptions(BuildContext context, int index) {
             Navigator.pop(context);
             showCustomizedDialog(
               context,
-              // 'editRoomName',
               index,
             );
           },
@@ -276,10 +270,8 @@ void showCustomizedDialog(BuildContext context, int index) {
 
 Future<void> promptEnableLocation (BuildContext context, VoidCallback action) async{
   bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  print("3");
 
   if(!serviceEnabled) {
-    print("4");
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -302,7 +294,6 @@ Future<void> promptEnableLocation (BuildContext context, VoidCallback action) as
         )
     );
   } else {
-    print("5");
     action();
   }
 }
@@ -409,7 +400,6 @@ class _RoomCustomizationContentState extends State<RoomCustomizationContent> {
   late String customName;
   IconData? customIcon;
   String? hintMessage;
-  // late Room newRoom;
 
   @override
   void initState() {
@@ -418,7 +408,6 @@ class _RoomCustomizationContentState extends State<RoomCustomizationContent> {
     customizeRoomName = !iconsRoomsClass.any((e) => e.icon == selectedIcon);
     customName = "";
     customIcon = IconData(0, fontFamily: "", fontPackage: "");
-    // newRoom = newRoom;
   }
 
   void notifyChange() {
@@ -478,12 +467,6 @@ class _RoomCustomizationContentState extends State<RoomCustomizationContent> {
                 setState(() {
                   customizeRoomName = true;
                   selectedIcon = null;
-                  // newRoom = Room(
-                  //   name: "Living Room",
-                  //   iconCodePoint: Icons.living.codePoint,
-                  //   fontFamily: Icons.living.fontFamily,
-                  //   fontPackage: Icons.living.fontPackage,
-                  // );
                   hintMessage = null;
                   notifyChange();
                 });
@@ -584,8 +567,9 @@ class DownloadCompleteIndicator extends StatelessWidget {
 class DownloadProgressIndicator extends StatelessWidget {
   final double? circleDiameter;
   final double progress;
+  final double progressFontSize;
 
-  const DownloadProgressIndicator({super.key, required this.circleDiameter, required this.progress});
+  const DownloadProgressIndicator({super.key, required this.circleDiameter, required this.progress, required this.progressFontSize});
 
   @override
   Widget build(BuildContext context) {
@@ -606,8 +590,8 @@ class DownloadProgressIndicator extends StatelessWidget {
         ),
         Text(
           '${(progress * 100).toInt()}%',
-          style: const TextStyle(
-            fontSize: 16,
+          style: TextStyle(
+            fontSize: progressFontSize,
             fontWeight: FontWeight.bold,
             color: MyColors.greenDark1,
           ),

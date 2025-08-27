@@ -1,48 +1,45 @@
-import 'package:http/http.dart' as http;
 import '../commons.dart';
 
-///*export_data_screen.dart**
-Future<bool> isConnectedToInternet() async {
-  var connectivityResult = await Connectivity().checkConnectivity();
-  if (connectivityResult.first == ConnectivityResult.none) {
-    return false;
+class NetworkService {
+  Timer? _internetCheckTimer;
+
+  void startMonitoring(BuildContext context) {
+    _listenToConnectivityChanges(context);
+    _startPeriodicInternetCheck(context);
   }
 
-  try {
-    final response =
-    await http.get(Uri.parse('https://www.google.com')).timeout(
-      const Duration(seconds: 5),
-    );
+  void _listenToConnectivityChanges(BuildContext context) {
+    Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) async {
 
-    if (response.statusCode == 200) {
-      return true;
-    } else {
+      if (results.contains(ConnectivityResult.wifi)) {
+        String? wifiIP = await getLocalIpByInterface();
+        if (wifiIP != null) {
+          ip = modifyIP(wifiIP);
+        }
+      }
+    });
+  }
+
+  void _startPeriodicInternetCheck(BuildContext context) {
+    _internetCheckTimer = Timer.periodic(Duration(seconds: 10), (timer) async {
+      bool isOnline = await _hasInternetAccess();
+      Provider.of<AuthProvider>(context, listen: false).toggling("internetStatus", isOnline);
+      if(isOnline) checkFirmwareVersion('firmware-update/switch', 'firmware_version.txt', context);
+    });
+  }
+
+  Future<bool> _hasInternetAccess() async {
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (_) {
       return false;
     }
-  } catch (e) {
-    return false;
   }
-}
 
-///*retrieve the ip based on the current connected network**
-void startListeningForNetworkChanges(BuildContext context) {
-  Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> connectivityResults) async {
-    print('Connectivity changed: $connectivityResults');
-
-    if(connectivityResults.contains(ConnectivityResult.none)){
-      Provider.of<AuthProvider>(context, listen: false).toggling("internetStatus", false);
-    }
-    else {
-      Provider.of<AuthProvider>(context, listen: false).toggling("internetStatus", true);
-    }
-    if (connectivityResults.contains(ConnectivityResult.wifi)) {
-      // Get the Wi-Fi IP address
-      String? wifiIP = await getLocalIpByInterface();
-      if (wifiIP != null) {
-        ip = modifyIP(wifiIP);
-      }
-    }
-  });
+  void stopMonitoring() {
+    _internetCheckTimer?.cancel();
+  }
 }
 
 Future<String?> getLocalIpByInterface() async{
@@ -65,7 +62,6 @@ String modifyIP(String ip) {
 }
 
 Future<void> getWifiNetworks() async {
-  print("here inside getWifiNetworks");
   List<WifiNetwork?> networks = await WiFiForIoTPlugin.loadWifiList();
   wifiNetworks = networks
       .where((network) => network != null && (network.frequency ?? 0) < 3000)
