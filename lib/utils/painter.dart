@@ -7,7 +7,7 @@ class CameraHolePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.black.withOpacity(0.6);
+    final paint = Paint()..color = Colors.black.withValues(alpha: 0.6);
 
     final fullRect = Rect.fromLTWH(0, 0, size.width, size.height);
     final holeRect = Rect.fromCenter(
