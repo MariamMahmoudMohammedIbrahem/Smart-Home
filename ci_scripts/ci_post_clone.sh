@@ -2,13 +2,9 @@
 # ci_post_clone.sh
 
 set -e
-
-echo "Running Flutter & CocoaPods setup in Xcode Cloud..."
-
-# Go to Flutter iOS directory
+echo "Cleaning and reinstalling CocoaPods..."
 cd ios
-
-# Install CocoaPods
+rm -rf Pods
+pod repo update
 pod install
-
-echo "Setup complete!"
+echo "Pods installed"
