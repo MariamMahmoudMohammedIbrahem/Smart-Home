@@ -1,11 +1,17 @@
 #!/bin/sh
+# ci_post_clone.sh
 
-#  ci_post_clone.sh
-#  Runner
-#
-#  Created by EOIP on 06/09/2025.
-#  
-# RUN THE SETUP
-brew install cocoapods
-pod install
+set -e
 
+echo "Running Flutter & CocoaPods setup in Xcode Cloud..."
+
+# Go to Flutter iOS directory
+cd ios
+
+# Ensure Flutter dependencies are installed first
+flutter pub get
+
+# Install CocoaPods
+pod install --repo-update
+
+echo "Setup complete!"
