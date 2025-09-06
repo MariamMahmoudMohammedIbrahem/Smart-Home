@@ -9,6 +9,6 @@ echo "Running Flutter & CocoaPods setup in Xcode Cloud..."
 cd ios
 
 # Install CocoaPods
-pod install --repo-update
+pod install
 
 echo "Setup complete!"
