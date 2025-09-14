@@ -8,9 +8,7 @@
 .sconsign.dblite
 .tags*
 **/.vagrant/
-**/DerivedData/
 Icon?
-**/Pods/
 **/.symlinks/
 profile
 xcuserdata
@@ -18,7 +16,6 @@ xcuserdata
 Flutter/App.framework
 Flutter/Flutter.framework
 Flutter/Flutter.podspec
-Flutter/Generated.xcconfig
 Flutter/ephemeral/
 Flutter/app.flx
 Flutter/app.zip
@@ -32,3 +29,12 @@ Runner/GeneratedPluginRegistrant.*
 !default.mode2v3
 !default.pbxuser
 !default.perspectivev3
+
+# CRITICAL ADDITIONS - Fix the main issues:
+**/DerivedData/
+**/Pods/
+**/Target Support Files/
+
+# Keep these files (EXCEPTIONS):
+!Podfile.lock
+!Flutter/Generated.xcconfig
