@@ -37,4 +37,5 @@ Runner/GeneratedPluginRegistrant.*
 
 # Keep these files (EXCEPTIONS):
 !Podfile.lock
-!Flutter/Generated.xcconfig
+!Flutter/Generated.xcconfigPods/
+Target Support Files/
