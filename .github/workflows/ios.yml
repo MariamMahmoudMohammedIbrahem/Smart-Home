@@ -10,24 +10,21 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.6-0.0.pre.41'
+          channel: 'stable'
 
-    - name: Install dependencies
-      run: |
-        flutter pub get
-        cd ios
-        pod install
-        cd ..
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          cd ios
+          pod install --repo-update
+          cd ..
 
-    - name: Build iOS
-      run: flutter build ios --release --no-codesign
-
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ios-build
-        path: build/ios/iphoneos/
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign
