@@ -1,13 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 echo "=== Running ci_post_clone.sh ==="
+echo "Script path: $(pwd)/$0"
 
 # Install Flutter dependencies
-echo "Current directory: $(pwd)"
-echo "Listing files:"
-ls -la
-
 echo "Running flutter pub get..."
 flutter pub get
 
