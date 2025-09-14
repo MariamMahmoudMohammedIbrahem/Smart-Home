@@ -1,11 +1,14 @@
 #!/bin/sh
+set -e
 
-#  ci_post_clone.sh
-#  Runner
-#
-#  Created by EOIP on 14/09/2025.
-#  
+echo "=== Running ci_post_clone.sh ==="
 
-#RUN THE SETUP
-brew install cocoapods
-pod install
+# Install Flutter dependencies
+flutter pub get
+
+# Install iOS pods
+cd ios
+pod install --repo-update
+cd ..
+
+echo "=== CI setup completed successfully ==="
