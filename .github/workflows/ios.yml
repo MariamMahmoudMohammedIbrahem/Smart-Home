@@ -19,17 +19,19 @@ jobs:
           channel: 'stable'
 
       - name: Install CocoaPods
-        run: gem install cocoapods
+        run: sudo gem install cocoapods
 
-      - name: Flutter doctor
-        run: flutter doctor -v
+      - name: Install Flutter dependencies
+        run: flutter pub get
 
-      - name: Install dependencies
+      - name: Generate iOS files
+        run: flutter build ios --no-codesign --no-tree-shake-icons --debug
+
+      - name: Install iOS dependencies
         run: |
-          flutter pub get
           cd ios
           pod install --repo-update
           cd ..
 
-      - name: Build iOS
+      - name: Build iOS for release
         run: flutter build ios --release --no-codesign --no-tree-shake-icons
