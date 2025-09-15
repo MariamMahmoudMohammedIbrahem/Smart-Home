@@ -56,7 +56,7 @@ List<Room> iconsRoomsClass = [
 ];
 IconData selectedIcon = Icons.living;
 List<Map<String,dynamic>> macVersion = [];
-List<WifiNetwork?> wifiNetworks = [];
+List<WiFiAccessPoint> wifiNetworks = [];
 String localFileName = '';
 String ip = "255.255.255.255";
 int port = 8888;

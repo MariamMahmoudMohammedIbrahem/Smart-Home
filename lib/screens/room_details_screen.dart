@@ -200,9 +200,11 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
 
   void deleteSwitch (macAddressDevice) {
     deleteDeviceByMacAddress(macAddressDevice).then((_) {
+      if(!mounted) return;
       Provider.of<AuthProvider>(context, listen: false).toggling('delete', true);
       getDeviceDetailsByRoomID(widget.roomDetail.id!).then((_) {
         exportData();
+        if(!mounted) return;
         Provider.of<AuthProvider>(context, listen: false).toggling('delete', false);
         Navigator.pop(context);
       });
@@ -351,9 +353,9 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
         {
           "commands": "RGB_WRITE",
           "mac_address": macAddress,
-          "red": currentColor.red,
-          "green": currentColor.green,
-          "blue": currentColor.blue,
+          "red": (currentColor.r * 255.0).round() & 0xff,
+          "green": (currentColor.g * 255.0).round() & 0xff,
+          "blue": (currentColor.b * 255.0).round() & 0xff,
         },
         ip,
         port,

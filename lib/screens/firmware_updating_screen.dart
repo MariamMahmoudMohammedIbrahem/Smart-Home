@@ -19,7 +19,6 @@ class FirmwareScreen extends StatefulWidget {
 }
 
 class _FirmwareScreenState extends State<FirmwareScreen> {
-  /// TODO: it is general, needs to be handled for each device
   Map<String, DateTime> deviceTimers = {};
   Map<String, double> latestProgressMap = {};
   final Map<String, FirmwareUpdateState> _deviceStates = {};
@@ -438,7 +437,7 @@ class _FirmwareScreenState extends State<FirmwareScreen> {
           latestProgressMap[deviceStatus['mac_address']] = newProgress;
           return _buildDownloadProgressWidget(newProgress);
         } else {
-          return _buildDownloadProgressWidget(previousProgress ?? 0.0);
+          return _buildDownloadProgressWidget(previousProgress);
         }
       case FirmwareUpdateState.downloadComplete:
         return const DownloadCompleteIndicator();

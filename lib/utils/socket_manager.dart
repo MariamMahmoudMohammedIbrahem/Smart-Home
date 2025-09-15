@@ -22,6 +22,7 @@ class SocketManager {
         8081,
       );
         _socket = socket;
+        if(!context.mounted) return;
         Provider.of<AuthProvider>(context, listen: false)
             .setSocketBindFailed(false);
         socket.listen((RawSocketEvent event) {
@@ -186,8 +187,7 @@ class SocketManager {
             }
           }
         });
-      // });
-    } on SocketException catch (e) {
+    } on SocketException {
       // Could not bind to the port
       Provider.of<AuthProvider>(context, listen: false)
           .setSocketBindFailed(true);

@@ -23,6 +23,7 @@ class NetworkService {
   void _startPeriodicInternetCheck(BuildContext context) {
     _internetCheckTimer = Timer.periodic(Duration(seconds: 10), (timer) async {
       bool isOnline = await _hasInternetAccess();
+      if(!context.mounted) return;
       Provider.of<AuthProvider>(context, listen: false).toggling("internetStatus", isOnline);
       if(isOnline) checkFirmwareVersion('firmware-update/switch', 'firmware_version.txt', context);
     });
@@ -62,10 +63,16 @@ String modifyIP(String ip) {
 }
 
 Future<void> getWifiNetworks() async {
-  List<WifiNetwork?> networks = await WiFiForIoTPlugin.loadWifiList();
-  wifiNetworks = networks
-      .where((network) => network != null && (network.frequency ?? 0) < 3000)
-      .toList();
 
-  wifiNetworks = networks;
+  final canScan = await WiFiScan.instance.canStartScan(askPermissions: true);
+  if (canScan != CanStartScan.yes) return;
+  await WiFiScan.instance.startScan();
+
+  final canGet = await WiFiScan.instance.canGetScannedResults(askPermissions: true);
+  if (canGet != CanGetScannedResults.yes) return;
+  final results = await WiFiScan.instance.getScannedResults();
+
+  wifiNetworks = results
+      .where((ap) => (ap.frequency) < 3000)
+      .toList();
 }

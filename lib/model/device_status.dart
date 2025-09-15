@@ -37,7 +37,7 @@ class DeviceStatus {
       'sw2': sw2,
       'sw3': sw3,
       'led': led,
-      'CurrentColor': currentColor.value,
+      'CurrentColor': currentColor.toARGB32(),
     };
   }
 }

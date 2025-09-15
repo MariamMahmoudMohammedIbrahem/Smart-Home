@@ -44,14 +44,14 @@ ThemeData materialLightTheme = ThemeData(
   ),
   switchTheme: SwitchThemeData(
     splashRadius: 50.0,
-    thumbColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    thumbColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return MyColors.greenLight2;
       }
       return Colors.grey.shade300;
     }),
-    trackColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    trackColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return MyColors.greenDark1;
       }
       return Colors.grey.shade800;
@@ -83,14 +83,14 @@ ThemeData materialDarkTheme = ThemeData(
   ),
   switchTheme: SwitchThemeData(
     splashRadius: 50.0,
-    thumbColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    thumbColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return MyColors.greenLight2;
       }
       return Colors.grey.shade300;
     }),
-    trackColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    trackColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return MyColors.greenDark1;
       }
       return Colors.grey.shade800;

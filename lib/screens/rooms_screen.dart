@@ -34,12 +34,16 @@ class _RoomsScreenState extends State<RoomsScreen>
     return IconButton(
       onPressed: () {
         getAllMacAddresses().then(
-              (value) => Navigator.push(
-            context,
-            isCupertino
-                ? CupertinoPageRoute(builder: (_) => const SettingsScreen())
-                : MaterialPageRoute(builder: (_) => const SettingsScreen()),
-          ),
+          (value) => {
+            if(context.mounted) {
+              Navigator.push(
+                context,
+                isCupertino
+                    ? CupertinoPageRoute(builder: (_) => const SettingsScreen())
+                    : MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              ),
+            }
+          }
         );
       },
       icon: buttonIcon,
@@ -123,7 +127,7 @@ class _RoomsScreenState extends State<RoomsScreen>
               Container(
                 padding: EdgeInsets.symmetric(horizontal: width*.07, vertical: 10.0),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),   // light red background
+                  color: Colors.red.withValues(alpha: 0.1),   // light red background
                   border: Border.all(color: Colors.red), // red border
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -305,6 +309,7 @@ class _RoomsScreenState extends State<RoomsScreen>
     return GestureDetector(
       onTap: () {
         getDeviceDetailsByRoomID(room.id!).then((value) {
+          if(!context.mounted) return;
           Navigator.push(
             context,
             isIos
