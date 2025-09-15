@@ -114,6 +114,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           final firstTimeCheck = authProvider.firstTimeCheck;
 
           if (!firstTimeCheck) {
+            if(!mounted) return;
             Navigator.pushReplacement(
               context,
               Platform.isIOS

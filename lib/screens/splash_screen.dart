@@ -38,6 +38,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       // Delay for splash effect before navigating
       Future.delayed(const Duration(seconds: 5), () {
+        if(!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(

@@ -114,18 +114,21 @@ class ExportDataScreenState extends State<ExportDataScreen>{
   Future<void> _handlePop(BuildContext context) async {
     // Directly allow exit if progress is 0
     if (uploadProgress == 0.0 || uploadSteps == 0) {
-      setState(() => _canPop = true);
+      safeSetState(() => _canPop = true);
       Navigator.of(context).pop(true);
       return;
     }
 
     bool? exit =
-    Platform.isIOS
-        ? await _showExitConfirmationCupertino(context)
-        : await _showExitConfirmationMaterial(context);
+      context.mounted
+        ?Platform.isIOS
+          ? await _showExitConfirmationCupertino(context)
+          : await _showExitConfirmationMaterial(context)
+        :false;
 
     if (exit == true) {
-      setState(() => _canPop = true);
+      safeSetState(() => _canPop = true);
+      if(!context.mounted) return;
       Navigator.of(context).pop();
     }
   }
@@ -189,7 +192,7 @@ class ExportDataScreenState extends State<ExportDataScreen>{
   void startTimeoutTimer() {
     timeoutTimer?.cancel();
     timeoutTimer = Timer(const Duration(seconds: 5), () {
-      setState(() {
+      safeSetState(() {
         uploadStatus = 'Check your internet connection.';
       });
     });
@@ -200,12 +203,12 @@ class ExportDataScreenState extends State<ExportDataScreen>{
     final encrypted = encrypter.encrypt(url, iv: iv);
     return "${iv.base64}:${encrypted.base64}";
   }
-
+  StreamSubscription<TaskSnapshot>? _uploadSubscription;
   Future<void> _uploadDatabaseToFirebase() async {
     bool isConnected = Provider.of<AuthProvider>(context, listen: false).wifiConnected;
 
     if (!isConnected) {
-      setState(() {
+      safeSetState(() {
         uploadFailed = true;
         uploadStatus = "No internet connection.";
       });
@@ -214,7 +217,7 @@ class ExportDataScreenState extends State<ExportDataScreen>{
 
     File? dbFile = await getLocalDatabaseFile();
     if (dbFile == null) {
-      setState(() {
+      safeSetState(() {
         uploadFailed = true;
         uploadStatus = "Failed to find the database file.";
       });
@@ -222,7 +225,7 @@ class ExportDataScreenState extends State<ExportDataScreen>{
     }
 
     try {
-      setState(() {
+      safeSetState(() {
         uploadStatus = 'Preparing to upload...';
         uploadProgress = 0.0;
         uploadSteps = 0;
@@ -234,7 +237,7 @@ class ExportDataScreenState extends State<ExportDataScreen>{
       Reference firebaseStorageRef =
       FirebaseStorage.instance.ref().child(fileName);
 
-      setState(() {
+      safeSetState(() {
         uploadStatus = 'Setting up file data...';
       });
       startTimeoutTimer();
@@ -245,14 +248,14 @@ class ExportDataScreenState extends State<ExportDataScreen>{
         },
       );
 
-      setState(() {
+      safeSetState(() {
         uploadStatus = 'Collecting data...';
       });
       startTimeoutTimer();
 
       UploadTask uploadTask = firebaseStorageRef.putFile(dbFile, metadata);
 
-      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+      _uploadSubscription = uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
         startTimeoutTimer();
 
         if (snapshot.bytesTransferred >
@@ -261,14 +264,14 @@ class ExportDataScreenState extends State<ExportDataScreen>{
           uploadProgress = (uploadSteps * 0.1).clamp(0.0, 1.0);
         }
 
-        setState(() {
+        safeSetState(() {
           uploadStatus = 'Uploading';
         });
       });
 
       await uploadTask;
 
-      setState(() {
+      safeSetState(() {
         uploadStatus = 'Finalizing preparation...';
       });
       startTimeoutTimer();
@@ -279,49 +282,49 @@ class ExportDataScreenState extends State<ExportDataScreen>{
       // Encrypt before putting into QR
       encryptedQRData = encryptUrl(endpoint);
 
-      setState(() {
+      safeSetState(() {
         uploadStatus = 'Upload complete! \n scan to get the data on your mobile';
         uploadProgress = 1.0;
       });
 
-      setState(() {
+      safeSetState(() {
         uploadStatus =
         'Upload complete! \n scan to get the data on your mobile';
         uploadProgress = 1.0;
       });
     } on FirebaseException catch (e) {
-      setState(() {
+      safeSetState(() {
         uploadFailed = true;
         uploadStatus = 'Upload failed: An Error Occurred';
         uploadProgress = 0.0;
       });
 
       if (e.code == 'permission-denied') {
-        setState(() {
+        safeSetState(() {
           uploadStatus = 'Upload failed: Insufficient permissions.';
         });
       } else if (e.code == 'quota-exceeded') {
-        setState(() {
+        safeSetState(() {
           uploadStatus = 'Upload failed: Storage quota exceeded.';
         });
       } else if (e.code == 'canceled') {
-        setState(() {
+        safeSetState(() {
           uploadStatus = 'Upload failed: Upload canceled by user.';
         });
       }
     } on SocketException {
-      setState(() {
+      safeSetState(() {
         uploadStatus =
         'Upload failed: Network error. Please check your internet connection.';
         uploadProgress = 0.0;
       });
     } on TimeoutException {
-      setState(() {
+      safeSetState(() {
         uploadStatus = 'Upload failed: Connection timed out. Please try again.';
         uploadProgress = 0.0;
       });
     } catch (e) {
-      setState(() {
+      safeSetState(() {
         uploadStatus = 'Upload failed: Unexpected error';
         uploadProgress = 0.0;
       });
@@ -330,11 +333,18 @@ class ExportDataScreenState extends State<ExportDataScreen>{
     }
   }
 
+  void safeSetState(VoidCallback fn) {
+    if (mounted) {
+      setState(fn);
+    }
+  }
+
   void resetting () {
     uploadFailed = false;
     uploadStatus = '';
     downloadURL = '';
     timeoutTimer?.cancel();
+    _uploadSubscription?.cancel();
   }
 
   @override

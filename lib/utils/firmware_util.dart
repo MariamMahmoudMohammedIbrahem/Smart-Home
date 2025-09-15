@@ -13,10 +13,17 @@ Future<String?> checkFirmwareVersion(
     if (fileData != null) {
       // Convert file data from bytes to string
       final fileContent = utf8.decode(fileData);
-      if(Provider.of<AuthProvider>(context, listen: false).firmwareInfo != fileContent) {
-        Provider.of<AuthProvider>(context, listen: false).updateFirmwareVersion(
-            utf8.decode(fileData));
-        return utf8.decode(fileData);
+
+      if(context.mounted) {
+        if (Provider
+            .of<AuthProvider>(context, listen: false)
+            .firmwareInfo != fileContent) {
+          Provider
+              .of<AuthProvider>(context, listen: false)
+              .updateFirmwareVersion(
+              utf8.decode(fileData));
+          return utf8.decode(fileData);
+        }
       }
     }
   } catch (e) {

@@ -203,6 +203,7 @@ Future<void> deleteRoom(int roomId, BuildContext context) async {
 
 Future<void> onTapDeleteRoom(BuildContext context, int roomId) async {
   await deleteRoom(roomId, context);
+  if(!context.mounted) return;
   refreshUI(context);
   Navigator.pop(context);
 }
@@ -246,6 +247,7 @@ void showCustomizedDialog(BuildContext context, int index) {
                     updatedRoom,
                     rooms[index].name,
                   ).then((_) => exportData()).then((_) {
+                    if(!context.mounted) return;
                     getRoomsByApartmentID(context, apartmentMap.first['ApartmentID']);
                     Provider.of<AuthProvider>(context, listen: false).toggling('loading', false);
                     Navigator.pop(context);
@@ -272,6 +274,7 @@ Future<void> promptEnableLocation (BuildContext context, VoidCallback action) as
   bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
   if(!serviceEnabled) {
+    if(!context.mounted) return;
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -355,7 +358,7 @@ void showUndoSnackBar(BuildContext context, VoidCallback onUndo, int countdown, 
 class CountdownCircle extends StatelessWidget {
   final int countdown;
 
-  const CountdownCircle({required this.countdown});
+  const CountdownCircle({super.key, required this.countdown});
 
   @override
   Widget build(BuildContext context) {

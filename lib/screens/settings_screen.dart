@@ -65,6 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           title: 'Export Data',
           onTap: () {
             authProvider.checkFirstTime().then((_) {
+              if(!context.mounted) return;
               Navigator.push(
                 context,
                 isIOS

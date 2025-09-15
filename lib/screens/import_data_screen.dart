@@ -298,18 +298,21 @@ class ImportDataScreenState extends State<ImportDataScreen>
   Future<void> _handlePop(BuildContext context) async {
     // Directly allow exit if progress is 0 or 1
     if (progressValue == 0.0 || progressValue == 1.0) {
-      setState(() => _canPop = true);
+      safeSetState(() => _canPop = true);
       Navigator.of(context).pop(true);
       return;
     }
 
     bool? exit =
-    Platform.isIOS
-        ? await _showExitConfirmationCupertino(context)
-        : await _showExitConfirmationMaterial(context);
+      context.mounted
+        ?Platform.isIOS
+          ? await _showExitConfirmationCupertino(context)
+          : await _showExitConfirmationMaterial(context)
+        :false;
 
     if (exit == true) {
-      setState(() => _canPop = true);
+      safeSetState(() => _canPop = true);
+      if(!context.mounted) return;
       Navigator.of(context).pop();
     }
   }
@@ -414,14 +417,14 @@ class ImportDataScreenState extends State<ImportDataScreen>
     await Future.delayed(const Duration(milliseconds: 100));
 
     _startProgress(0.1); // 10%
-    setState(() => reformattingData = true);
+    safeSetState(() => reformattingData = true);
     _startProgress(0.2); // 20%
 
     try {
       String decryptedUrl = decryptUrl(url);
       final response = await http.get(Uri.parse(decryptedUrl));
       if (response.statusCode == 404) {
-        setState(() => fileMissing = true);
+        safeSetState(() => fileMissing = true);
         return;
       }
       _startProgress(0.3); // 30%
@@ -440,6 +443,7 @@ class ImportDataScreenState extends State<ImportDataScreen>
     _startProgress(0.6); // 60%
     await deleteOldFiles();
     _startProgress(0.7); // 70%
+    if(!context.mounted) return;
     await _readJsonFromFile('$localFileName.json', parentContext);
   }
 
@@ -457,9 +461,10 @@ class ImportDataScreenState extends State<ImportDataScreen>
       await deleteAllRoomsAndDevices();
       _startProgress(0.8); // 80%
 
+      if(!context.mounted) return;
       await _insertDataIntoDatabase(jsonDecode(jsonData), context);
     } catch (e) {
-      setState(() => errorOccurred = true);
+      safeSetState(() => errorOccurred = true);
       throw Exception("Error reading JSON file: $e");
     }
   }
@@ -497,11 +502,13 @@ class ImportDataScreenState extends State<ImportDataScreen>
       );
     }
 
-    setState(() => reformattingData = false);
+    safeSetState(() => reformattingData = false);
+    if(!context.mounted) return;
     await getRoomsByApartmentID(context, apartmentMap.first['ApartmentID']);
 
     getAllMacAddresses();
     _startProgress(0.9); // 90%
+    if(!context.mounted) return;
     Provider.of<AuthProvider>(
       context,
       listen: false,
@@ -511,7 +518,7 @@ class ImportDataScreenState extends State<ImportDataScreen>
 
   /// Updates the progress and related status message
   void _startProgress(double newValue) {
-    setState(() {
+    safeSetState(() {
       progressValue = newValue;
       int elapsedTime = (newValue * 10).toInt();
       for (var entry in messages) {
@@ -520,6 +527,12 @@ class ImportDataScreenState extends State<ImportDataScreen>
         }
       }
     });
+  }
+
+  void safeSetState(VoidCallback fn) {
+    if (mounted) {
+      setState(fn);
+    }
   }
 
   /// Resets all progress and flags for a new import
