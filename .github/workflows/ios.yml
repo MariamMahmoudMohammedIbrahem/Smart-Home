@@ -21,6 +21,9 @@ jobs:
       - name: Install CocoaPods
         run: gem install cocoapods
 
+      - name: Flutter doctor
+        run: flutter doctor -v
+
       - name: Install dependencies
         run: |
           flutter pub get
