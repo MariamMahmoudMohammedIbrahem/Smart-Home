@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
    LastUpgradeVersion = "1510"
-   version = "1.3">
+   version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
@@ -97,5 +97,23 @@
    <ArchiveAction
       buildConfiguration = "Release"
       revealArchiveInOrganizer = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Run Script"
+               scriptText = "# Type a script or drag a script file from your workspace to insert its path.&#10;#!/bin/bash&#10;&#10;# Check if running in Xcode Cloud&#10;if [ &quot;$CI_XCODE_CLOUD&quot; = &quot;TRUE&quot; ]; then&#10;    echo &quot;=== XCODE CLOUD PRE-ACTION ===&quot;&#10;    &#10;    # Install CocoaPods&#10;    gem install cocoapods&#10;    &#10;    # Setup Flutter&#10;    export PATH=&quot;$PATH:/opt/homebrew/bin&quot;&#10;    &#10;    # Install dependencies&#10;    flutter pub get&#10;    cd &quot;${SRCROOT}/..&quot;&#10;    cd ios&#10;    pod install --repo-update&#10;    cd ..&#10;    &#10;    echo &quot;=== PRE-ACTION COMPLETE ===&quot;&#10;fi&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "97C146ED1CF9000F007C117D"
+                     BuildableName = "Runner.app"
+                     BlueprintName = "Runner"
+                     ReferencedContainer = "container:Runner.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
    </ArchiveAction>
 </Scheme>
