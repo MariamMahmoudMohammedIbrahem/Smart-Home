@@ -24,9 +24,6 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      - name: Generate iOS files
-        run: flutter build ios --no-codesign --no-tree-shake-icons --debug
-
       - name: Install iOS dependencies
         run: |
           cd ios

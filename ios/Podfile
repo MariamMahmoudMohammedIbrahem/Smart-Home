@@ -23,7 +23,7 @@ def flutter_root
 end
 
 flutter_application_path = File.join('..', '..')
-load File.join(flutter_application_path, '.ios', 'Flutter', 'podhelper.rb')
+load File.expand_path(File.join('..', 'Flutter', 'podhelper.rb'), __FILE__)
 
 flutter_ios_podfile_setup
 
