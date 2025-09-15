@@ -18,6 +18,9 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Install CocoaPods
+        run: gem install cocoapods
+
       - name: Install dependencies
         run: |
           flutter pub get
