@@ -9,7 +9,12 @@ project 'Runner', {
   'Release' => :release,
 }
 
-eval(File.read(File.join(__dir__, '..', 'Flutter', 'podhelper.rb')), binding)
+# Use the Flutter root from environment or fallback
+flutter_root = ENV['FLUTTER_ROOT'] || File.expand_path(File.join('..', '..', 'flutter'), __dir__)
+
+# Load podhelper from the Flutter installation
+podhelper_path = File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
+load podhelper_path
 
 flutter_ios_podfile_setup
 
