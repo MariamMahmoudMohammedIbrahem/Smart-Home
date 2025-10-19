@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
+export PATH="/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/Users/eoip/flutter/bin:$PATH"
 echo "=== CI_POST_CLONE.SH STARTED ==="
 echo "Current working directory: $(pwd)"
 echo "PATH = $PATH"
