@@ -4,37 +4,32 @@ set -euo pipefail
 
 echo "=== CI_POST_CLONE.SH STARTED ==="
 
-# Debug: Show current directory and files
+# Debug
 echo "Current directory: $(pwd)"
 echo "Contents:"
 ls -la
 
-# Check for CocoaPods
+# CocoaPods
 echo "Checking CocoaPods..."
 if ! command -v pod &> /dev/null; then
     echo "CocoaPods not found!"
-    # Optional fallback (not usually needed in Xcode Cloud)
-    # echo "Installing CocoaPods..."
-    # gem install --user-install cocoapods
 else
     echo "CocoaPods version: $(pod --version)"
 fi
 
-# Find Flutter - if not on PATH, try to locate
+# Find Flutter
 echo "Checking for Flutter..."
+
+export PATH="/opt/homebrew/bin:/opt/homebrew/flutter/bin:$PATH"
+
 if ! command -v flutter &> /dev/null; then
-    FLUTTER_PATH=$(find / -name "flutter" -type f -executable 2>/dev/null | head -1)
-    if [ -n "$FLUTTER_PATH" ]; then
-        export PATH="$(dirname "$FLUTTER_PATH"):$PATH"
-        echo "Flutter found at: $FLUTTER_PATH"
-    else
-        echo "ERROR: Flutter not found!"
-        exit 1
-    fi
+    echo "ERROR: Flutter still not found in PATH!"
+    exit 1
 fi
 
 # Verify Flutter
 echo "Flutter version:"
+which flutter
 flutter --version
 
 # Install dependencies
