@@ -4,33 +4,27 @@ set -euo pipefail
 
 echo "=== CI_POST_CLONE.SH STARTED ==="
 echo "Current working directory: $(pwd)"
-echo "Listing contents:"
 echo "PATH = $PATH"
 echo "CI_PRIMARY_REPOSITORY_PATH = ${CI_PRIMARY_REPOSITORY_PATH:-Not set}"
 
-# Install Flutter if not installed
-if ! command -v flutter &> /dev/null; then
-  echo "Flutter not found, installing Flutter SDK..."
+# Flutter SDK directory
+FLUTTER_DIR="$HOME/flutter"
 
-  # Flutter version to install
-  FLUTTER_VERSION="stable"
-
-  # Directory where Flutter will be installed
-  FLUTTER_DIR="$HOME/flutter"
-
-  # Download Flutter SDK zip for macOS
-  echo "Downloading Flutter SDK..."
-  curl -L "https://storage.googleapis.com/flutter_infra_release/releases/${FLUTTER_VERSION}/macos/flutter_macos_${FLUTTER_VERSION}.zip" -o flutter_sdk.zip
-
-  echo "Extracting Flutter SDK..."
-  unzip -q flutter_sdk.zip -d "$HOME"
-
-  rm flutter_sdk.zip
-
-  # Add flutter to PATH for this session
-  export PATH="$FLUTTER_DIR/bin:$PATH"
+# Check if Flutter SDK is installed
+if [ ! -d "$FLUTTER_DIR" ]; then
+  echo "Flutter SDK not found, installing..."
+  git clone https://github.com/flutter/flutter.git -b stable "$FLUTTER_DIR"
 else
-  echo "Flutter found: $(command -v flutter)"
+  echo "Flutter SDK found at $FLUTTER_DIR"
+fi
+
+# Add Flutter to PATH
+export PATH="$FLUTTER_DIR/bin:$PATH"
+
+# Verify Flutter installation
+if ! command -v flutter &> /dev/null; then
+  echo "ERROR: Flutter command not found even after installation."
+  exit 1
 fi
 
 echo "Flutter version:"
