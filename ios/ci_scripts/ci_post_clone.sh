@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# Ensure system commands can be found even if PATH is incomplete
+export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH
+
 echo "=== CI_POST_CLONE.SH STARTED ==="
 
 # Debug
