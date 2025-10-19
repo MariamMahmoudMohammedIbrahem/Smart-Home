@@ -2,9 +2,6 @@
 
 set -euo pipefail
 
-# Ensure system commands can be found even if PATH is incomplete
-export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH
-
 echo "=== CI_POST_CLONE.SH STARTED ==="
 
 # Debug
@@ -14,44 +11,25 @@ ls -la
 echo "PATH = $PATH"
 echo "CI_PRIMARY_REPOSITORY_PATH = ${CI_PRIMARY_REPOSITORY_PATH:-Not set}"
 
-echo "Current directory: $(pwd)"
-echo "Contents:"
-ls -la
-
 # CocoaPods
 echo "Checking CocoaPods..."
 if ! command -v pod &> /dev/null; then
-    echo "CocoaPods not found!"
+    echo "ERROR: CocoaPods (pod) command not found!"
+    exit 1
 else
     echo "CocoaPods version: $(pod --version)"
 fi
 
 # Find Flutter
 echo "Checking for Flutter..."
-
-# Try known paths where Flutter may exist on Xcode Cloud
-FLUTTER_PATHS=(
-  "/opt/homebrew/bin/flutter"
-  "/usr/local/bin/flutter"
-  "$HOME/flutter/bin/flutter"
-)
-
-for path in "${FLUTTER_PATHS[@]}"; do
-  if [ -x "$path" ]; then
-    echo "Found Flutter at $path"
-    export PATH="$(dirname "$path"):$PATH"
-    break
-  fi
-done
-
-# Confirm flutter is now available
 if ! command -v flutter &> /dev/null; then
-    echo "ERROR: Flutter not found in any known location!"
+    echo "ERROR: Flutter not found in PATH!"
     exit 1
+else
+    echo "Flutter found at: $(which flutter)"
 fi
 
 echo "Flutter version:"
-which flutter
 flutter --version
 
 # Install dependencies
