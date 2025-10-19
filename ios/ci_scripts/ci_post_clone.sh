@@ -5,6 +5,12 @@ set -euo pipefail
 echo "=== CI_POST_CLONE.SH STARTED ==="
 
 # Debug
+echo "Current working directory: $(pwd)"
+echo "Listing contents:"
+ls -la
+echo "PATH = $PATH"
+echo "CI_PRIMARY_REPOSITORY_PATH = ${CI_PRIMARY_REPOSITORY_PATH:-Not set}"
+
 echo "Current directory: $(pwd)"
 echo "Contents:"
 ls -la
