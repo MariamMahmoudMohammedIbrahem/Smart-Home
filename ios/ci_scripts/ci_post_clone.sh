@@ -44,7 +44,7 @@ echo "Running flutter pub get..."
 flutter pub get
 
 echo "Running pod install..."
-cd ios || { echo "ERROR: Failed to enter ios directory"; exit 1; }
+cd "$CI_PRIMARY_REPOSITORY_PATH/ios" || { echo "ERROR: Failed to enter ios directory"; exit 1; }
 pod install --repo-update
 cd ..
 
