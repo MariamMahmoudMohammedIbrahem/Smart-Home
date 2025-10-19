@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/eoip/flutter/bin"
+
 echo "=== CI_POST_CLONE.SH STARTED ==="
 
 # Debug
