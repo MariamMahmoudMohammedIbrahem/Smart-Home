@@ -9,11 +9,18 @@ project 'Runner', {
   'Release' => :release,
 }
 
-# Use the Flutter root from environment or fallback
-flutter_root = ENV['FLUTTER_ROOT'] || File.expand_path(File.join('..', '..', 'flutter'), __dir__)
+# Determine Flutter root
+flutter_root = ENV['FLUTTER_ROOT']
+if flutter_root.nil? || flutter_root.empty?
+  flutter_root = File.expand_path(File.join('..', '..', 'flutter'), __dir__)
+end
 
-# Load podhelper from the Flutter installation
 podhelper_path = File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper.rb')
+
+unless File.exist?(podhelper_path)
+  raise "[!] Unable to load Flutter's podhelper.rb at path: #{podhelper_path}. Check that FLUTTER_ROOT is set correctly."
+end
+
 load podhelper_path
 
 flutter_ios_podfile_setup
