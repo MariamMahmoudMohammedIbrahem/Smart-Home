@@ -2,17 +2,13 @@
 
 set -euo pipefail
 
-export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/eoip/flutter/bin"
-
 echo "=== CI_POST_CLONE.SH STARTED ==="
-
-# Debug
 echo "Current working directory: $(pwd)"
 echo "Listing contents:"
 echo "PATH = $PATH"
 echo "CI_PRIMARY_REPOSITORY_PATH = ${CI_PRIMARY_REPOSITORY_PATH:-Not set}"
 
-# CocoaPods
+# CocoaPods check
 echo "Checking CocoaPods..."
 if ! command -v pod &> /dev/null; then
     echo "ERROR: CocoaPods (pod) command not found!"
@@ -21,28 +17,25 @@ else
     echo "CocoaPods version: $(pod --version)"
 fi
 
-# Find Flutter
-echo "Checking for Flutter..."
-if ! command -v flutter &> /dev/null; then
-    echo "ERROR: Flutter not found in PATH!"
+# Flutter binary full path
+FLUTTER_BIN="/Users/eoip/development/flutter/bin/flutter"
+
+echo "Checking Flutter at $FLUTTER_BIN..."
+if [ ! -x "$FLUTTER_BIN" ]; then
+    echo "ERROR: Flutter binary not found or not executable at $FLUTTER_BIN"
     exit 1
 else
-    echo "Flutter found at: $(which flutter)"
+    echo "Flutter found at $FLUTTER_BIN"
 fi
 
 echo "Flutter version:"
-flutter --version
+$FLUTTER_BIN --version
 
-# Install dependencies
 echo "Running flutter pub get..."
-flutter pub get
+$FLUTTER_BIN pub get
 
-# iOS dependencies
 echo "Running pod install..."
-cd ios || {
-    echo "ERROR: Failed to enter ios directory"
-    exit 1
-}
+cd ios || { echo "ERROR: Failed to enter ios directory"; exit 1; }
 pod install --repo-update
 cd ..
 
