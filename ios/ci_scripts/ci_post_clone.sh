@@ -20,14 +20,27 @@ fi
 # Find Flutter
 echo "Checking for Flutter..."
 
-export PATH="/opt/homebrew/bin:/opt/homebrew/flutter/bin:$PATH"
+# Try known paths where Flutter may exist on Xcode Cloud
+FLUTTER_PATHS=(
+  "/opt/homebrew/bin/flutter"
+  "/usr/local/bin/flutter"
+  "$HOME/flutter/bin/flutter"
+)
 
+for path in "${FLUTTER_PATHS[@]}"; do
+  if [ -x "$path" ]; then
+    echo "Found Flutter at $path"
+    export PATH="$(dirname "$path"):$PATH"
+    break
+  fi
+done
+
+# Confirm flutter is now available
 if ! command -v flutter &> /dev/null; then
-    echo "ERROR: Flutter still not found in PATH!"
+    echo "ERROR: Flutter not found in any known location!"
     exit 1
 fi
 
-# Verify Flutter
 echo "Flutter version:"
 which flutter
 flutter --version
