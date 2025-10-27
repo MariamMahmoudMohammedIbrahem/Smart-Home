@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -euo pipefail
 
 echo "=== CI_POST_CLONE.SH STARTED ==="
@@ -7,8 +6,6 @@ echo "=== CI_POST_CLONE.SH STARTED ==="
 # Define Flutter SDK directory
 FLUTTER_DIR="$HOME/flutter"
 export FLUTTER_ROOT="$FLUTTER_DIR"
-
-# Add Flutter to PATH
 export PATH="$FLUTTER_DIR/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
 echo "PATH = $PATH"
@@ -26,7 +23,12 @@ fi
 # Verify Flutter installation
 flutter --version
 
+# Precache Flutter iOS artifacts
+echo "Running flutter precache for iOS..."
+flutter precache --ios
+
 # Get dependencies
+echo "Running flutter pub get..."
 flutter pub get
 
 # Check CocoaPods
@@ -34,8 +36,8 @@ echo "Checking CocoaPods..."
 pod --version
 
 # Run pod install
-cd "$CI_PRIMARY_REPOSITORY_PATH/ios"
 echo "Running pod install..."
+cd "$CI_PRIMARY_REPOSITORY_PATH/ios"
 pod install --repo-update
 cd ..
 
