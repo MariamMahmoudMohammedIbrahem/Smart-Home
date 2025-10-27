@@ -357,7 +357,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n# Pre-build script for Xcode Cloud\nif [ \"$CI_XCODE_CLOUD\" = \"TRUE\" ]; then\n    echo \"Running in Xcode Cloud - Installing dependencies...\"\n    \n    # Try to find Flutter\n    if [ -z \"$FLUTTER_ROOT\" ]; then\n        FLUTTER_ROOT=\"/opt/homebrew/Caskroom/flutter/3.22.6/flutter\"\n        export PATH=\"$PATH:$FLUTTER_ROOT/bin\"\n    fi\n    \n    # Check if flutter command is available\n    if command -v flutter &> /dev/null; then\n        echo \"Flutter found, installing dependencies...\"\n        flutter pub get\n        cd ios\n        pod install\n        cd ..\n    else\n        echo \"Error: Flutter not found!\"\n        exit 1\n    fi\nfi\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n# Pre-build script for Xcode Cloud\nif [ \"$CI_XCODE_CLOUD\" = \"TRUE\" ]; then\n    echo \"Running in Xcode Cloud - Installing dependencies...\"\n\n    export PATH=\"$HOME/flutter/bin:$PATH\"\n    export FLUTTER_ROOT=\"$HOME/flutter\"\n    \n    if command -v flutter &> /dev/null; then\n        echo \"Flutter found, installing dependencies...\"\n        flutter pub get\n        cd ios\n        pod install\n        cd ..\n    else\n        echo \"Error: Flutter not found!\"\n        exit 1\n    fi\nfi\n\n";
 		};
 		885C1E11FA6EB00641FD0CAF /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
