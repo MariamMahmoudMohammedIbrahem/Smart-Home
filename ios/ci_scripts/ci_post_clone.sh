@@ -35,7 +35,7 @@ fi
 # Install Flutter SDK if not found
 if [ ! -d "$FLUTTER_DIR" ]; then
   echo "Flutter SDK not found, installing..."
-  git clone https://github.com/flutter/flutter.git -b stable "$FLUTTER_DIR"
+  /usr/bin/git clone https://github.com/flutter/flutter.git -b stable "$FLUTTER_DIR"
 else
   echo "Flutter SDK found at $FLUTTER_DIR"
 fi
