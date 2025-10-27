@@ -6,7 +6,10 @@ echo "=== CI_POST_CLONE.SH STARTED ==="
 # Define Flutter SDK directory
 FLUTTER_DIR="$HOME/flutter"
 export FLUTTER_ROOT="$FLUTTER_DIR"
-export PATH="$FLUTTER_DIR/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+# Define default system PATH for safety
+DEFAULT_PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+# Add Flutter to PATH but keep existing paths
+export PATH="$FLUTTER_DIR/bin:${PATH:-$DEFAULT_PATH}"
 
 echo "PATH = $PATH"
 echo "CI_PRIMARY_REPOSITORY_PATH = ${CI_PRIMARY_REPOSITORY_PATH:-Not set}"
@@ -56,6 +59,7 @@ pod --version
 echo "Running pod install..."
 cd "$CI_PRIMARY_REPOSITORY_PATH/ios"
 pod install --repo-update
+cd "$CI_PRIMARY_REPOSITORY_PATH"
 cd ..
 
 echo "=== CI_POST_CLONE.SH COMPLETED ==="
