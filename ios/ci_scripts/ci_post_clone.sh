@@ -6,12 +6,28 @@ echo "=== CI_POST_CLONE.SH STARTED ==="
 # Define Flutter SDK directory
 FLUTTER_DIR="$HOME/flutter"
 export FLUTTER_ROOT="$FLUTTER_DIR"
-#export PATH="$FLUTTER_DIR/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-export PATH="$FLUTTER_DIR/bin:$PATH"
+export PATH="$FLUTTER_DIR/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
 echo "PATH = $PATH"
 echo "CI_PRIMARY_REPOSITORY_PATH = ${CI_PRIMARY_REPOSITORY_PATH:-Not set}"
 echo "FLUTTER_ROOT = $FLUTTER_ROOT"
+
+# Persist PATH so later Xcode Cloud stages (like xcodebuild) can find tools
+# Xcode Cloud may start a new shell for later commands, losing this PATH.
+# Appending to ~/.zshrc ensures the same PATH is available later.
+if [ -n "${SHELL:-}" ]; then
+  case "$SHELL" in
+    */zsh)
+      echo "export PATH=\"$PATH\"" >> ~/.zshrc
+      ;;
+    */bash)
+      echo "export PATH=\"$PATH\"" >> ~/.bashrc
+      ;;
+    *)
+      echo "export PATH=\"$PATH\"" >> ~/.profile
+      ;;
+  esac
+fi
 
 # Install Flutter SDK if not found
 if [ ! -d "$FLUTTER_DIR" ]; then
