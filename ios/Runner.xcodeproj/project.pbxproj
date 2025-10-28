@@ -194,9 +194,9 @@
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
 				885C1E11FA6EB00641FD0CAF /* [CP] Check Pods Manifest.lock */,
-				9740EEB61CF901F6004384FC /* Run Script */,
 				620876D72E783C9A006D752D /* ShellScript */,
 				97C146EA1CF9000F007C117D /* Sources */,
+				9740EEB61CF901F6004384FC /* Run Script */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
@@ -324,7 +324,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n# Pre-build script for Xcode Cloud\nif [ \"$CI_XCODE_CLOUD\" = \"TRUE\" ]; then\n    echo \"Running in Xcode Cloud - Installing dependencies...\"\n\n    export PATH=\"$HOME/flutter/bin:$PATH\"\n    export FLUTTER_ROOT=\"$HOME/flutter\"\n    \n    if command -v flutter &> /dev/null; then\n        echo \"Flutter found, installing dependencies...\"\n        flutter pub get\n        cd ios\n        pod install\n        cd ..\n    else\n        echo \"Error: Flutter not found!\"\n        exit 1\n    fi\nfi\n\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n# Pre-build script for Xcode Cloud\n#if [ \"$CI_XCODE_CLOUD\" = \"TRUE\" ]; then\n    #echo \"Running in Xcode Cloud - Installing dependencies...\"\n\n   # export PATH=\"$HOME/flutter/bin:$PATH\"\n  #  export FLUTTER_ROOT=\"$HOME/flutter\"\n    \n  #  if command -v flutter &> /dev/null; then\n     #   echo \"Flutter found, installing dependencies...\"\n     #   flutter pub get\n   #     cd ios\n      #  pod install\n  #      cd ..\n#    else\n    #    echo \"Error: Flutter not found!\"\n   #     exit 1\n#    fi\n#fi\nif [ \"$CI_XCODE_CLOUD\" = \"TRUE\" ]; then\n    echo \"Flutter SDK path: $FLUTTER_ROOT\"\n    export PATH=\"$FLUTTER_ROOT/bin:$PATH\"\n    flutter --version\nfi\n";
 		};
 		885C1E11FA6EB00641FD0CAF /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
